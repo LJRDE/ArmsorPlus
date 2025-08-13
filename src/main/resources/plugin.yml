@@ -1,0 +1,19 @@
+name: ArmsorPlus
+version: '0.2-pre'
+main: Dim_LJR.armsorPlus.ArmsorPlus
+api-version: '1.20'
+authors: [ Dim_LJR ]
+description: 一个Minecraft武器装备强化插件
+website: https://github.com/LJRDE
+commands:
+  ArmsorPlus:
+    usage: |
+      /ArmsorPlus info
+      /ArmsorPlus give [Arms_I,Arms_II,Armor_I,Armor_II,Bow_I,DIAMONDPLUS,MagicBall_I,MagicBall_II,MagicBall_III,MagicBall_IV]
+      /ArmsorPlus spawn
+      /ArmsorPlus getEnchantmentLevel
+    permission: ArmsorPlus.op
+permissions:
+  ArmsorPlus.op:
+    default: op
+    description: 允许使用管理员命令
