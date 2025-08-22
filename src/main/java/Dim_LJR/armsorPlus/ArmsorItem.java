@@ -9,7 +9,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.Arrays;
 import java.util.Collections;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
-import static Dim_LJR.armsorPlus.ArmsorPlus.romanNumeral;
+
+import static Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler.romanNumeral;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.Armorkey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.Armskey;
