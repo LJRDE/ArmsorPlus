@@ -60,6 +60,7 @@ public class ArmsorPlusMenu implements Listener {
         magicitemslist = Bukkit.createInventory(null, 45, ChatColor.DARK_PURPLE + "魔法武器");
         addBorder(magicitemslist,PURPLE_STAINED_GLASS_PANE);
         magicitemslist.setItem(10,BloodSword(1));
+        magicitemslist.setItem(11,Iron_Epee(1));
         return magicitemslist;
     }
     public Inventory createShopMenu() {
@@ -125,7 +126,8 @@ public class ArmsorPlusMenu implements Listener {
         if(event.getClickedInventory() == shop ||
                 event.getClickedInventory() == enchantmentlist ||
                 event.getClickedInventory() == menu||
-                event.getClickedInventory() == armslist)
+                event.getClickedInventory() == armslist||
+                event.getClickedInventory() == magicitemslist)
         {
             event.setCancelled(true);
             Player player = (Player) event.getWhoClicked();
@@ -285,11 +287,6 @@ public class ArmsorPlusMenu implements Listener {
         if(!shopItem.hasItemMeta())
             return;
         // 获取魔法球等级
-        if(ArmsorEnchant.getEnchantLevel(shopItem,BloodSacrificekey)==5)
-        {
-            player.sendMessage("使用4个红石粉围着一个骷髅头合成");
-            return;
-        }
         ItemMeta meta = shopItem.getItemMeta();
         int ballLevel = ArmsorEnchant.getEnchantLevel(shopItem,MagicBallKey);
         if (ballLevel==0) return;

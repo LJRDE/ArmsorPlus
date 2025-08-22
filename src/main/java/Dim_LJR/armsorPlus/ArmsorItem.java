@@ -2,12 +2,17 @@ package Dim_LJR.armsorPlus;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.UUID;
+
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 
 import static Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler.romanNumeral;
@@ -102,6 +107,19 @@ public class ArmsorItem {
     private static final String GuideBook = ChatColor.GOLD + "高级附魔向导";
 
     //物品声明
+    public static ItemStack Iron_Epee(int Amount)//重剑
+    {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.WHITE + "重剑");
+        item.setAmount(Amount);
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(UUID.randomUUID(),
+                        "arms",10,AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlot.HAND));
+        item.setItemMeta(meta);
+        return item;
+    }
     public static ItemStack DoubleHit_EnchantdeBook(int Amount, int level)//双重打击附魔书
     {
         if(Amount==0)
@@ -390,7 +408,7 @@ public class ArmsorItem {
         else meta.setDisplayName(BloodSacrifice_I_EnchantedBook);
         meta.setLore(Arrays.asList(ChatColor.RED + "可用装备:剑",
                 ChatColor.GOLD + "概率扣自己的血量造成多倍伤害",
-                ChatColor.GOLD + "倍率为2~" + level + 1 + "倍",
+                ChatColor.GOLD + "倍率为2~" + (level + 1) + "倍",
                 ChatColor.RESET + "拖动到装备上来使用",
                 "级别" + level));
         book.setItemMeta(meta);

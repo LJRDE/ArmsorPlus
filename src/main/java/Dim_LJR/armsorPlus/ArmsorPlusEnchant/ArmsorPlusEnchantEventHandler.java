@@ -310,7 +310,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 return;
             if(event.getEntity() instanceof Player) {
                 Victims = (Player) event.getEntity();
-                Victims.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * level, 4 * level));
+                Victims.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * level, 1));
                 Victims.sendActionBar(ChatColor.AQUA + "你被敌人施加了寒冻");
                 if (event.getDamager() instanceof Player)
                     ((Player) event.getDamager()).sendActionBar(ChatColor.AQUA + "你对敌人施加了寒冻");
@@ -472,26 +472,25 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         int level = ArmsorEnchant.getEnchantLevel(((LivingEntity) event.getEntity()).getEquipment().getBoots(),RipplesProtectkey);
         if(level<=0)
             return;
-        double damage = event.getDamage();
         double maxhealth = ((LivingEntity) event.getEntity()).getMaxHealth();
-        double health = ((LivingEntity) event.getEntity()).getHealth() + level * 3 - event.getDamage();
+        double health = ((LivingEntity) event.getEntity()).getHealth() + level - event.getDamage();
         if(health >= maxhealth)
         {
             health = maxhealth;
             event.setDamage(0);
             ((LivingEntity) event.getEntity()).setHealth(health);
         }
-        else if(level * 3 > event.getDamage())
+        else if(level > event.getDamage())
         {
             event.setDamage(0);
             ((LivingEntity) event.getEntity()).setHealth(health);
         }
         else {
-            event.setDamage(event.getDamage() - 3 * level);
+            event.setDamage(event.getDamage() - level);
         }
         if(event.getEntity() instanceof Player)
         {
-            event.getEntity().sendMessage(ChatColor.BLUE + "涟漪恢复了" + level * 3 + "点生命值");
+            event.getEntity().sendMessage(ChatColor.BLUE + "涟漪恢复了" + level + "点生命值");
         }
     }
     @EventHandler
@@ -580,23 +579,23 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         int c = 0;
         item.setAmount(item.getAmount() - 1);
         event.setCancelled(true);
-
-        while (Amount >= 0) {
-            if(Amount >= 3 && percent(10)) {
-                player.getInventory().addItem(Sniping_EnchantdeBook(1, level_m3));
+        int goal = Amount;
+        while (c <= goal) {
+            if(goal >= 3 && percent(10)) {
+                player.getInventory().addItem(Sniping_EnchantdeBook(1, r.nextInt(3) + 1));
                 player.sendMessage(ChatColor.LIGHT_PURPLE + "获得狙击附魔书");
                 c++;
             }
             if (percent(10)) {
-                player.getInventory().addItem(Famine_EnchantdeBook(1, level_m3));
+                player.getInventory().addItem(Famine_EnchantdeBook(1, r.nextInt(3) + 1));
                 player.sendMessage(ChatColor.GREEN + "获得饥荒附魔书");
                 c++;
             } if (percent(10)) {
-                player.getInventory().addItem(Dodge_EnchantdeBook(1, level_m4));
+                player.getInventory().addItem(Dodge_EnchantdeBook(1, r.nextInt(4) + 1));
                 player.sendMessage(ChatColor.GOLD + "获得闪避附魔书");
                 c++;
             } if (percent(10)) {
-                player.getInventory().addItem(Ripples_EnchantdeBook(1, level_m3));
+                player.getInventory().addItem(Ripples_EnchantdeBook(1, r.nextInt(3) + 1));
                 player.sendMessage(ChatColor.BLUE + "获得涟漪附魔书");
                 c++;
             } if (percent(10)) {
@@ -628,7 +627,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 player.sendMessage(ChatColor.DARK_PURPLE + "获得凋零附魔书");
                 c++;
             } if (percent(10)) {
-                player.getInventory().addItem(Blocking_EnchantedBook(1, level_m5));
+                player.getInventory().addItem(Blocking_EnchantedBook(1, r.nextInt(5) + 1));
                 player.sendMessage(ChatColor.AQUA + "获得格挡附魔书");
                 c++;
             } if (percent(10)) {
@@ -636,17 +635,17 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 player.sendMessage(ChatColor.GOLD + "获得幸存附魔书");
                 c++;
             }if (percent(10)) {
-                player.getInventory().addItem(ShadowDodge_EnchantdeBook(1, level_m5));
+                player.getInventory().addItem(ShadowDodge_EnchantdeBook(1, r.nextInt(5) + 1));
                 player.sendMessage(ChatColor.DARK_PURPLE + "获得影避附魔书");
                 c++;
             }
             if (percent(10)) {
-                player.getInventory().addItem(ArrowSpeed_EnchantdeBook(1, level_m5));
+                player.getInventory().addItem(ArrowSpeed_EnchantdeBook(1, r.nextInt(5) + 1));
                 player.sendMessage(ChatColor.GOLD + "获得弹道附魔书");
                 c++;
             }
             if (percent(10)) {
-                player.getInventory().addItem(DoubleHit_EnchantdeBook(1, level_m5));
+                player.getInventory().addItem(DoubleHit_EnchantdeBook(1, r.nextInt(5) + 1));
                 player.sendMessage(ChatColor.GOLD + "获得双重打击附魔书");
                 c++;
             }

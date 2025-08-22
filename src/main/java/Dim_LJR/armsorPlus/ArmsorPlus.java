@@ -10,65 +10,18 @@ package Dim_LJR.armsorPlus;
 //ArmsorEnchant.addEnchant(ItemStack item,NameSpace key,int level)方法添加自定义附魔
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
-import com.sun.jdi.Bootstrap;
-import io.papermc.paper.enchantments.EnchantmentRarity;
-import io.papermc.paper.plugin.bootstrap.BootstrapContext;
-import io.papermc.paper.plugin.bootstrap.PluginBootstrap;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
-import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.*;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
-import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.ChatPaginator;
-import org.bukkit.util.Vector;
-import org.codehaus.plexus.interpolation.SingleResponseValueSource;
-import org.jetbrains.annotations.NotNull;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
-import org.jetbrains.annotations.Nullable;
-import net.kyori.adventure.key.Key;
-
-import javax.lang.model.element.Name;
-import java.beans.PersistenceDelegate;
+import Dim_LJR.armsorPlus.LoadOpenSea;
 import java.util.Random;
 
-import java.lang.reflect.Field;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
@@ -77,6 +30,7 @@ import static org.bukkit.Material.*;
 
 public final class ArmsorPlus extends JavaPlugin implements Listener {
     private void loadconfing() {
+        saveDefaultConfig();
     }
     @EventHandler
     public void StonePlace(BlockPlaceEvent event)//基础强化石监听器-防放置_包括一二级强化石
@@ -121,6 +75,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
     }
     @Override
     public void onEnable()  {
+        loadconfing();
         regkey(this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusMenu(),this);
@@ -141,6 +96,13 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         BloodSwordRecipe.shape(" A ","ABA"," A ");
         BloodSwordRecipe.setIngredient('A', REDSTONE);
         BloodSwordRecipe.setIngredient('B', SKELETON_SKULL);
+        //注册重剑的合成配方
+        NamespacedKey EpeeKey = new NamespacedKey(this,"ArmsorPlus_EpeeKey");
+        ItemStack EpeeSwordItem = Iron_Epee(1);
+        ShapedRecipe EpeeSwordRecipe =new ShapedRecipe(EpeeKey,EpeeSwordItem);
+        EpeeSwordRecipe.shape(" A "," A "," B ");
+        EpeeSwordRecipe.setIngredient('A', IRON_BLOCK);
+        EpeeSwordRecipe.setIngredient('B', STICK);
         //注册向导书的合成配方
         NamespacedKey GuideRecipeKey = new NamespacedKey(this,"GuideRecipe");
         ItemStack GuideBook = GuideBook(1);
@@ -158,6 +120,8 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(BloodSwordRecipe);//添加合成配方
         RecipeAmount++;
         getServer().addRecipe(DiamondPlusRecipe);//添加合成配方
+        RecipeAmount++;
+        getServer().addRecipe(EpeeSwordRecipe);
         RecipeAmount++;
         getLogger().info("ArmsorPlus 配方注册完成 数量:" + RecipeAmount);
         //注册附魔
