@@ -1,6 +1,5 @@
 package Dim_LJR.armsorPlus.Command;
 
-import Dim_LJR.armsorPlus.ArmsorPlus;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -16,11 +15,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
-import static Dim_LJR.armsorPlus.ArmsorPlus.*;
+import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.reloadmap;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 
 public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {//指令自动补全
-    private final List<String> args0 =List.of("info","give","spawn","getEnchantmentLevel","removeEnchant");
+    private final List<String> args0 =List.of("info","give","spawn","getEnchantmentLevel","removeEnchant","reloadmap");
     private final List<String> args1_give =List.of("Arms_I","Arms_II","Armor_I","Armor_II","Bow_I",
             "DiamondPlus","MagicBal_I","MagicBal_II","MagicBal_III","MagicBal_IV","Blood_Sword","Dodge_EnchantedBook","Famine_EnchantedBook",
             "Ripples_EnchantedBook","BloodSacrifice_EnchantedBook","Freeze_EnchantedBook","BasicStone","EffectClear_EnchantedBook",
@@ -202,6 +201,11 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {//指�
             }
             case "spawn" -> {
                 sender.sendMessage("开发中...");
+                return true;
+            }
+            case "reloadmap" -> {
+                sender.sendMessage("正在重载地图文件");
+                reloadmap();
                 return true;
             }
             case "getEnchantmentLevel" -> {

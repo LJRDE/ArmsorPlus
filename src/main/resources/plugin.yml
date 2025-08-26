@@ -12,6 +12,7 @@ commands:
       /ArmsorPlus give [Arms_I,Arms_II,Armor_I,Armor_II,Bow_I,DIAMONDPLUS,MagicBall_I,MagicBall_II,MagicBall_III,MagicBall_IV]
       /ArmsorPlus spawn
       /ArmsorPlus getEnchantmentLevel
+      /ArmsorPlus reloadmap
     permission: ArmsorPlus.op
 permissions:
   ArmsorPlus.op:

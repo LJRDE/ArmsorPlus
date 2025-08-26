@@ -1,6 +1,7 @@
 package Dim_LJR.armsorPlus;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,7 +39,7 @@ import static Dim_LJR.armsorPlus.ArmsorItem.ShadowDodge_EnchantdeBook;
 import static Dim_LJR.armsorPlus.ArmsorItem.Sniping_EnchantdeBook;
 import static Dim_LJR.armsorPlus.ArmsorItem.Survivor_EnchantedBook;
 import static Dim_LJR.armsorPlus.ArmsorItem.Withering_EnchantedBook;
-import static Dim_LJR.armsorPlus.NamespaceKey.Keys.BloodSacrificekey;
+import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.MagicBallKey;
 import static org.bukkit.Material.*;
@@ -108,6 +109,7 @@ public class ArmsorPlusMenu implements Listener {
         menu.setItem(10,createInfoItem(IRON_SWORD,ChatColor.GOLD + "魔法武器列表",ChatColor.GOLD + "点击查看"));
         menu.setItem(12,createInfoItem(BOOK,ChatColor.GOLD + "高级附魔书列表",ChatColor.GOLD + "点击查看"));
         menu.setItem(13,createInfoItem(DIAMOND,ChatColor.AQUA + "魔法物品列表",ChatColor.AQUA + "点击查看"));
+        menu.setItem(14,createInfoItem(GRASS_BLOCK,ChatColor.BLUE + "公海世界",ChatColor.BLUE + "点击传送"));
         return menu;
     }
     @EventHandler
@@ -147,6 +149,11 @@ public class ArmsorPlusMenu implements Listener {
                     player.openInventory(createMagicItemMenu());
                 if(clickedItem.hasItemMeta() && clickedItem.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "魔法武器列表"))
                     player.openInventory(createArmsListMenu());
+                if(clickedItem.hasItemMeta() && clickedItem.getItemMeta().getDisplayName().equals(ChatColor.BLUE + "公海世界"))
+                {
+                    player.teleport(world.getSpawnLocation());
+                    player.sendActionBar(Component.text().content("正在传送..."));
+                }
             }
         }
     }

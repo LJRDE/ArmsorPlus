@@ -1,10 +1,17 @@
 package Dim_LJR.armsorPlus;
 
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class NamespaceKey {
     public class Keys {
+        //插件键
+        public static JavaPlugin getplugin;
         // 玩家键
         public static NamespacedKey ShowParticles;
         public static NamespacedKey CriticalHitRate;
@@ -42,6 +49,7 @@ public class NamespaceKey {
 
         // 初始化所有键
         public static void regkey(JavaPlugin plugin) {
+            getplugin = plugin;
             // 玩家键
             ShowParticles = new NamespacedKey(plugin, "ArmsorPlus_ShowParticles");
             CriticalHitRate = new NamespacedKey(plugin, "ArmsorPlus_CriticalHitRate");
@@ -77,5 +85,20 @@ public class NamespaceKey {
             Sniping = new NamespacedKey(plugin, "ArmsorPlus_Sniping");
             Exorcism = new NamespacedKey(plugin, "ArmsorPlus_Exorcism");
         }
+    }
+    public static void banner() {
+        Bukkit.getLogger().info(" █████╗ ██████╗ ███╗   ███╗███████╗ ██████╗ ██████╗ ");
+        Bukkit.getLogger().info("██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔═══██╗██╔══██╗");
+        Bukkit.getLogger().info("███████║██████╔╝██╔████╔██║███████╗██║   ██║██████╔╝");
+        Bukkit.getLogger().info("██╔══██║██╔══██╗██║╚██╔╝██║╚════██║██║   ██║██╔══██╗");
+        Bukkit.getLogger().info("██║  ██║██║  ██║██║ ╚═╝ ██║███████║╚██████╔╝██║  ██║");
+        Bukkit.getLogger().info("╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝");
+        Bukkit.getLogger().info("██████╗ ██╗     ██╗   ██╗███████╗");
+        Bukkit.getLogger().info("██╔══██╗██║     ██║   ██║██╔════╝");
+        Bukkit.getLogger().info("██████╔╝██║     ██║   ██║███████╗");
+        Bukkit.getLogger().info("██╔═══╝ ██║     ██║   ██║╚════██║");
+        Bukkit.getLogger().info("██║     ███████╗╚██████╔╝███████║");
+        Bukkit.getLogger().info("╚═╝     ╚══════╝ ╚═════╝ ╚══════╝");
+        Bukkit.getLogger().info("by Dim_LJR");
     }
 }

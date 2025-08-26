@@ -46,7 +46,7 @@ import static org.bukkit.Material.*;
 import static org.bukkit.Material.BOOK;
 
 public class ArmsorPlusEnchantEventHandler implements Listener {
-    private boolean percent(int x)//百分率随机器
+    public boolean percent(int x)//百分率随机器
     {
         Random r =new Random();
         int rand = r.nextInt(101);
@@ -153,8 +153,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 location.getY(),
                 location.getZ(),
                 2.0f, // 爆炸范围
-                false, // 不破坏方块
-                true   // 产生火焰
+                false, // 不产生火焰
+                false  // 不破坏方块
         );
 
         // 对周围生物造成伤害

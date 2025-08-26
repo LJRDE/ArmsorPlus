@@ -10,27 +10,54 @@ package Dim_LJR.armsorPlus;
 //ArmsorEnchant.addEnchant(ItemStack item,NameSpace key,int level)方法添加自定义附魔
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
+import Dim_LJR.armsorPlus.OpenSea.OpenSeaDig;
+import Dim_LJR.armsorPlus.OpenSea.OpenSeaEntity;
+import Dim_LJR.armsorPlus.OpenSea.OpenSeaLottery;
 import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
-import Dim_LJR.armsorPlus.LoadOpenSea;
+import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
+
+import java.util.List;
 import java.util.Random;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
+import static Dim_LJR.armsorPlus.NamespaceKey.banner;
 import static org.bukkit.Material.*;
 
 
 public final class ArmsorPlus extends JavaPlugin implements Listener {
     private void loadconfing() {
         saveDefaultConfig();
+        FileConfiguration config = this.getConfig();
+        config.addDefault("SpawnOpenSea", true);
+        config.options().copyDefaults(true);
+        saveConfig();
+        if(config.getBoolean("SpawnOpenSea"))
+        {
+            getLogger().info("加载公海地图中");
+            LoadOpenSea.loadMap(Bukkit.getWorldContainer().toPath(),this.getResource("OpenSea.zip"));
+            getLogger().info("加载公海抽奖功能");
+            getServer().getPluginManager().registerEvents(new OpenSeaLottery(),this);
+            getLogger().info("加载公海地图保护功能");
+            getServer().getPluginManager().registerEvents(new OpenSeaDig(),this);
+            getLogger().info("加载公海地图生物功能");
+            getServer().getPluginManager().registerEvents(new OpenSeaEntity(),this);
+        }
+        else
+        {
+            getLogger().info("公海地图已关闭");
+        }
     }
     @EventHandler
     public void StonePlace(BlockPlaceEvent event)//基础强化石监听器-防放置_包括一二级强化石
@@ -75,8 +102,9 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
     }
     @Override
     public void onEnable()  {
-        loadconfing();
         regkey(this);
+        banner();
+        loadconfing();
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusMenu(),this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(),this);
