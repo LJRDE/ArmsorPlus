@@ -26,6 +26,7 @@ public class NamespaceKey {
         public static NamespacedKey BasicStone;
 
         // 附魔键
+        public static NamespacedKey Feedingkey;
         public static NamespacedKey MagicBallKey;
         public static NamespacedKey BloodSacrificekey;
         public static NamespacedKey Dodgekey;
@@ -64,6 +65,7 @@ public class NamespaceKey {
             BasicStone = new NamespacedKey(plugin, "ArmsorPlus_BasicStons");
 
             // 附魔键
+            Feedingkey = new NamespacedKey(plugin,"ArmsorPlus_Feeding");
             MagicBallKey = new NamespacedKey(plugin, "ArmsorPlus_MagicBall");
             BloodSacrificekey = new NamespacedKey(plugin, "ArmsorPlus_BloodSacrifice");
             Dodgekey = new NamespacedKey(plugin, "ArmsorPlus_Dodge");

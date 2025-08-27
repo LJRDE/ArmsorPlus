@@ -104,9 +104,28 @@ public class ArmsorItem {
     private static final String Exorcism_EnchantedBook = ChatColor.GOLD + "除魔";
     private static final String Sniping_EnchantedBook = ChatColor.LIGHT_PURPLE + "狙击";
     private static final String DoubleHit_EnchantedBook = ChatColor.LIGHT_PURPLE + "双重打击";
+    private static final String Feeding_EnchantedBook = ChatColor.RED + "吸血";
     private static final String GuideBook = ChatColor.GOLD + "高级附魔向导";
 
     //物品声明
+    public static ItemStack Feeding_EnchantdeBook(int Amount, int level)//吸血附魔书
+    {
+        if(Amount==0)
+            Amount=1;
+        if(level==0)
+            level=1;
+        ItemStack book = new ItemStack(BOOK);
+        ItemMeta meta = book.getItemMeta();
+        meta.setDisplayName(Feeding_EnchantedBook + romanNumeral(level));
+        meta.setLore(Arrays.asList(ChatColor.LIGHT_PURPLE + "可用装备:武器",
+                ChatColor.LIGHT_PURPLE + "有" + level * 20 + "%概率吸取0.5点生命值",
+                ChatColor.RESET + "拖动到装备上来使用",
+                "级别" + level));
+        book.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(book, Feedingkey,level);
+        book.setAmount(Amount);
+        return book;
+    }
     public static ItemStack Iron_Epee(int Amount)//重剑
     {
         ItemStack item = new ItemStack(IRON_SWORD);
@@ -148,7 +167,7 @@ public class ArmsorItem {
         ItemMeta meta = book.getItemMeta();
         meta.setDisplayName(Sniping_EnchantedBook + romanNumeral(level));
         meta.setLore(Arrays.asList(ChatColor.LIGHT_PURPLE + "可用装备:弓与弩",
-                ChatColor.LIGHT_PURPLE + "提升射出弓箭的速度和伤害，每级提升10倍",
+                ChatColor.LIGHT_PURPLE + "提升射出弓箭的速度和伤害，每级提升5倍",
                 ChatColor.LIGHT_PURPLE + "需要前置附魔[弹道]",
                 ChatColor.LIGHT_PURPLE + "仅史诗及以上魔法球可以获得",
                 ChatColor.RESET + "拖动到装备上来使用",

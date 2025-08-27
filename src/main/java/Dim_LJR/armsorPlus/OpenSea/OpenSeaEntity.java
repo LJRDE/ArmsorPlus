@@ -144,6 +144,6 @@ public class OpenSeaEntity implements Listener {
             if(skeleton.isDead())
                 return;
             else skeleton.remove();
-        },2400);
+        },4800);
     }
 }

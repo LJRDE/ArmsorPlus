@@ -604,5 +604,22 @@ public class EnhancementHandler implements Listener {
             player.sendMessage("附魔成功，魔咒级别" + ArmsorEnchant.getEnchantLevel(item,DoubleHitkey));
             addEnchantLore(item,ChatColor.LIGHT_PURPLE + "双重打击",level , DoubleHitkey);
         }//双重打击附魔书
+        else if(consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum,Feedingkey)!= 0 && consum.getType().equals(BOOK))
+        {
+            if (!IfArms(item))
+                return;
+            int level = 1;
+            level = ArmsorEnchant.getEnchantLevel(consum,Feedingkey);
+            event.setCancelled(true);
+            player.sendMessage("正在附魔" + ChatColor.RED + "吸血..." + ChatColor.RESET + level + "级");
+            if(ArmsorEnchant.getEnchantLevel(item,Feedingkey)>=level){
+                player.sendMessage("附魔失败，原有该附魔等级高于或等于此附魔书");
+                return;
+            }
+            consum.setAmount(consum.getAmount() - 1);
+            ArmsorEnchant.addEnchant(item, Feedingkey, level);
+            player.sendMessage("附魔成功，魔咒级别" + ArmsorEnchant.getEnchantLevel(item,Feedingkey));
+            addEnchantLore(item,ChatColor.DARK_RED + "吸血",level , Feedingkey);
+        }//吸血附魔书
     }
 }

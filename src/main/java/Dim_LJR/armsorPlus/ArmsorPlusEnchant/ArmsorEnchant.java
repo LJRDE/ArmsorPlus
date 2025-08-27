@@ -148,6 +148,8 @@ public class ArmsorEnchant implements Listener {//PDC!!!
             return "狙击";
         else if(key.equals(DoubleHitkey))//15
             return "双重打击";
+        else if(key.equals(Feedingkey))
+            return "吸血";
         else return null;
     }
 

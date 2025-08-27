@@ -39,6 +39,7 @@ import static Dim_LJR.armsorPlus.ArmsorItem.ShadowDodge_EnchantdeBook;
 import static Dim_LJR.armsorPlus.ArmsorItem.Sniping_EnchantdeBook;
 import static Dim_LJR.armsorPlus.ArmsorItem.Survivor_EnchantedBook;
 import static Dim_LJR.armsorPlus.ArmsorItem.Withering_EnchantedBook;
+import static Dim_LJR.armsorPlus.NamespaceKey.Keys.Feedingkey;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.MagicBallKey;
@@ -99,6 +100,7 @@ public class ArmsorPlusMenu implements Listener {
         enchantmentlist.setItem(25,ArrowSpeed_EnchantdeBook(1,5));
         enchantmentlist.setItem(28,Sniping_EnchantdeBook(1,5));
         enchantmentlist.setItem(29,DoubleHit_EnchantdeBook(1,5));
+        enchantmentlist.setItem(30,Feeding_EnchantdeBook(1,5));
 
         return enchantmentlist;
     }

@@ -49,7 +49,7 @@ public class OpenSeaLottery implements Listener {
             BukkitTask task = Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("ArmsorPlus")), () ->
             {
                 event.getClickedBlock().setType(Material.CHEST);
-            }, 1200);
+            }, 12000);
         }
     }
     //防止物品被取出

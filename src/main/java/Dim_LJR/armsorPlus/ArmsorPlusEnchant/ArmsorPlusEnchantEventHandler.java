@@ -68,7 +68,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         Vector velocity = arrow.getVelocity();
         velocity.multiply(level);
         if(ArmsorEnchant.getEnchantLevel(livingEntity.getActiveItem(),Sniping)!=0)
-            velocity.multiply(10 * ArmsorEnchant.getEnchantLevel(livingEntity.getActiveItem(),Sniping));
+            velocity.multiply(5 * ArmsorEnchant.getEnchantLevel(livingEntity.getActiveItem(),Sniping));
         arrow.setVelocity(velocity);
     }
     @EventHandler
@@ -158,7 +158,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         );
 
         // 对周围生物造成伤害
-        double damage = 10.0 * level;
+        double damage = 30.0 * level;
         for(Entity entity : location.getWorld().getNearbyEntities(location, 3, 3, 3)) {
             if(entity instanceof LivingEntity && entity != firework) {
                 ((LivingEntity) entity).damage(damage);
@@ -317,7 +317,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 return;
             }
             else {
-                ((LivingEntity) event.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * level, 4 * level));
+                ((LivingEntity) event.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 20 * level, 1));
                 if (event.getDamager() instanceof Player)
                     ((Player) event.getDamager()).sendActionBar(ChatColor.AQUA + "你对敌人施加了寒冻");
                 return;
@@ -535,6 +535,31 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         }
     }
     @EventHandler
+    public void FeedingEnchant(EntityDamageByEntityEvent event)//吸血监听器
+    {
+        if(event.getEntity().equals(event.getDamager()))
+            return;
+        if(event.getEntity() instanceof LivingEntity && event.getDamager() instanceof LivingEntity)//如果二者不是生命体直接退出
+        {
+            int level=ArmsorEnchant.getEnchantLevel(((LivingEntity) event.getDamager()).getEquipment().getItemInMainHand(),Feedingkey);
+            if(level==0)
+                return;
+            if(!percent(20 * level))
+                return;
+            double Entity = ((LivingEntity) event.getEntity()).getHealth()-0.5;
+            if(Entity<0)
+                ((LivingEntity) event.getEntity()).setHealth(0);
+            else
+                ((LivingEntity) event.getEntity()).setHealth(((LivingEntity) event.getEntity()).getHealth()-0.5);
+            if((((LivingEntity) event.getDamager()).getHealth()+0.5) > ((LivingEntity) event.getDamager()).getMaxHealth())
+                ((LivingEntity) event.getDamager()).setHealth(((LivingEntity) event.getDamager()).getMaxHealth());
+            else
+                ((LivingEntity) event.getDamager()).setHealth(((LivingEntity) event.getDamager()).getHealth()+0.5);
+            if (event.getDamager() instanceof Player)
+                event.getDamager().sendMessage(ChatColor.RED + "你对敌人施加了吸血");
+        }
+    }
+    @EventHandler
     public void FamineHandler(EntityDamageByEntityEvent event)//饥荒监听器
     {
         LivingEntity Damager;
@@ -647,6 +672,11 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             if (percent(10)) {
                 player.getInventory().addItem(DoubleHit_EnchantdeBook(1, r.nextInt(5) + 1));
                 player.sendMessage(ChatColor.GOLD + "获得双重打击附魔书");
+                c++;
+            }
+            if(percent(10)) {
+                player.getInventory().addItem(Feeding_EnchantdeBook(1, r.nextInt(5) + 1));
+                player.sendMessage(ChatColor.GOLD + "获得吸血附魔书");
                 c++;
             }
             Amount--;
