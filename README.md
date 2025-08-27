@@ -3,7 +3,7 @@ ArmsorPlus - Minecraft 高级附魔与装备系统
 为您的 Minecraft 服务器带来革命性的装备与附魔体验
 
 🔉 概述
-ArmsorPlus 是一款创新的 Minecraft 插件，它将 RPG 元素深度融入原版游戏中，提供超过 ​​30 种独特的高级附魔​​和​​定制武器装备系统​​。无论您是服务器管理员寻求增强玩家体验，还是玩家渴望更丰富的战斗系统，ArmsorPlus 都是您的完美选择。
+ArmsorPlus 是一款创新的 Minecraft 插件，它将 RPG 元素深度融入原版游戏中，提供超过 ​​30 种独特的高级附魔​​和​​定制武器装备系统​​，还提供了自定义公海系统。无论您是服务器管理员寻求增强玩家体验，还是玩家渴望更丰富的战斗系统，ArmsorPlus 都是您的完美选择。
 
 ✨ 核心功能
 
@@ -62,3 +62,10 @@ Java 17+
 
 4.
 插件将自动生成配置文件
+
+自定义公海系统(测试版)
+在config.yml中启用SpawnOpenSea
+进入.jar文件替换OpenSea.zip压缩包
+同时把OpenSeaName项改为你的地图名
+也可以替换压缩包，但是要注意压缩包名要改为OpenSea.zip，或更改MapZipName项
+如果要打开服务器重启时自动重置地图，可以把AutoResetOpenSeaMap项改为true

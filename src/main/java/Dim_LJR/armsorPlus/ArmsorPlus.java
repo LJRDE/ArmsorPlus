@@ -27,6 +27,7 @@ import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
 import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
@@ -37,16 +38,30 @@ import static org.bukkit.Material.*;
 
 
 public final class ArmsorPlus extends JavaPlugin implements Listener {
-    private void loadconfing() {
+    private void loadconfig() {
         saveDefaultConfig();
         FileConfiguration config = this.getConfig();
-        config.addDefault("SpawnOpenSea", true);
+        config.addDefault("SpawnOpenSea", false);
+        config.addDefault("AutoResetOpenSeaMap",false);
+        config.addDefault("OpenSeaName","OpenSea");
+        config.addDefault("MapZipName","OpenSea.zip");
         config.options().copyDefaults(true);
         saveConfig();
         if(config.getBoolean("SpawnOpenSea"))
         {
             getLogger().info("加载公海地图中");
-            LoadOpenSea.loadMap(Bukkit.getWorldContainer().toPath(),this.getResource("OpenSea.zip"));
+            if(config.getString("MapZipName")==null)
+                LoadOpenSea.loadMap(Bukkit.getWorldContainer().toPath(),
+                        this.getResource("OpenSea.zip"),
+                        config.getBoolean("AutoResetOpenSeaMap"),
+                        config.getString("OpenSeaName"),
+                        config.getString("MapZipName"));
+            else
+                LoadOpenSea.loadMap(Bukkit.getWorldContainer().toPath(),
+                        this.getResource(Objects.requireNonNull(config.getString("MapZipName"))),
+                        config.getBoolean("AutoResetOpenSeaMap"),
+                        config.getString("OpenSeaName"),
+                        config.getString("MapZipName"));
             getLogger().info("加载公海抽奖功能");
             getServer().getPluginManager().registerEvents(new OpenSeaLottery(),this);
             getLogger().info("加载公海地图保护功能");
@@ -104,7 +119,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
     public void onEnable()  {
         regkey(this);
         banner();
-        loadconfing();
+        loadconfig();
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusMenu(),this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(),this);

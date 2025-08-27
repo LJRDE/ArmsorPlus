@@ -1,1 +1,4 @@
-SpawnOpenSea: true
+OpenSeaName: OpenSea
+MapZipName: OpenSea.zip
+SpawnOpenSea: false
+AutoResetOpenSeaMap: false

@@ -5,29 +5,39 @@ import org.codehaus.plexus.util.FileUtils;
 
 import java.io.*;
 import java.nio.file.*;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class LoadOpenSea {
-    public static String OpenSeaName = "OpenSea";
     public static World world;
     static InputStream rezip;
     static Path repath;
-
-    public static void loadMap(Path folderPath, InputStream zip) {
-        if (!isValidWorldFolder(folderPath.resolve("OpenSea"))) {
-            Bukkit.getLogger().warning("无法找到世界文件夹,准备复制");
-            Bukkit.getLogger().warning(zip.toString());
+    static String GetMapName;
+    static String GetMapZipName;
+    public static void loadMap(Path folderPath, InputStream zip,boolean AutoReset,String OpenSeaName,String MapZipName) {
+        if (!isValidWorldFolder(folderPath.resolve(OpenSeaName))) {
+            Bukkit.getLogger().warning("无法找到世界文件夹,准备解压");
+            try {
+                unzipFromStream(zip, folderPath.resolve(OpenSeaName));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-        try {
-            unzipFromStream(zip, folderPath.resolve("OpenSea"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        else if(AutoReset)
+        {
+            try {
+                unzipFromStream(zip, folderPath.resolve(OpenSeaName));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         rezip = zip;
         repath = folderPath;
+        GetMapName = OpenSeaName;
+        GetMapZipName = MapZipName;
         Bukkit.getLogger().info("加载世界中...");
-        WorldCreator OpenSea = new WorldCreator("OpenSea");
+        WorldCreator OpenSea = new WorldCreator(OpenSeaName);
         OpenSea.environment(World.Environment.NORMAL);
         OpenSea.generateStructures(false);
         OpenSea.type(WorldType.NORMAL);
@@ -43,7 +53,7 @@ public class LoadOpenSea {
     public static void reloadmap()
     {
         try {
-            unzipFromStream(rezip, repath.resolve("OpenSea"));
+            unzipFromStream(rezip, repath.resolve(GetMapName));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
