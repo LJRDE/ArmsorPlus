@@ -217,7 +217,7 @@ public class EnhancementHandler implements Listener {
                 itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR);
                 EquipmentSlotGroup slot = getSlotByType(type);
                 itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR,
-                        new AttributeModifier(NamespacedKey.fromString("ArmsorPlus"),
+                        new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorUpgrade"),
                                 current + 1, AttributeModifier.Operation.ADD_NUMBER, slot));
             }
 
@@ -377,7 +377,7 @@ public class EnhancementHandler implements Listener {
 
         // 添加新的生命加成 (每级+5)
         AttributeModifier healthMod = new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus"),
+                new NamespacedKey(getplugin, "ArmsorPlus_HealthBoost"),
                 level * 5.0, AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.CHEST);
         itemMeta.addAttributeModifier(Attribute.GENERIC_MAX_HEALTH, healthMod);
@@ -402,10 +402,10 @@ public class EnhancementHandler implements Listener {
     /** 添加护甲+韧性属性修饰符 */
     private void addArmorModifier(ItemMeta meta, double value, EquipmentSlotGroup slot) {
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR,
-                new AttributeModifier(NamespacedKey.fromString("ArmsorPlus"),
+                new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorAdd"),
                         value, AttributeModifier.Operation.ADD_NUMBER, slot));
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
-                new AttributeModifier(NamespacedKey.fromString("ArmsorPlus"),
+                new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ToughnessAdd"),
                         value, AttributeModifier.Operation.ADD_NUMBER, slot));
     }
 }

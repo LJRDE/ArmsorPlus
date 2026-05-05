@@ -28,7 +28,7 @@ public class OpenSeaEntity implements Listener {
         item.setAmount(Amount);
         meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
                 new AttributeModifier(
-                        NamespacedKey.fromString("ArmsorPlus"),
+                        new NamespacedKey(getplugin, "ArmsorPlus_SwordDamage"),
                         15,AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.HAND));
         item.setItemMeta(meta);
@@ -42,12 +42,12 @@ public class OpenSeaEntity implements Listener {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + "守卫者的头套");
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus")
+                new NamespacedKey(getplugin, "ArmsorPlus_HelmetArmor")
                 , 8,//护甲值
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.HEAD));
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus"),
+                new NamespacedKey(getplugin, "ArmsorPlus_HelmetToughness"),
                 12,//护甲韧性
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.HEAD));
@@ -63,12 +63,12 @@ public class OpenSeaEntity implements Listener {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus")
+                new NamespacedKey(getplugin, "ArmsorPlus_ChestplateArmor")
                 , 8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.CHEST));
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus")
+                new NamespacedKey(getplugin, "ArmsorPlus_ChestplateToughness")
                 ,  8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.CHEST));
@@ -83,12 +83,13 @@ public class OpenSeaEntity implements Listener {
         ItemStack item = new ItemStack(DIAMOND_LEGGINGS);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(NamespacedKey.fromString("ArmsorPlus"),
+        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
+                new NamespacedKey(getplugin, "ArmsorPlus_LeggingsArmor"),
                 8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.LEGS));
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus")
+                new NamespacedKey(getplugin, "ArmsorPlus_LeggingsToughness")
                 ,  8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.LEGS));
@@ -104,12 +105,12 @@ public class OpenSeaEntity implements Listener {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus")
+                new NamespacedKey(getplugin, "ArmsorPlus_BootsArmor")
                 , 8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.FEET));
         meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
-                NamespacedKey.fromString("ArmsorPlus")
+                new NamespacedKey(getplugin, "ArmsorPlus_BootsToughness")
                 ,  8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.FEET));

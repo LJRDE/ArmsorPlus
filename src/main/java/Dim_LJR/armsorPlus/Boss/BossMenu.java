@@ -8,6 +8,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -194,9 +195,8 @@ public class BossMenu implements Listener {
     // 盔甲架伤害处理
     // ========================================================================
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onBossArmorStandDamage(EntityDamageByEntityEvent event) {
-        if (event.isCancelled()) return;
 
         Entity damaged = event.getEntity();
         UUID id = damaged.getUniqueId();

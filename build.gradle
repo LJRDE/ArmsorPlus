@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'Dim_LJR'
-version = '0.3-D'
+version = '0.3-D+'
 
 repositories {
     mavenCentral()

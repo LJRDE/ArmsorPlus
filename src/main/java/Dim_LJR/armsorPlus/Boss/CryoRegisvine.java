@@ -159,7 +159,7 @@ public class CryoRegisvine {
     private static ArmorStand spawnStand(Location center, double x, double y, double z, Material head) {
         Location loc = center.clone().add(x, y, z);
         ArmorStand stand = (ArmorStand) center.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
-        stand.setVisible(false);
+        stand.setVisible(true);
         stand.setSmall(true);
         stand.setBasePlate(false);
         stand.setArms(false);
@@ -167,6 +167,7 @@ public class CryoRegisvine {
         stand.setCanPickupItems(false);
         stand.setRemoveWhenFarAway(false);
         stand.setPersistent(true);
+        stand.setInvulnerable(false);
         stand.getEquipment().setHelmet(new ItemStack(head), true);
         return stand;
     }
