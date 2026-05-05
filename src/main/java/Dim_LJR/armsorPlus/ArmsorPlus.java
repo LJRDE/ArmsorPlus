@@ -50,17 +50,20 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         regkey(this);           // 注册所有NamespaceKey
         banner();               // 打印启动横幅
         loadconfig();           // 加载配置文件
+        PlayerSettings.load(this); // 加载玩家设置
         registerListeners();    // 注册事件监听器
         registerCommands();     // 注册命令
         registerRecipes();      // 注册合成配方
         BossWorld.loadWorld();  // 加载BOSS世界
 
+        getLogger().info("===== ArmsorPlus v" + getDescription().getVersion() + " 已启用 =====");
         getLogger().info("服务端类型: " + Bukkit.getServer().getName());
         getLogger().info("Bukkit API 版本: " + Bukkit.getBukkitVersion());
     }
 
     @Override
     public void onDisable() {
+        PlayerSettings.save(this); // 保存玩家设置
         getLogger().info("ArmsorPlus 插件已禁用");
         HandlerList.unregisterAll();
     }

@@ -15,7 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.List;
+import java.util.UUID;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
@@ -26,7 +27,7 @@ import static org.bukkit.Material.*;
 /**
  * 插件 GUI 菜单系统。
  * <p>
- * 包括: 主菜单、魔法球兑换商店、附魔书列表、魔法武器列表、魔法物品列表。
+ * 包括: 主菜单、设置、魔法球兑换商店、附魔书列表、魔法武器列表、魔法物品列表。
  * 通过右键"高级附魔向导书"打开主菜单。
  */
 public class ArmsorPlusMenu implements Listener {
@@ -105,10 +106,10 @@ public class ArmsorPlusMenu implements Listener {
     public Inventory createMenu() {
         menu = Bukkit.createInventory(null, 45, ChatColor.DARK_PURPLE + "ArmsorPlus插件菜单");
         addBorder(menu, PURPLE_STAINED_GLASS_PANE);
-        menu.setItem(11, createInfoItem(FIREWORK_STAR, ChatColor.DARK_PURPLE + "兑换魔法球",
-                ChatColor.GOLD + "点击进入兑换窗口"));
         menu.setItem(10, createInfoItem(IRON_SWORD, ChatColor.GOLD + "魔法武器列表",
                 ChatColor.GOLD + "点击查看"));
+        menu.setItem(11, createInfoItem(FIREWORK_STAR, ChatColor.DARK_PURPLE + "兑换魔法球",
+                ChatColor.GOLD + "点击进入兑换窗口"));
         menu.setItem(12, createInfoItem(BOOK, ChatColor.GOLD + "高级附魔书列表",
                 ChatColor.GOLD + "点击查看"));
         menu.setItem(13, createInfoItem(DIAMOND, ChatColor.AQUA + "魔法物品列表",
@@ -119,7 +120,41 @@ public class ArmsorPlusMenu implements Listener {
                 ChatColor.RED + "点击查看可召唤的BOSS"));
         menu.setItem(16, createInfoItem(ENDER_PEARL, ChatColor.RED + "前往BOSS世界",
                 ChatColor.RED + "点击传送到BOSS世界"));
+        menu.setItem(19, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
+                ChatColor.GRAY + "点击打开个人设置"));
         return menu;
+    }
+
+    /** 个人设置菜单 (按玩家状态动态生成) */
+    public Inventory createSettingsMenu(Player player) {
+        UUID uuid = player.getUniqueId();
+        Inventory settings = Bukkit.createInventory(null, 27, ChatColor.DARK_GRAY + "个人设置");
+
+        addBorder(settings, GRAY_STAINED_GLASS_PANE);
+
+        // 附魔生效通知开关
+        boolean notifyOn = PlayerSettings.isNotificationEnabled(uuid);
+        settings.setItem(11, createInfoItem(
+                notifyOn ? GREEN_DYE : GRAY_DYE,
+                (notifyOn ? "§a" : "§7") + "附魔生效通知",
+                "§7当前: " + (notifyOn ? "§a§l开启" : "§7§l关闭"),
+                "",
+                "§e点击切换",
+                "§7关闭后将不再收到附魔触发的聊天消息"));
+
+        // 管理员模式 (仅op可见)
+        if (player.hasPermission("ArmsorPlus.op")) {
+            boolean adminOn = PlayerSettings.isAdminMode(uuid);
+            settings.setItem(15, createInfoItem(
+                    adminOn ? GOLDEN_APPLE : APPLE,
+                    (adminOn ? "§6" : "§7") + "管理员模式",
+                    "§7当前: " + (adminOn ? "§6§l已开启" : "§7§l已关闭"),
+                    "",
+                    "§e点击切换",
+                    "§7开启后可在菜单列表中直接拿取物品"));
+        }
+
+        return settings;
     }
 
     // ========================================================================
@@ -138,12 +173,12 @@ public class ArmsorPlusMenu implements Listener {
     /** 菜单点击事件处理 */
     @EventHandler
     public void onShopClick(InventoryClickEvent event) {
-        // 点击窗口外部(丢弃物品)时不检查自定义菜单，防止 null==null 误取消
         if (event.getClickedInventory() == null) return;
 
         Player player = (Player) event.getWhoClicked();
+        UUID uuid = player.getUniqueId();
 
-        // 主菜单导航
+        // ---- 主菜单导航 ----
         if (event.getClickedInventory() == menu) {
             event.setCancelled(true);
             ItemStack clicked = event.getCurrentItem();
@@ -170,22 +205,59 @@ public class ArmsorPlusMenu implements Listener {
                 } else {
                     player.sendMessage(ChatColor.RED + "BOSS世界未加载");
                 }
+            } else if (name.equals(ChatColor.GRAY + "设置")) {
+                player.openInventory(createSettingsMenu(player));
             }
             return;
         }
 
-        // 商店菜单 — 兑换魔法球
+        // ---- 设置菜单 ----
+        if (event.getView().getTitle().equals(ChatColor.DARK_GRAY + "个人设置")) {
+            event.setCancelled(true);
+            ItemStack clicked = event.getCurrentItem();
+            if (clicked == null || !clicked.hasItemMeta()) return;
+
+            String name = clicked.getItemMeta().getDisplayName();
+            if (name.contains("附魔生效通知")) {
+                boolean current = PlayerSettings.isNotificationEnabled(uuid);
+                PlayerSettings.setNotificationEnabled(uuid, !current);
+                player.openInventory(createSettingsMenu(player));
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+            } else if (name.contains("管理员模式") && player.hasPermission("ArmsorPlus.op")) {
+                boolean current = PlayerSettings.isAdminMode(uuid);
+                PlayerSettings.setAdminMode(uuid, !current);
+                player.openInventory(createSettingsMenu(player));
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+            }
+            return;
+        }
+
+        // ---- 商店菜单 — 兑换魔法球 ----
         if (event.getClickedInventory() == shop) {
             event.setCancelled(true);
             if (event.getCurrentItem() == null || event.getCurrentItem().isEmpty()) return;
+
+            // 管理员模式可直接拿取
+            if (PlayerSettings.isAdminMode(uuid) && player.hasPermission("ArmsorPlus.op")) {
+                giveAdminItem(player, event.getCurrentItem());
+                return;
+            }
             handleBallPurchase(player, event.getCurrentItem());
             return;
         }
 
-        // 浏览菜单 — 禁止取走物品
+        // ---- 浏览菜单 — 管理员模式可拿取物品 ----
         if (event.getClickedInventory() == armsList
                 || event.getClickedInventory() == magicItemsList
                 || event.getClickedInventory() == enchantmentList) {
+
+            if (PlayerSettings.isAdminMode(uuid) && player.hasPermission("ArmsorPlus.op")) {
+                ItemStack clicked = event.getCurrentItem();
+                if (clicked != null && !clicked.isEmpty()
+                        && clicked.hasItemMeta() && !" ".equals(clicked.getItemMeta().getDisplayName())) {
+                    giveAdminItem(player, clicked);
+                }
+            }
             event.setCancelled(true);
         }
     }
@@ -193,6 +265,14 @@ public class ArmsorPlusMenu implements Listener {
     // ========================================================================
     // 内部方法
     // ========================================================================
+
+    /** 管理员模式: 复制物品给玩家 */
+    private void giveAdminItem(Player player, ItemStack displayItem) {
+        ItemStack copy = displayItem.clone();
+        player.getInventory().addItem(copy);
+        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
+        player.sendMessage("§6[管理员模式] §e已获得 " + displayItem.getItemMeta().getDisplayName());
+    }
 
     /** 处理魔法球兑换 */
     private void handleBallPurchase(Player player, ItemStack shopItem) {
@@ -232,31 +312,27 @@ public class ArmsorPlusMenu implements Listener {
         player.sendMessage("§a成功兑换 §6" + ball.getItemMeta().getDisplayName() + "§a!");
     }
 
-    /** 为菜单添加玻璃板边框 */
+    /** 为菜单添加玻璃板边框 (自动适配大小) */
     private void addBorder(Inventory inv, Material material) {
         ItemStack border = MenuMark(1, material);
         ItemMeta meta = border.getItemMeta();
         meta.setDisplayName(" ");
         border.setItemMeta(meta);
 
+        int size = inv.getSize();
+        int rows = size / 9;
+        // 顶行
         for (int i = 0; i < 9; i++) {
             inv.setItem(i, border);
-            inv.setItem(i + 36, border);
         }
-        for (int i = 0; i < 36; i += 9) {
+        // 底行
+        for (int i = size - 9; i < size; i++) {
             inv.setItem(i, border);
-            inv.setItem(i + 8, border);
         }
-    }
-
-    /** 创建纯色背景屏 (全填满) */
-    private void addScreen(Inventory inv, Material material) {
-        ItemStack fill = new ItemStack(material);
-        ItemMeta meta = fill.getItemMeta();
-        meta.setDisplayName(" ");
-        fill.setItemMeta(meta);
-        for (int i = 0; i < 45; i++) {
-            inv.setItem(i, fill);
+        // 左右边框
+        for (int i = 1; i < rows - 1; i++) {
+            inv.setItem(i * 9, border);
+            inv.setItem(i * 9 + 8, border);
         }
     }
 

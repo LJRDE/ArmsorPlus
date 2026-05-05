@@ -1,5 +1,5 @@
 name: ArmsorPlus
-version: '1.0'
+version: '${version}'
 main: Dim_LJR.armsorPlus.ArmsorPlus
 api-version: '1.21'
 authors: [ Dim_LJR ]

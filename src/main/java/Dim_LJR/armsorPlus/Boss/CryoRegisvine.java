@@ -21,8 +21,8 @@ import java.util.UUID;
 /**
  * 急冻树 —— 冰元素BOSS (原神: 急冻树)
  * <p>
- * 本体隐身无AI，由盔甲架戴冰块/雪块模仿形态。
- * 攻击任意盔甲架造成20%HP伤害，核心盔甲架一击必杀。
+ * 本体为隐身尸壳，由无AI雪人排列成树状结构。
+ * 攻击任意躯干部位造成20%HP伤害，核心一击必杀。
  * 火焰/雷电伤害触发元素反应：伤害翻倍+50%暴露核心。
  */
 public class CryoRegisvine {
@@ -37,9 +37,9 @@ public class CryoRegisvine {
     private static UUID bossUuid;
     private static BossBar bossBar;
 
-    // 盔甲架
-    private static ArmorStand coreStand;
-    private static final java.util.List<ArmorStand> bodyStands = new java.util.ArrayList<>();
+    // 雪人躯干 (树状结构)
+    private static LivingEntity coreStand;
+    private static final java.util.List<LivingEntity> bodyStands = new java.util.ArrayList<>();
 
     private static final Random RANDOM = new Random();
 
@@ -76,9 +76,7 @@ public class CryoRegisvine {
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
         bossEntity.setHealth(MAX_HEALTH);
 
-        // 隐身效果
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, -1, 1, false, false));
-        // 抗性 (防止意外)
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
 
         bossUuid = bossEntity.getUniqueId();
@@ -88,11 +86,10 @@ public class CryoRegisvine {
         bossBar.setVisible(true);
         bossBar.setProgress(1.0);
 
-        // 注册到BossMenu
         BossMenu.registerBoss(BossMenu.BossType.CRYO, bossEntity, MAX_HEALTH, bossBar);
 
-        // ---- 盔甲架 ----
-        spawnArmorStands(spawnLoc);
+        // ---- 雪人树状结构 ----
+        spawnSnowmen(spawnLoc);
 
         // ---- 召唤特效 ----
         Location bossLoc = bossEntity.getLocation();
@@ -109,7 +106,6 @@ public class CryoRegisvine {
         startAI();
     }
 
-    /** 寻找安全召唤位置 (需要更大空间) */
     private static Location findSpawnLocation(Player player) {
         Location base = player.getLocation();
         Vector dir = base.getDirection().multiply(8);
@@ -120,8 +116,7 @@ public class CryoRegisvine {
             for (int z = -3; z <= 3; z++) {
                 Location check = target.clone().add(x, 0, z);
                 if (!check.getBlock().isPassable()) return null;
-                // 向上4格也要空
-                for (int y = 1; y <= 4; y++) {
+                for (int y = 1; y <= 6; y++) {
                     Location up = check.clone().add(0, y, 0);
                     if (!up.getBlock().isPassable()) return null;
                 }
@@ -131,56 +126,56 @@ public class CryoRegisvine {
     }
 
     // ========================================================================
-    // 盔甲架
+    // 雪人树状结构
     // ========================================================================
 
-    private static void spawnArmorStands(Location center) {
-        // 底部3个 (SNOW_BLOCK)
-        spawnBodyStand(center, 0, 0.5, 1.8, Material.SNOW_BLOCK);
-        spawnBodyStand(center, 1.56, 0.5, -0.9, Material.SNOW_BLOCK);
-        spawnBodyStand(center, -1.56, 0.5, -0.9, Material.SNOW_BLOCK);
+    private static void spawnSnowmen(Location center) {
+        // 第1层: 根部 (3个雪人, 宽三角形, y=0)
+        spawnBodySnowman(center, 0, 0, 2.0);
+        spawnBodySnowman(center, 1.73, 0, -1.0);
+        spawnBodySnowman(center, -1.73, 0, -1.0);
 
-        // 中部3个 (PACKED_ICE)
-        spawnBodyStand(center, 0, 1.8, 1.2, Material.PACKED_ICE);
-        spawnBodyStand(center, 1.04, 1.8, -0.6, Material.PACKED_ICE);
-        spawnBodyStand(center, -1.04, 1.8, -0.6, Material.PACKED_ICE);
+        // 第2层: 下躯干 (2个雪人, 前后排列, y=1.7)
+        spawnBodySnowman(center, 0, 1.7, 0.7);
+        spawnBodySnowman(center, 0, 1.7, -0.7);
 
-        // 核心盔甲架 (BLUE_ICE) — 默认先注册为身体，暴露时才升为核心
-        coreStand = spawnStand(center, 0, 3.2, 0, Material.BLUE_ICE);
+        // 第3层: 上枝干 (2个雪人, 左右展开, y=3.2)
+        spawnBodySnowman(center, 1.0, 3.2, 0);
+        spawnBodySnowman(center, -1.0, 3.2, 0);
+
+        // 第4层: 核心 (1个雪人, 树冠顶端, y=4.5)
+        coreStand = spawnSnowman(center, 0, 4.5, 0);
         BossMenu.registerBodyStand(BossMenu.BossType.CRYO, coreStand.getUniqueId());
     }
 
-    private static void spawnBodyStand(Location center, double x, double y, double z, Material head) {
-        ArmorStand stand = spawnStand(center, x, y, z, head);
-        bodyStands.add(stand);
-        BossMenu.registerBodyStand(BossMenu.BossType.CRYO, stand.getUniqueId());
+    private static void spawnBodySnowman(Location center, double x, double y, double z) {
+        LivingEntity snowman = spawnSnowman(center, x, y, z);
+        bodyStands.add(snowman);
+        BossMenu.registerBodyStand(BossMenu.BossType.CRYO, snowman.getUniqueId());
     }
 
-    private static ArmorStand spawnStand(Location center, double x, double y, double z, Material head) {
+    private static LivingEntity spawnSnowman(Location center, double x, double y, double z) {
         Location loc = center.clone().add(x, y, z);
-        ArmorStand stand = (ArmorStand) center.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
-        stand.setVisible(true);
-        stand.setSmall(true);
-        stand.setBasePlate(false);
-        stand.setArms(false);
-        stand.setGravity(false);
-        stand.setCanPickupItems(false);
-        stand.setRemoveWhenFarAway(false);
-        stand.setPersistent(true);
-        stand.setInvulnerable(false);
-        stand.getEquipment().setHelmet(new ItemStack(head), true);
-        return stand;
+        LivingEntity snowman = (LivingEntity) center.getWorld().spawnEntity(loc, EntityType.SNOW_GOLEM);
+        snowman.setAI(false);
+        snowman.setSilent(true);
+        snowman.setCollidable(false);
+        snowman.setRemoveWhenFarAway(false);
+        snowman.setPersistent(true);
+        snowman.setInvulnerable(false);
+        // 免疫环境伤害 (雨/水/热群系)
+        snowman.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 5, false, false));
+        snowman.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0, false, false));
+        return snowman;
     }
 
     // ========================================================================
     // 核心暴露
     // ========================================================================
 
-    /** 暴露核心 (元素反应或定时触发) */
     public static void exposeCore() {
         if (coreStand == null || coreStand.isDead() || bossEntity == null || bossEntity.isDead()) return;
 
-        // 将核心从身体升级为核心
         BossMenu.upgradeBodyToCore(BossMenu.BossType.CRYO, coreStand.getUniqueId());
         coreStand.setGlowing(true);
 
@@ -195,7 +190,6 @@ public class CryoRegisvine {
             }
         }
 
-        // 5秒后隐藏核心
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -234,13 +228,11 @@ public class CryoRegisvine {
                     return;
                 }
 
-                // 更新BossBar可见范围
                 BossMenu.updateBossBar(BossMenu.BossType.CRYO);
 
                 double hpPercent = BossMenu.getBossHealth(BossMenu.BossType.CRYO) / MAX_HEALTH;
                 phase2 = hpPercent < 0.5;
 
-                // BossBar更新颜色
                 if (phase2) {
                     bossBar.setColor(BarColor.WHITE);
                 }
@@ -255,7 +247,6 @@ public class CryoRegisvine {
                 }
                 tick = 0;
 
-                // 面向目标 (仅旋转，不移动)
                 lookAtTarget(bossEntity, target.getLocation());
 
                 if (attackCooldown > 0) {
@@ -263,7 +254,6 @@ public class CryoRegisvine {
                     return;
                 }
 
-                // 执行攻击
                 int attack = RANDOM.nextInt(phase2 ? 4 : 3);
                 switch (attack) {
                     case 0 -> iceShardAttack(target);
@@ -272,7 +262,6 @@ public class CryoRegisvine {
                     case 3 -> iceExplosion(target);
                 }
 
-                // 每3次攻击暴露核心
                 attacksSinceCore++;
                 if (attacksSinceCore >= 3) {
                     exposeCore();
@@ -439,9 +428,8 @@ public class CryoRegisvine {
     private static void cleanup() {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
 
-        // 移除所有盔甲架
-        for (ArmorStand stand : bodyStands) {
-            if (stand != null && !stand.isDead()) stand.remove();
+        for (LivingEntity entity : bodyStands) {
+            if (entity != null && !entity.isDead()) entity.remove();
         }
         bodyStands.clear();
         if (coreStand != null && !coreStand.isDead()) { coreStand.remove(); coreStand = null; }

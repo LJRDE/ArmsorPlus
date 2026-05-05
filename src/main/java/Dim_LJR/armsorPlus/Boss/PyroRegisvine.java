@@ -21,8 +21,8 @@ import java.util.UUID;
 /**
  * 爆炎树 —— 火元素BOSS (原神: 爆炎树)
  * <p>
- * 本体隐身无AI，由盔甲架戴下界岩/岩浆块模仿形态。
- * 攻击任意盔甲架造成20%HP伤害，核心盔甲架一击必杀。
+ * 本体为隐身僵尸，由无AI烈焰人排列成树状结构。
+ * 攻击任意躯干部位造成20%HP伤害，核心一击必杀。
  * 雷电/冰冻伤害触发元素反应：伤害翻倍+50%暴露核心。
  */
 public class PyroRegisvine {
@@ -37,9 +37,9 @@ public class PyroRegisvine {
     private static UUID bossUuid;
     private static BossBar bossBar;
 
-    // 盔甲架
-    private static ArmorStand coreStand;
-    private static final java.util.List<ArmorStand> bodyStands = new java.util.ArrayList<>();
+    // 烈焰人躯干 (树状结构)
+    private static LivingEntity coreStand;
+    private static final java.util.List<LivingEntity> bodyStands = new java.util.ArrayList<>();
 
     private static final Random RANDOM = new Random();
 
@@ -76,9 +76,7 @@ public class PyroRegisvine {
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
         bossEntity.setHealth(MAX_HEALTH);
 
-        // 隐身效果
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, -1, 1, false, false));
-        // 抗火 (防止白天自燃) + 抗性
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0, false, false));
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
 
@@ -91,8 +89,8 @@ public class PyroRegisvine {
 
         BossMenu.registerBoss(BossMenu.BossType.PYRO, bossEntity, MAX_HEALTH, bossBar);
 
-        // ---- 盔甲架 ----
-        spawnArmorStands(spawnLoc);
+        // ---- 烈焰人树状结构 ----
+        spawnBlazes(spawnLoc);
 
         // ---- 召唤特效 ----
         Location bossLoc = bossEntity.getLocation();
@@ -120,7 +118,7 @@ public class PyroRegisvine {
             for (int z = -3; z <= 3; z++) {
                 Location check = target.clone().add(x, 0, z);
                 if (!check.getBlock().isPassable()) return null;
-                for (int y = 1; y <= 4; y++) {
+                for (int y = 1; y <= 6; y++) {
                     Location up = check.clone().add(0, y, 0);
                     if (!up.getBlock().isPassable()) return null;
                 }
@@ -130,45 +128,47 @@ public class PyroRegisvine {
     }
 
     // ========================================================================
-    // 盔甲架
+    // 烈焰人树状结构
     // ========================================================================
 
-    private static void spawnArmorStands(Location center) {
-        // 底部3个 (NETHERRACK)
-        spawnBodyStand(center, 0, 0.5, 1.8, Material.NETHERRACK);
-        spawnBodyStand(center, 1.56, 0.5, -0.9, Material.NETHERRACK);
-        spawnBodyStand(center, -1.56, 0.5, -0.9, Material.NETHERRACK);
+    private static void spawnBlazes(Location center) {
+        // 第1层: 根部 (3个烈焰人, 宽三角形, y=0)
+        spawnBodyBlaze(center, 0, 0, 2.0);
+        spawnBodyBlaze(center, 1.73, 0, -1.0);
+        spawnBodyBlaze(center, -1.73, 0, -1.0);
 
-        // 中部3个 (MAGMA_BLOCK)
-        spawnBodyStand(center, 0, 1.8, 1.2, Material.MAGMA_BLOCK);
-        spawnBodyStand(center, 1.04, 1.8, -0.6, Material.MAGMA_BLOCK);
-        spawnBodyStand(center, -1.04, 1.8, -0.6, Material.MAGMA_BLOCK);
+        // 第2层: 下躯干 (2个烈焰人, 前后排列, y=1.7)
+        spawnBodyBlaze(center, 0, 1.7, 0.7);
+        spawnBodyBlaze(center, 0, 1.7, -0.7);
 
-        // 核心盔甲架 (MAGMA_BLOCK) — 默认先注册为身体
-        coreStand = spawnStand(center, 0, 3.2, 0, Material.MAGMA_BLOCK);
+        // 第3层: 上枝干 (2个烈焰人, 左右展开, y=3.2)
+        spawnBodyBlaze(center, 1.0, 3.2, 0);
+        spawnBodyBlaze(center, -1.0, 3.2, 0);
+
+        // 第4层: 核心 (1个烈焰人, 树冠顶端, y=4.5)
+        coreStand = spawnBlaze(center, 0, 4.5, 0);
         BossMenu.registerBodyStand(BossMenu.BossType.PYRO, coreStand.getUniqueId());
     }
 
-    private static void spawnBodyStand(Location center, double x, double y, double z, Material head) {
-        ArmorStand stand = spawnStand(center, x, y, z, head);
-        bodyStands.add(stand);
-        BossMenu.registerBodyStand(BossMenu.BossType.PYRO, stand.getUniqueId());
+    private static void spawnBodyBlaze(Location center, double x, double y, double z) {
+        LivingEntity blaze = spawnBlaze(center, x, y, z);
+        bodyStands.add(blaze);
+        BossMenu.registerBodyStand(BossMenu.BossType.PYRO, blaze.getUniqueId());
     }
 
-    private static ArmorStand spawnStand(Location center, double x, double y, double z, Material head) {
+    private static LivingEntity spawnBlaze(Location center, double x, double y, double z) {
         Location loc = center.clone().add(x, y, z);
-        ArmorStand stand = (ArmorStand) center.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
-        stand.setVisible(true);
-        stand.setSmall(true);
-        stand.setBasePlate(false);
-        stand.setArms(false);
-        stand.setGravity(false);
-        stand.setCanPickupItems(false);
-        stand.setRemoveWhenFarAway(false);
-        stand.setPersistent(true);
-        stand.setInvulnerable(false);
-        stand.getEquipment().setHelmet(new ItemStack(head), true);
-        return stand;
+        LivingEntity blaze = (LivingEntity) center.getWorld().spawnEntity(loc, EntityType.BLAZE);
+        blaze.setAI(false);
+        blaze.setSilent(true);
+        blaze.setCollidable(false);
+        blaze.setRemoveWhenFarAway(false);
+        blaze.setPersistent(true);
+        blaze.setInvulnerable(false);
+        // 免疫环境伤害 (雨/水)
+        blaze.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 5, false, false));
+        blaze.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0, false, false));
+        return blaze;
     }
 
     // ========================================================================
@@ -433,8 +433,8 @@ public class PyroRegisvine {
     private static void cleanup() {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
 
-        for (ArmorStand stand : bodyStands) {
-            if (stand != null && !stand.isDead()) stand.remove();
+        for (LivingEntity entity : bodyStands) {
+            if (entity != null && !entity.isDead()) entity.remove();
         }
         bodyStands.clear();
         if (coreStand != null && !coreStand.isDead()) { coreStand.remove(); coreStand = null; }

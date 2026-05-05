@@ -22,7 +22,7 @@ import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
 
     private final List<String> args0 = List.of(
-            "info", "give", "spawn", "getEnchantmentLevel", "removeEnchant", "reloadmap", "help"
+            "info", "give", "guide", "spawn", "getEnchantmentLevel", "removeEnchant", "reloadmap", "help"
     );
     private final List<String> args1_give = List.of(
             "Arms_I", "Arms_II", "Armor_I", "Armor_II", "Bow_I",
@@ -61,6 +61,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         switch (args[0]) {
             case "info" -> handleInfo(sender);
             case "give" -> handleGive(sender, args);
+            case "guide" -> handleGuide(sender);
             case "spawn" -> handleSpawn(sender);
             case "reloadmap" -> handleReloadMap(sender);
             case "getEnchantmentLevel" -> handleGetEnchantLevel(sender, args);
@@ -78,6 +79,15 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "虽然说不知道为什么BUG越改越多就是了");
         sender.sendMessage(ChatColor.LIGHT_PURPLE + "如果你不知道这么用强化石的话，可以把它拖动到你的装备上单击鼠标左键试试呢");
         sender.sendMessage(ChatColor.GRAY + "输入 /ArmsorPlus help 查看指令帮助");
+    }
+
+    private void handleGuide(@NotNull CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "该指令必须由玩家执行");
+            return;
+        }
+        player.getInventory().addItem(GuideBook(1));
+        player.sendMessage(ChatColor.GREEN + "已获得高级附魔向导书，右键打开菜单");
     }
 
     private void handleGive(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -432,6 +442,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GOLD + "===== ArmsorPlus 指令帮助 =====");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus help" + ChatColor.RESET + " - 显示本帮助");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus info" + ChatColor.RESET + " - 插件信息");
+        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus guide" + ChatColor.RESET + " - 获取高级附魔向导书");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus give <物品> [数量] [等级]" + ChatColor.RESET + " - 给予物品");
         sender.sendMessage(ChatColor.GRAY + "  可用物品: Arms_I, Arms_II, Armor_I, Armor_II, Bow_I, DiamondPlus,");
         sender.sendMessage(ChatColor.GRAY + "  MagicBal_I~IV, Blood_Sword, Iron_Epee, BasicStone, GuideBook,");

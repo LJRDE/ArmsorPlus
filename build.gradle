@@ -1,10 +1,9 @@
 plugins {
     id 'java'
-    id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
 group = 'Dim_LJR'
-version = '0.3-D+'
+version = '0.3-D+-finish'
 
 repositories {
     mavenCentral()
@@ -18,12 +17,26 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
 }
 
-tasks {
-    runServer {
-        // Configure the Minecraft version for our task.
-        // This is the only required configuration besides applying the plugin.
-        // Your plugin's jar (or shadowJar if present) will be used automatically.
-        minecraftVersion("1.21")
+tasks.register('runPurpur', JavaExec) {
+    dependsOn jar
+
+    def serverJar = file("test/purpur-1.21.11-2566.jar")
+    def runDir = file("run")
+
+    classpath = files(serverJar)
+    workingDir = runDir
+    standardInput = System.in
+    args("--nogui")
+
+    // 每次启动前自动复制插件 jar
+    doFirst {
+        runDir.mkdirs()
+        def pluginsDir = new File(runDir, "plugins")
+        pluginsDir.mkdirs()
+        copy {
+            from tasks.jar.archiveFile
+            into pluginsDir
+        }
     }
 }
 
@@ -42,6 +55,19 @@ tasks.withType(JavaCompile).configureEach {
 
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
+    }
+}
+
+tasks.register('reload') {
+    dependsOn jar
+    doLast {
+        def pluginsDir = file("run/plugins")
+        pluginsDir.mkdirs()
+        copy {
+            from tasks.jar.archiveFile
+            into pluginsDir
+        }
+        println "已复制到 run/plugins，在服务端输入指令重载插件"
     }
 }
 

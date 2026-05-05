@@ -24,7 +24,7 @@ import static Dim_LJR.armsorPlus.NamespaceKey.Keys.FreezeKey;
 /**
  * BOSS清单 GUI + 全局BOSS战斗系统。
  * <p>
- * 管理BOSS召唤界面、盔甲架伤害重定向、元素反应逻辑。
+ * 管理BOSS召唤界面、躯干部位伤害重定向、元素反应逻辑。
  */
 public class BossMenu implements Listener {
 
@@ -36,10 +36,10 @@ public class BossMenu implements Listener {
 
     public enum BossType { CRYO, PYRO }
 
-    /** 身体部位盔甲架 -> BOSS类型 */
-    public static final Map<UUID, BossType> ARMOR_STAND_BODY = new HashMap<>();
-    /** 核心盔甲架 -> BOSS类型 */
-    public static final Map<UUID, BossType> ARMOR_STAND_CORE = new HashMap<>();
+    /** 身体部位实体 -> BOSS类型 */
+    public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
+    /** 核心部位实体 -> BOSS类型 */
+    public static final Map<UUID, BossType> BOSS_CORE_PARTS = new HashMap<>();
 
     private static final Map<BossType, Double> bossHealth = new HashMap<>();
     private static final Map<BossType, Double> bossMaxHealth = new HashMap<>();
@@ -62,28 +62,28 @@ public class BossMenu implements Listener {
         bossAllStands.put(type, new HashSet<>());
     }
 
-    /** 注册身体部位盔甲架 */
-    public static void registerBodyStand(BossType type, UUID standId) {
-        ARMOR_STAND_BODY.put(standId, type);
-        bossAllStands.computeIfAbsent(type, k -> new HashSet<>()).add(standId);
+    /** 注册身体部位实体 */
+    public static void registerBodyStand(BossType type, UUID entityId) {
+        BOSS_BODY_PARTS.put(entityId, type);
+        bossAllStands.computeIfAbsent(type, k -> new HashSet<>()).add(entityId);
     }
 
-    /** 注册核心盔甲架 */
-    public static void registerCoreStand(BossType type, UUID standId) {
-        ARMOR_STAND_CORE.put(standId, type);
-        bossAllStands.computeIfAbsent(type, k -> new HashSet<>()).add(standId);
+    /** 注册核心部位实体 */
+    public static void registerCoreStand(BossType type, UUID entityId) {
+        BOSS_CORE_PARTS.put(entityId, type);
+        bossAllStands.computeIfAbsent(type, k -> new HashSet<>()).add(entityId);
     }
 
-    /** 将核心盔甲架从核心降级为普通身体部位 */
-    public static void downgradeCoreToBody(BossType type, UUID standId) {
-        ARMOR_STAND_CORE.remove(standId);
-        ARMOR_STAND_BODY.put(standId, type);
+    /** 将核心实体从核心降级为普通身体部位 */
+    public static void downgradeCoreToBody(BossType type, UUID entityId) {
+        BOSS_CORE_PARTS.remove(entityId);
+        BOSS_BODY_PARTS.put(entityId, type);
     }
 
-    /** 将盔甲架从普通身体升级为核心 */
-    public static void upgradeBodyToCore(BossType type, UUID standId) {
-        ARMOR_STAND_BODY.remove(standId);
-        ARMOR_STAND_CORE.put(standId, type);
+    /** 将实体从普通身体升级为核心 */
+    public static void upgradeBodyToCore(BossType type, UUID entityId) {
+        BOSS_BODY_PARTS.remove(entityId);
+        BOSS_CORE_PARTS.put(entityId, type);
     }
 
     /** 获取BOSS当前血量 */
@@ -130,8 +130,8 @@ public class BossMenu implements Listener {
         Set<UUID> stands = bossAllStands.remove(type);
         if (stands != null) {
             for (UUID id : stands) {
-                ARMOR_STAND_BODY.remove(id);
-                ARMOR_STAND_CORE.remove(id);
+                BOSS_BODY_PARTS.remove(id);
+                BOSS_CORE_PARTS.remove(id);
             }
         }
         BossBar bar = bossBars.remove(type);
@@ -192,11 +192,11 @@ public class BossMenu implements Listener {
     }
 
     // ========================================================================
-    // 盔甲架伤害处理
+    // 躯干部位伤害处理
     // ========================================================================
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onBossArmorStandDamage(EntityDamageByEntityEvent event) {
+    public void onBossBodyPartDamage(EntityDamageByEntityEvent event) {
 
         Entity damaged = event.getEntity();
         UUID id = damaged.getUniqueId();
@@ -210,7 +210,7 @@ public class BossMenu implements Listener {
         if (!(damager instanceof Player)) return;
 
         // ======== 身体部位命中 (20%最大生命值伤害) ========
-        BossType type = ARMOR_STAND_BODY.get(id);
+        BossType type = BOSS_BODY_PARTS.get(id);
         if (type != null) {
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
@@ -254,7 +254,7 @@ public class BossMenu implements Listener {
         }
 
         // ======== 核心命中 (100%最大生命值伤害) ========
-        type = ARMOR_STAND_CORE.get(id);
+        type = BOSS_CORE_PARTS.get(id);
         if (type != null) {
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
@@ -308,7 +308,7 @@ public class BossMenu implements Listener {
                 "",
                 "§c❤ 生命值: 300",
                 "§b❄ 冰元素攻击",
-                "§e✦ 攻击盔甲架造成20%伤害，命中核心一击必杀",
+                "§e✦ 攻击躯干部位造成20%伤害，命中核心一击必杀",
                 "§6⚡ 火焰/雷电伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",
@@ -326,7 +326,7 @@ public class BossMenu implements Listener {
                 "",
                 "§c❤ 生命值: 300",
                 "§c❄ 火元素攻击",
-                "§e✦ 攻击盔甲架造成20%伤害，命中核心一击必杀",
+                "§e✦ 攻击躯干部位造成20%伤害，命中核心一击必杀",
                 "§b❄ 雷电/冰冻伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",

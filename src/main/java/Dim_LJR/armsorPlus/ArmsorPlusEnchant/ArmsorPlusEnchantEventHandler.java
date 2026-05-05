@@ -1,5 +1,6 @@
 package Dim_LJR.armsorPlus.ArmsorPlusEnchant;
 
+import Dim_LJR.armsorPlus.PlayerSettings;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -113,7 +114,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 .spawn();
 
         if (event.getEntity() instanceof Player player) {
-            player.sendMessage(ChatColor.DARK_PURPLE + "你影避了伤害");
+            PlayerSettings.notify(player, ChatColor.DARK_PURPLE + "你影避了伤害");
         }
     }
 
@@ -150,7 +151,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 new FixedMetadataValue(getplugin, level));
 
         player.playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
-        player.sendMessage(ChatColor.GOLD + "蓄爆效果触发！发射了烟花火箭");
+        PlayerSettings.notify(player, ChatColor.GOLD + "蓄爆效果触发！发射了烟花火箭");
     }
 
     /** 蓄爆烟花爆炸时造成范围伤害 */
@@ -195,12 +196,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         double revengeDamage = event.getDamage() * 0.5;
         target.damage(revengeDamage, player);
 
-        player.sendMessage(ChatColor.RED + "复仇效果反弹了"
+        PlayerSettings.notify(player, ChatColor.RED + "复仇效果反弹了"
                 + String.format("%.1f", revengeDamage) + "点伤害！");
 
-        if (target instanceof Player attacker) {
-            attacker.sendMessage(ChatColor.RED + player.getName() + "的复仇效果反弹了你的攻击！");
-        }
+        PlayerSettings.notify(target, ChatColor.RED + player.getName() + "的复仇效果反弹了你的攻击！");
 
         player.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR,
                 target.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5);
@@ -234,12 +233,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         String msg = "施加了凋零" + romanNumeral(effectLevel + 1)
                 + "（时长：" + (level * 5) + "秒）";
-        if (damager instanceof Player) {
-            ((Player) damager).sendMessage(ChatColor.GOLD + "你的武器" + msg);
-        }
-        if (target instanceof Player) {
-            target.sendMessage(ChatColor.RED + "你被" + getEntityName(damager) + msg);
-        }
+        PlayerSettings.notify(damager, ChatColor.GOLD + "你的武器" + msg);
+        PlayerSettings.notify(target, ChatColor.RED + "你被" + getEntityName(damager) + msg);
     }
 
     // ========================================================================
@@ -265,7 +260,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         if (entity instanceof Player player) {
             double blocked = original - event.getDamage();
-            player.sendActionBar(ChatColor.BLUE + "格挡效果减免了"
+            PlayerSettings.notifyActionBar(player, ChatColor.BLUE + "格挡效果减免了"
                     + String.format("%.1f", blocked) + "点伤害");
         }
     }
@@ -285,16 +280,12 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (event.getEntity() instanceof Player victim) {
             victim.addPotionEffect(new PotionEffect(
                     PotionEffectType.SLOWNESS, 20 * level, 1));
-            victim.sendActionBar(ChatColor.AQUA + "你被敌人施加了寒冻");
-            if (damager instanceof Player) {
-                ((Player) damager).sendActionBar(ChatColor.AQUA + "你对敌人施加了寒冻");
-            }
+            PlayerSettings.notifyActionBar(victim, ChatColor.AQUA + "你被敌人施加了寒冻");
+            PlayerSettings.notifyActionBar(damager, ChatColor.AQUA + "你对敌人施加了寒冻");
         } else if (event.getEntity() instanceof LivingEntity target) {
             target.addPotionEffect(new PotionEffect(
                     PotionEffectType.SLOWNESS, 20 * level, 1));
-            if (damager instanceof Player) {
-                ((Player) damager).sendActionBar(ChatColor.AQUA + "你对敌人施加了寒冻");
-            }
+            PlayerSettings.notifyActionBar(damager, ChatColor.AQUA + "你对敌人施加了寒冻");
         }
     }
 
@@ -337,10 +328,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             cooldowns.put(pid, now);
             player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.5f);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 20, 0.5, 0.5, 0.5);
-            player.sendActionBar("§b[涤魂]魔法伤害免疫 §7(冷却中)");
+            PlayerSettings.notifyActionBar(player, "§b[涤魂]魔法伤害免疫 §7(冷却中)");
         } else {
             long remain = cd - (now - last);
-            player.sendActionBar("§c[涤魂]魔法免疫冷却中 §7(" + (remain / 1000) + "秒)");
+            PlayerSettings.notifyActionBar(player, "§c[涤魂]魔法免疫冷却中 §7(" + (remain / 1000) + "秒)");
         }
     }
 
@@ -359,8 +350,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             event.setCancelled(true);
             Particle.ENCHANTED_HIT.builder().location(player.getLocation())
                     .offset(0.1, 0.1, 0.1).count(48).receivers(32, true).spawn();
-            player.sendActionBar(ChatColor.GOLD + "你闪避了对方的伤害");
-            damager.sendActionBar(ChatColor.GOLD + "对方闪避了你的伤害");
+            PlayerSettings.notifyActionBar(player, ChatColor.GOLD + "你闪避了对方的伤害");
+            PlayerSettings.notifyActionBar(damager, ChatColor.GOLD + "对方闪避了你的伤害");
             return;
         }
 
@@ -373,7 +364,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             event.setCancelled(true);
             Particle.PORTAL.builder().location(player.getLocation())
                     .offset(0.1, 0.1, 0.1).count(64).receivers(32, true).spawn();
-            player.sendActionBar(ChatColor.GOLD + "你闪避了对方的伤害");
+            PlayerSettings.notifyActionBar(player, ChatColor.GOLD + "你闪避了对方的伤害");
             return;
         }
 
@@ -416,9 +407,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             event.setDamage(event.getDamage() - level);
         }
 
-        if (entity instanceof Player) {
-            entity.sendMessage(ChatColor.BLUE + "涟漪恢复了" + level + "点生命值");
-        }
+        PlayerSettings.notify(entity, ChatColor.BLUE + "涟漪恢复了" + level + "点生命值");
     }
 
     // ========================================================================
@@ -436,14 +425,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         event.setDamage(event.getDamage() * 2);
 
-        if (event.getDamager() instanceof Player) {
-            event.getDamager().sendMessage("你发动了" + ChatColor.RED + "双重打击"
-                    + ChatColor.RESET + "对对方造成" + event.getDamage() + "点伤害");
-        }
-        if (event.getEntity() instanceof Player) {
-            event.getEntity().sendMessage("对方发动了" + ChatColor.RED + "双重打击"
-                    + ChatColor.RESET + "对你造成" + event.getDamage() + "点伤害");
-        }
+        PlayerSettings.notify(event.getDamager(), "你发动了" + ChatColor.RED + "双重打击"
+                + ChatColor.RESET + "对对方造成" + event.getDamage() + "点伤害");
+        PlayerSettings.notify(event.getEntity(), "对方发动了" + ChatColor.RED + "双重打击"
+                + ChatColor.RESET + "对你造成" + event.getDamage() + "点伤害");
     }
 
     // ========================================================================
@@ -464,14 +449,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         event.setDamage(event.getDamage() * rate);
         damager.damage(15, damager);
 
-        if (event.getDamager() instanceof Player) {
-            event.getDamager().sendMessage("你发动了" + ChatColor.RED + "血祭"
-                    + ChatColor.RESET + "对对方造成" + rate + "倍伤害");
-        }
-        if (event.getEntity() instanceof Player) {
-            event.getEntity().sendMessage("对方发动了" + ChatColor.RED + "血祭"
-                    + ChatColor.RESET + "对你造成" + rate + "倍伤害");
-        }
+        PlayerSettings.notify(event.getDamager(), "你发动了" + ChatColor.RED + "血祭"
+                + ChatColor.RESET + "对对方造成" + rate + "倍伤害");
+        PlayerSettings.notify(event.getEntity(), "对方发动了" + ChatColor.RED + "血祭"
+                + ChatColor.RESET + "对你造成" + rate + "倍伤害");
     }
 
     // ========================================================================
@@ -496,9 +477,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         double healerHp = Math.min(damager.getHealth() + 2, damager.getMaxHealth());
         damager.setHealth(healerHp);
 
-        if (event.getDamager() instanceof Player) {
-            event.getDamager().sendMessage(ChatColor.RED + "你对敌人施加了吸血");
-        }
+        PlayerSettings.notify(event.getDamager(), ChatColor.RED + "你对敌人施加了吸血");
     }
 
     // ========================================================================
@@ -516,14 +495,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (event.getEntity() instanceof Player victim) {
             victim.addPotionEffect(new PotionEffect(
                     PotionEffectType.HUNGER, 40 * level, 4 * level));
-            victim.sendMessage(ChatColor.GREEN + "你被敌人施加了饥荒");
-            if (event.getDamager() instanceof Player) {
-                event.getDamager().sendMessage(ChatColor.GREEN + "你对敌人施加了饥荒");
-            }
+            PlayerSettings.notify(victim, ChatColor.GREEN + "你被敌人施加了饥荒");
+            PlayerSettings.notify(event.getDamager(), ChatColor.GREEN + "你对敌人施加了饥荒");
         } else {
-            if (event.getDamager() instanceof Player) {
-                event.getDamager().sendMessage(ChatColor.GREEN + "你对敌人施加了饥荒");
-            }
+            PlayerSettings.notify(event.getDamager(), ChatColor.GREEN + "你对敌人施加了饥荒");
         }
     }
 
@@ -551,92 +526,92 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         for (int i = 0; i < amount; i++) {
             if (percent(10)) {
                 player.getInventory().addItem(Sniping_EnchantdeBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "获得狙击附魔书");
+                PlayerSettings.notify(player,ChatColor.LIGHT_PURPLE + "获得狙击附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Famine_EnchantdeBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.GREEN + "获得饥荒附魔书");
+                PlayerSettings.notify(player,ChatColor.GREEN + "获得饥荒附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Dodge_EnchantdeBook(1, r.nextInt(4) + 1));
-                player.sendMessage(ChatColor.GOLD + "获得闪避附魔书");
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得闪避附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Ripples_EnchantdeBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.BLUE + "获得涟漪附魔书");
+                PlayerSettings.notify(player,ChatColor.BLUE + "获得涟漪附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(BloodSacrifice_EnchantdeBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.DARK_RED + "获得血祭附魔书");
+                PlayerSettings.notify(player,ChatColor.DARK_RED + "获得血祭附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(EffectClear_EnchantdeBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.WHITE + "获得涤魂附魔书");
+                PlayerSettings.notify(player,ChatColor.WHITE + "获得涤魂附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Freeze_EnchantedBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.AQUA + "获得寒冻附魔书");
+                PlayerSettings.notify(player,ChatColor.AQUA + "获得寒冻附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Revenge_EnchantedBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.DARK_RED + "获得复仇附魔书");
+                PlayerSettings.notify(player,ChatColor.DARK_RED + "获得复仇附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(HealthBoost_EnchantedBook(1, r.nextInt(4) + 1));
-                player.sendMessage(ChatColor.RED + "获得生命提升附魔书");
+                PlayerSettings.notify(player,ChatColor.RED + "获得生命提升附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(ExplosiveArrow_EnchantedBook(1, r.nextInt(3) + 1));
-                player.sendMessage(ChatColor.YELLOW + "获得蓄爆附魔书");
+                PlayerSettings.notify(player,ChatColor.YELLOW + "获得蓄爆附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Withering_EnchantedBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.DARK_PURPLE + "获得凋零附魔书");
+                PlayerSettings.notify(player,ChatColor.DARK_PURPLE + "获得凋零附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Blocking_EnchantedBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.AQUA + "获得格挡附魔书");
+                PlayerSettings.notify(player,ChatColor.AQUA + "获得格挡附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Survivor_EnchantedBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.GOLD + "获得幸存附魔书");
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得幸存附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(ShadowDodge_EnchantdeBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.DARK_PURPLE + "获得影避附魔书");
+                PlayerSettings.notify(player,ChatColor.DARK_PURPLE + "获得影避附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(ArrowSpeed_EnchantdeBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.GOLD + "获得弹道附魔书");
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得弹道附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(DoubleHit_EnchantdeBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.GOLD + "获得双重打击附魔书");
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得双重打击附魔书");
                 count++;
             }
             if (percent(10)) {
                 player.getInventory().addItem(Feeding_EnchantdeBook(1, r.nextInt(5) + 1));
-                player.sendMessage(ChatColor.GOLD + "获得吸血附魔书");
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得吸血附魔书");
                 count++;
             }
         }
 
-        player.sendMessage("获得数量: " + count);
+        PlayerSettings.notify(player,"获得数量: " + count);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         player.spawnParticle(Particle.FIREWORK, player.getLocation(), 30, 0.5, 1, 0.5, 0.2);
     }
@@ -665,11 +640,11 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         player.setFoodLevel(20);
         player.setFireTicks(0);
 
-        player.sendMessage(ChatColor.GOLD + "护腿上的幸存效果触发！成功规避死亡");
+        PlayerSettings.notify(player,ChatColor.GOLD + "护腿上的幸存效果触发！成功规避死亡");
 
         if (event instanceof EntityDamageByEntityEvent e) {
             if (e.getDamager() instanceof Player attacker) {
-                attacker.sendMessage(ChatColor.YELLOW + player.getName()
+                PlayerSettings.notify(attacker, ChatColor.YELLOW + player.getName()
                         + " 的幸存附魔触发，规避了致命伤害");
             }
         }
