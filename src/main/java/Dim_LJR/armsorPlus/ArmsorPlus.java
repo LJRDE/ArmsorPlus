@@ -3,6 +3,8 @@ package Dim_LJR.armsorPlus;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
+import Dim_LJR.armsorPlus.Boss.BossMenu;
+import Dim_LJR.armsorPlus.Boss.BossWorld;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
 import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaDig;
@@ -51,6 +53,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         registerListeners();    // 注册事件监听器
         registerCommands();     // 注册命令
         registerRecipes();      // 注册合成配方
+        BossWorld.loadWorld();  // 加载BOSS世界
 
         getLogger().info("服务端类型: " + Bukkit.getServer().getName());
         getLogger().info("Bukkit API 版本: " + Bukkit.getBukkitVersion());
@@ -68,6 +71,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new ArmsorPlusMenu(), this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(), this);
         getServer().getPluginManager().registerEvents(new EnhancementHandler(), this);
+        getServer().getPluginManager().registerEvents(new BossMenu(), this);
     }
 
     /** 注册指令执行器 */

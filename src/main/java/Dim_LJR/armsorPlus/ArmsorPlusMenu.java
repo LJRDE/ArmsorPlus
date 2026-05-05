@@ -1,6 +1,8 @@
 package Dim_LJR.armsorPlus;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
+import Dim_LJR.armsorPlus.Boss.BossMenu;
+import Dim_LJR.armsorPlus.Boss.BossWorld;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -113,6 +115,10 @@ public class ArmsorPlusMenu implements Listener {
                 ChatColor.AQUA + "点击查看"));
         menu.setItem(14, createInfoItem(GRASS_BLOCK, ChatColor.BLUE + "公海世界",
                 ChatColor.BLUE + "点击传送"));
+        menu.setItem(15, createInfoItem(ZOMBIE_HEAD, ChatColor.RED + "BOSS清单",
+                ChatColor.RED + "点击查看可召唤的BOSS"));
+        menu.setItem(16, createInfoItem(ENDER_PEARL, ChatColor.RED + "前往BOSS世界",
+                ChatColor.RED + "点击传送到BOSS世界"));
         return menu;
     }
 
@@ -155,6 +161,15 @@ public class ArmsorPlusMenu implements Listener {
             } else if (name.equals(ChatColor.BLUE + "公海世界")) {
                 player.teleport(world.getSpawnLocation());
                 player.sendActionBar(Component.text("正在传送..."));
+            } else if (name.equals(ChatColor.RED + "BOSS清单")) {
+                player.openInventory(BossMenu.getBossList());
+            } else if (name.equals(ChatColor.RED + "前往BOSS世界")) {
+                if (BossWorld.world != null) {
+                    player.teleport(BossWorld.world.getSpawnLocation());
+                    player.sendMessage(ChatColor.RED + "已传送到BOSS世界");
+                } else {
+                    player.sendMessage(ChatColor.RED + "BOSS世界未加载");
+                }
             }
             return;
         }
