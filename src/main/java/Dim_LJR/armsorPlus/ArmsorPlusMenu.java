@@ -132,6 +132,9 @@ public class ArmsorPlusMenu implements Listener {
     /** 菜单点击事件处理 */
     @EventHandler
     public void onShopClick(InventoryClickEvent event) {
+        // 点击窗口外部(丢弃物品)时不检查自定义菜单，防止 null==null 误取消
+        if (event.getClickedInventory() == null) return;
+
         Player player = (Player) event.getWhoClicked();
 
         // 主菜单导航
