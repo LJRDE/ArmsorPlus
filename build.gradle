@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'Dim_LJR'
-version = '0.3-D+-finish'
+version = '0.3-F+'
 
 repositories {
     mavenCentral()
@@ -28,11 +28,13 @@ tasks.register('runPurpur', JavaExec) {
     standardInput = System.in
     args("--nogui")
 
-    // 每次启动前自动复制插件 jar
+    // 每次启动前清理旧插件 + 复制新 jar
     doFirst {
         runDir.mkdirs()
-        def pluginsDir = new File(runDir, "plugins")
+        def pluginsDir = file("run/plugins")
         pluginsDir.mkdirs()
+        // 删除旧版本的插件 jar
+        delete fileTree(pluginsDir).matching { include "ArmsorPlus*.jar" }
         copy {
             from tasks.jar.archiveFile
             into pluginsDir
@@ -63,11 +65,13 @@ tasks.register('reload') {
     doLast {
         def pluginsDir = file("run/plugins")
         pluginsDir.mkdirs()
+        // 删除旧版本插件 jar
+        delete fileTree(pluginsDir).matching { include "ArmsorPlus*.jar" }
         copy {
             from tasks.jar.archiveFile
             into pluginsDir
         }
-        println "已复制到 run/plugins，在服务端输入指令重载插件"
+        println "已更新 run/plugins，在服务端输入指令重载插件"
     }
 }
 

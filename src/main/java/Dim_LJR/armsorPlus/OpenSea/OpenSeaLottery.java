@@ -193,11 +193,11 @@ public class OpenSeaLottery implements Listener {
         //普通强化石
         prizes.add(ArmsorItem.BasicStone(1));
         //金锭
-        prizes.add(createPrizeItem(Material.GOLD_INGOT, "§6金锭", "§7幸运的收获",16));
+        prizes.add(createPrizeItem(Material.GOLD_INGOT, "§6金锭", "§7幸运的收获",4));
         //绿宝石
-        prizes.add(createPrizeItem(Material.EMERALD, "§a绿宝石", "§7来自深海的珍宝",5));
+        prizes.add(createPrizeItem(Material.EMERALD, "§a绿宝石", "§7来自深海的珍宝",2));
         //铁锭
-        prizes.add(createPrizeItem(Material.IRON_INGOT, "§f铁锭", "§7实用的金属",12));
+        prizes.add(createPrizeItem(Material.IRON_INGOT, "§f铁锭", "§7实用的金属",4));
         //普通魔法球
         prizes.add(ArmsorItem.MagicBallCreateI(1));
         //金刚石
@@ -205,21 +205,21 @@ public class OpenSeaLottery implements Listener {
         //骷髅头颅
         prizes.add(createPrizeItem(Material.SKELETON_SKULL,ChatColor.WHITE + "骷髅头颅",ChatColor.RED + "血祭的原料",1));
         //青金石
-        prizes.add(createPrizeItem(Material.LAPIS_LAZULI, "§9青金石", "§7染料的原料",32));
+        prizes.add(createPrizeItem(Material.LAPIS_LAZULI, "§9青金石", "§7染料的原料",8));
         //下界石英
-        prizes.add(createPrizeItem(Material.QUARTZ, "§f下界石英", "§7来自地狱的矿物",64));
+        prizes.add(createPrizeItem(Material.QUARTZ, "§f下界石英", "§7来自地狱的矿物",4));
         //萤石粉
-        prizes.add(createPrizeItem(Material.GLOWSTONE_DUST, "§e萤石粉", "§7发光的神秘粉末",24));
+        prizes.add(createPrizeItem(Material.GLOWSTONE_DUST, "§e萤石粉", "§7发光的神秘粉末",6));
         //烈焰棒
-        prizes.add(createPrizeItem(Material.BLAZE_ROD, "§6烈焰棒", "§c来自下界要塞的战利品",4));
+        prizes.add(createPrizeItem(Material.BLAZE_ROD, "§6烈焰棒", "§c来自下界要塞的战利品",2));
         //恶魂之泪
-        prizes.add(createPrizeItem(Material.GHAST_TEAR, "§d恶魂之泪", "§7悲伤的结晶",3));
+        prizes.add(createPrizeItem(Material.GHAST_TEAR, "§d恶魂之泪", "§7悲伤的结晶",1));
         //蜘蛛眼
-        prizes.add(createPrizeItem(Material.SPIDER_EYE, "§8蜘蛛眼", "§7剧毒之物",2));
+        prizes.add(createPrizeItem(Material.SPIDER_EYE, "§8蜘蛛眼", "§7剧毒之物",1));
         //骨头
-        prizes.add(createPrizeItem(Material.BONE, "§f骨头", "§7骷髅的遗骸",5));
+        prizes.add(createPrizeItem(Material.BONE, "§f骨头", "§7骷髅的遗骸",2));
         //粘液球
-        prizes.add(createPrizeItem(Material.SLIME_BALL, "§a粘液球", "§7弹跳的绿色物质",27));
+        prizes.add(createPrizeItem(Material.SLIME_BALL, "§a粘液球", "§7弹跳的绿色物质",6));
         return prizes;
     }
 

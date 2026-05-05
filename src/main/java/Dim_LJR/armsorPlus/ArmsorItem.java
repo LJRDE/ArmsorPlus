@@ -364,6 +364,188 @@ public class ArmsorItem {
     }
 
     // ========================================================================
+    // 新武器
+    // ========================================================================
+
+    private static final String DAGGER_NAME = ChatColor.DARK_GREEN + "匕首";
+    private static final String THROWING_AXE_NAME = ChatColor.GOLD + "飞斧";
+    private static final String SKELETON_SCEPTER_NAME = ChatColor.DARK_GRAY + "骷髅权杖";
+    private static final String FROST_BOW_NAME = ChatColor.AQUA + "寒冰弓";
+    private static final String FLAME_HALBERD_NAME = ChatColor.GOLD + "火焰戟";
+
+    /** 匕首: 每次攻击必定造成5点额外伤害 */
+    public static ItemStack Dagger(int amount) {
+        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(DAGGER_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.GREEN + "每次攻击额外造成5点伤害",
+                ChatColor.GRAY + "轻盈而致命的短剑"));
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:dagger_damage"),
+                        5.0, AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.MAINHAND));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, DaggerKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 飞斧: 右键蓄力3s飞出，对沿途生物造成20点伤害 */
+    public static ItemStack ThrowingAxe(int amount) {
+        ItemStack item = new ItemStack(NETHERITE_AXE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(THROWING_AXE_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "右键蓄力3秒后飞出",
+                ChatColor.RED + "对沿途生物造成20点伤害",
+                ChatColor.GRAY + "蓄力时无法移动"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, ThrowingAxeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 骷髅权杖: 使用时降下箭雨 */
+    public static ItemStack SkeletonScepter(int amount) {
+        ItemStack item = new ItemStack(BONE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SKELETON_SCEPTER_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_GRAY + "右键释放箭雨",
+                ChatColor.GRAY + "在目标区域降下致命的箭雨"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SkeletonScepterKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 寒冰弓: 射出时额外发射2支寒冰箭 */
+    public static ItemStack FrostBow(int amount) {
+        ItemStack item = new ItemStack(BOW);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FROST_BOW_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "射出时额外发射2支寒冰箭",
+                ChatColor.AQUA + "命中造成25点冷冻伤害并给予缓慢",
+                ChatColor.GRAY + "两支箭可叠加效果"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FrostBowKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 火焰戟: 攻击额外造成30火焰伤害，射出时灼烧沿途3×3 */
+    public static ItemStack FlameHalberd(int amount) {
+        ItemStack item = new ItemStack(TRIDENT);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FLAME_HALBERD_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "攻击额外造成30点火焰伤害",
+                ChatColor.GOLD + "投掷时灼烧沿途3×3范围",
+                ChatColor.RED + "烈焰之戟"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FlameHalberdKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // ========================================================================
+    // 疾刺附魔书
+    // ========================================================================
+
+    private static final String QUICKTHRUST_BOOK = ChatColor.GOLD + "疾刺";
+
+    /** 疾刺附魔书: 长矛(三叉戟) - 右键速度提升 */
+    public static ItemStack QuickThrust_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, QuickThrustKey, QUICKTHRUST_BOOK,
+                "可用装备:三叉戟", "右键使用时移动速度提升" + (level * 10) + "%");
+    }
+
+    // ========================================================================
+    // 食物 / 药品
+    // ========================================================================
+
+    private static final String REJUVENATION_POWDER_NAME = ChatColor.LIGHT_PURPLE + "回春散";
+    private static final String HEMOSTATIC_BANDAGE_NAME = ChatColor.RED + "止血绷带";
+    private static final String COMPRESSED_BISCUIT_NAME = ChatColor.GOLD + "压缩饼干";
+
+    /** 回春散: 生命恢复V 3s，有概率合成出高级品 */
+    public static ItemStack RejuvenationPowder(int amount) {
+        return createRejuvenationPowder(amount, 0);
+    }
+
+    /** 回春散: tier=1上品, tier=2极品, tier=3仙品 */
+    public static ItemStack RejuvenationPowder(int amount, int tier) {
+        return createRejuvenationPowder(amount, tier);
+    }
+
+    private static ItemStack createRejuvenationPowder(int amount, int tier) {
+        ItemStack item = new ItemStack(GLASS_BOTTLE);
+        ItemMeta meta = item.getItemMeta();
+        String tierLabel;
+        if (tier >= 3) {
+            meta.setDisplayName(ChatColor.GOLD + "仙品·回春散");
+            meta.setLore(Arrays.asList(
+                    ChatColor.LIGHT_PURPLE + "右键使用",
+                    ChatColor.GOLD + "清除所有负面效果",
+                    ChatColor.RED + "生命恢复 X 120秒"));
+            tierLabel = "仙品";
+        } else if (tier >= 2) {
+            meta.setDisplayName(ChatColor.YELLOW + "极品·回春散");
+            meta.setLore(Arrays.asList(
+                    ChatColor.LIGHT_PURPLE + "右键使用",
+                    ChatColor.GOLD + "清除所有负面效果",
+                    ChatColor.RED + "生命恢复 X 40秒"));
+            tierLabel = "极品";
+        } else if (tier >= 1) {
+            meta.setDisplayName(ChatColor.GREEN + "上品·回春散");
+            meta.setLore(Arrays.asList(
+                    ChatColor.LIGHT_PURPLE + "右键使用",
+                    ChatColor.RED + "生命恢复 V 6秒"));
+            tierLabel = "上品";
+        } else {
+            meta.setDisplayName(REJUVENATION_POWDER_NAME);
+            meta.setLore(Arrays.asList(
+                    ChatColor.LIGHT_PURPLE + "右键使用",
+                    ChatColor.RED + "生命恢复 V 3秒"));
+            tierLabel = "普通";
+        }
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, RejuvenationPowderKey, tier + 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 止血绷带 */
+    public static ItemStack HemostaticBandage(int amount) {
+        ItemStack item = new ItemStack(WHITE_DYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(HEMOSTATIC_BANDAGE_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键使用",
+                ChatColor.RED + "瞬间恢复生命"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, HemostaticBandageKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 压缩饼干: 瞬间吃掉，等于3块面包 */
+    public static ItemStack CompressedBiscuit(int amount) {
+        ItemStack item = new ItemStack(BREAD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(COMPRESSED_BISCUIT_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键瞬间食用",
+                ChatColor.GOLD + "恢复等同于3块面包的饱食度"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, CompressedBiscuitKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // ========================================================================
     // 内部工具方法
     // ========================================================================
 

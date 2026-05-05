@@ -58,6 +58,21 @@ public class NamespaceKey {
         public static NamespacedKey Exorcism;
         public static NamespacedKey MenuMark;
 
+        // ---- 新武器键 ----
+        public static NamespacedKey DaggerKey;
+        public static NamespacedKey ThrowingAxeKey;
+        public static NamespacedKey SkeletonScepterKey;
+        public static NamespacedKey FrostBowKey;
+        public static NamespacedKey FlameHalberdKey;
+
+        // ---- 新附魔键 ----
+        public static NamespacedKey QuickThrustKey;
+
+        // ---- 食物/药品键 ----
+        public static NamespacedKey RejuvenationPowderKey;
+        public static NamespacedKey HemostaticBandageKey;
+        public static NamespacedKey CompressedBiscuitKey;
+
         /** 初始化所有键 — 必须在插件 onEnable 中调用 */
         public static void regkey(JavaPlugin plugin) {
             getplugin = plugin;
@@ -96,6 +111,18 @@ public class NamespaceKey {
             ArrowSpeed = new NamespacedKey(plugin, "ArmsorPlus_ArrowSpeed");
             Sniping = new NamespacedKey(plugin, "ArmsorPlus_Sniping");
             Exorcism = new NamespacedKey(plugin, "ArmsorPlus_Exorcism");
+
+            DaggerKey = new NamespacedKey(plugin, "ArmsorPlus_Dagger");
+            ThrowingAxeKey = new NamespacedKey(plugin, "ArmsorPlus_ThrowingAxe");
+            SkeletonScepterKey = new NamespacedKey(plugin, "ArmsorPlus_SkeletonScepter");
+            FrostBowKey = new NamespacedKey(plugin, "ArmsorPlus_FrostBow");
+            FlameHalberdKey = new NamespacedKey(plugin, "ArmsorPlus_FlameHalberd");
+
+            QuickThrustKey = new NamespacedKey(plugin, "ArmsorPlus_QuickThrust");
+
+            RejuvenationPowderKey = new NamespacedKey(plugin, "ArmsorPlus_RejuvenationPowder");
+            HemostaticBandageKey = new NamespacedKey(plugin, "ArmsorPlus_HemostaticBandage");
+            CompressedBiscuitKey = new NamespacedKey(plugin, "ArmsorPlus_CompressedBiscuit");
         }
     }
 

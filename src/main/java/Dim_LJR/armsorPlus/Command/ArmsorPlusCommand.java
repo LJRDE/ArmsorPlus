@@ -37,13 +37,16 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "Survivor_EnchantedBook", "HealthBoost_EnchantedBook",
             "Revenge_EnchantedBook", "ExplosiveArrow_EnchantedBook",
             "ShadowDodge_EnchantedBook", "ArrowSpeed_EnchantedBook",
-            "Feeding_EnchantedBook"
+            "Feeding_EnchantedBook",
+            "Dagger", "ThrowingAxe", "SkeletonScepter", "FrostBow", "FlameHalberd",
+            "QuickThrust_EnchantedBook",
+            "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
     private final List<String> args1_enchant = List.of(
             "Dodge", "Famine", "Ripples", "BloodSacrifice", "EffectClear",
             "Freeze", "ShadowDodge", "Blocking", "Withering", "Survivor",
             "HealthBoost", "Revenge", "ExplosiveArrow", "Sniping",
-            "ArrowSpeed", "DoubleHit", "Feeding"
+            "ArrowSpeed", "DoubleHit", "Feeding", "QuickThrust"
     );
 
     @Override
@@ -271,6 +274,55 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(Withering_EnchantedBook(amount, level));
                 sender.sendMessage("已给予 " + amount + " 本" + ChatColor.BLACK + "凋零" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
+            // ===== 新武器 =====
+            case "Dagger" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(Dagger(amount));
+                sender.sendMessage("已获得 " + amount + " 把匕首");
+            }
+            case "ThrowingAxe" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(ThrowingAxe(amount));
+                sender.sendMessage("已获得 " + amount + " 把飞斧");
+            }
+            case "SkeletonScepter" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SkeletonScepter(amount));
+                sender.sendMessage("已获得 " + amount + " 个骷髅权杖");
+            }
+            case "FrostBow" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FrostBow(amount));
+                sender.sendMessage("已获得 " + amount + " 把寒冰弓");
+            }
+            case "FlameHalberd" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FlameHalberd(amount));
+                sender.sendMessage("已获得 " + amount + " 把火焰戟");
+            }
+            case "QuickThrust_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(QuickThrust_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GOLD + "疾刺" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            // ===== 食物/药品 =====
+            case "RejuvenationPowder" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                int tier = (args.length >= 4 && IsInt(args[3])) ? Integer.parseInt(args[3]) : 0;
+                player.getInventory().addItem(RejuvenationPowder(amount, tier));
+                sender.sendMessage("已获得 " + amount + " 个回春散 (品级:" + tier + ")");
+            }
+            case "HemostaticBandage" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(HemostaticBandage(amount));
+                sender.sendMessage("已获得 " + amount + " 个止血绷带");
+            }
+            case "CompressedBiscuit" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(CompressedBiscuit(amount));
+                sender.sendMessage("已获得 " + amount + " 个压缩饼干");
+            }
             case "Survivor_EnchantedBook" -> {
                 int amount = parseAmount(args, 2, 1);
                 int level = parseLevel(args, 3, 1);
@@ -322,6 +374,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "ArrowSpeed" -> ArmsorEnchant.getEnchantLevel(item, ArrowSpeed);
             case "DoubleHit" -> ArmsorEnchant.getEnchantLevel(item, DoubleHitkey);
             case "Feeding" -> ArmsorEnchant.getEnchantLevel(item, Feedingkey);
+            case "QuickThrust" -> ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
             default -> -1;
         };
         if (level < 0) {
@@ -346,6 +399,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         case "ArrowSpeed" -> ArrowSpeed;
                         case "DoubleHit" -> DoubleHitkey;
                         case "Feeding" -> Feedingkey;
+                        case "QuickThrust" -> QuickThrustKey;
                         default -> null;
                     }
             );
@@ -378,7 +432,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         Dodgekey, Faminekey, RipplesProtectkey, BloodSacrificekey, EffectClear,
                         FreezeKey, ShadowDodge, BlockingKey, WitheringKey, SurvivorKey,
                         HealthBoostKey, RevengeKey, ExplosiveArrowKey, Sniping, ArrowSpeed,
-                        DoubleHitkey, Feedingkey, Armskey, Armorkey, Bowkey, DiamondPluskey,
+                        DoubleHitkey, Feedingkey, QuickThrustKey, Armskey, Armorkey, Bowkey, DiamondPluskey,
                         BasicStone, GuideBookKey, MagicBallKey, MenuMark
                 )) {
                     meta.getPersistentDataContainer().remove(key);
@@ -421,6 +475,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "ArrowSpeed" -> ArrowSpeed;
             case "DoubleHit" -> DoubleHitkey;
             case "Feeding" -> Feedingkey;
+            case "QuickThrust" -> QuickThrustKey;
             default -> null;
         };
         if (key == null) {

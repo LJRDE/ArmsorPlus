@@ -18,16 +18,17 @@ import org.bukkit.util.Vector;
 import java.util.Random;
 import java.util.UUID;
 
+import static org.bukkit.Material.*;
+
 /**
  * 急冻树 —— 冰元素BOSS (原神: 急冻树)
  * <p>
- * 本体为隐身尸壳，由无AI雪人排列成树状结构。
- * 攻击任意躯干部位造成20%HP伤害，核心一击必杀。
- * 火焰/雷电伤害触发元素反应：伤害翻倍+50%暴露核心。
+ * 本体隐身无AI尸壳，装饰为无AI隐身僵尸佩戴雪块/冰块。
+ * 3×3树干向上延伸，5条半圆形枝干环绕，粒子雪花装饰。
  */
 public class CryoRegisvine {
 
-    private static final double MAX_HEALTH = 300;
+    private static final double MAX_HEALTH = 750;
     private static final int ATTACK_RADIUS = 8;
     private static final int FOLLOW_RANGE = 50;
 
@@ -37,7 +38,7 @@ public class CryoRegisvine {
     private static UUID bossUuid;
     private static BossBar bossBar;
 
-    // 雪人躯干 (树状结构)
+    // 僵尸躯干 (树状结构)
     private static LivingEntity coreStand;
     private static final java.util.List<LivingEntity> bodyStands = new java.util.ArrayList<>();
 
@@ -88,8 +89,8 @@ public class CryoRegisvine {
 
         BossMenu.registerBoss(BossMenu.BossType.CRYO, bossEntity, MAX_HEALTH, bossBar);
 
-        // ---- 雪人树状结构 ----
-        spawnSnowmen(spawnLoc);
+        // ---- 僵尸树状结构 ----
+        spawnTree(spawnLoc);
 
         // ---- 召唤特效 ----
         Location bossLoc = bossEntity.getLocation();
@@ -112,8 +113,8 @@ public class CryoRegisvine {
         Location target = base.clone().add(dir);
         target.setY(target.getWorld().getHighestBlockYAt(target) + 1);
 
-        for (int x = -3; x <= 3; x++) {
-            for (int z = -3; z <= 3; z++) {
+        for (int x = -4; x <= 4; x++) {
+            for (int z = -4; z <= 4; z++) {
                 Location check = target.clone().add(x, 0, z);
                 if (!check.getBlock().isPassable()) return null;
                 for (int y = 1; y <= 6; y++) {
@@ -126,47 +127,250 @@ public class CryoRegisvine {
     }
 
     // ========================================================================
-    // 雪人树状结构
+    // 僵尸树状结构
     // ========================================================================
 
-    private static void spawnSnowmen(Location center) {
-        // 第1层: 根部 (3个雪人, 宽三角形, y=0)
-        spawnBodySnowman(center, 0, 0, 2.0);
-        spawnBodySnowman(center, 1.73, 0, -1.0);
-        spawnBodySnowman(center, -1.73, 0, -1.0);
+    /**
+     * 生成由无AI隐身僵尸+带头方块组成的冰树。
+     * 树干3×3剖面向上收窄，5条半圆枝干向外伸展。
+     */
+    private static void spawnTree(Location center) {
+        // ========== 树干 (3×3 逐渐收窄) ==========
 
-        // 第2层: 下躯干 (2个雪人, 前后排列, y=1.7)
-        spawnBodySnowman(center, 0, 1.7, 0.7);
-        spawnBodySnowman(center, 0, 1.7, -0.7);
+        // 第1层-底部 (3×3 满铺, SNOW_BLOCK)
+        spawnTrunk(center, -1, -1.0, -1, SNOW_BLOCK);
+        spawnTrunk(center, -1, -1.0,  0, SNOW_BLOCK);
+        spawnTrunk(center, -1, -1.0,  1, SNOW_BLOCK);
+        spawnTrunk(center,  0, -1.0, -1, SNOW_BLOCK);
+        spawnTrunk(center,  0, -1.0,  0, SNOW_BLOCK);
+        spawnTrunk(center,  0, -1.0,  1, SNOW_BLOCK);
+        spawnTrunk(center,  1, -1.0, -1, SNOW_BLOCK);
+        spawnTrunk(center,  1, -1.0,  0, SNOW_BLOCK);
+        spawnTrunk(center,  1, -1.0,  1, SNOW_BLOCK);
 
-        // 第3层: 上枝干 (2个雪人, 左右展开, y=3.2)
-        spawnBodySnowman(center, 1.0, 3.2, 0);
-        spawnBodySnowman(center, -1.0, 3.2, 0);
+        // 第2层 (3×3 满铺, PACKED_ICE)
+        spawnTrunk(center, -1,  0.2, -1, PACKED_ICE);
+        spawnTrunk(center, -1,  0.2,  0, PACKED_ICE);
+        spawnTrunk(center, -1,  0.2,  1, PACKED_ICE);
+        spawnTrunk(center,  0,  0.2, -1, PACKED_ICE);
+        spawnTrunk(center,  0,  0.2,  0, PACKED_ICE);
+        spawnTrunk(center,  0,  0.2,  1, PACKED_ICE);
+        spawnTrunk(center,  1,  0.2, -1, PACKED_ICE);
+        spawnTrunk(center,  1,  0.2,  0, PACKED_ICE);
+        spawnTrunk(center,  1,  0.2,  1, PACKED_ICE);
 
-        // 第4层: 核心 (1个雪人, 树冠顶端, y=4.5)
-        coreStand = spawnSnowman(center, 0, 4.5, 0);
+        // 第3层 (3×3 满铺, PACKED_ICE)
+        spawnTrunk(center, -1,  1.4, -1, PACKED_ICE);
+        spawnTrunk(center, -1,  1.4,  0, PACKED_ICE);
+        spawnTrunk(center, -1,  1.4,  1, PACKED_ICE);
+        spawnTrunk(center,  0,  1.4, -1, PACKED_ICE);
+        spawnTrunk(center,  0,  1.4,  0, PACKED_ICE);
+        spawnTrunk(center,  0,  1.4,  1, PACKED_ICE);
+        spawnTrunk(center,  1,  1.4, -1, PACKED_ICE);
+        spawnTrunk(center,  1,  1.4,  0, PACKED_ICE);
+        spawnTrunk(center,  1,  1.4,  1, PACKED_ICE);
+
+        // 第4层 (3×3 边角, PACKED_ICE→BLUE_ICE 过渡)
+        spawnTrunk(center, -0.5, 2.6, -1, PACKED_ICE);
+        spawnTrunk(center, -0.5, 2.6,  1, PACKED_ICE);
+        spawnTrunk(center,  0.5, 2.6, -1, PACKED_ICE);
+        spawnTrunk(center,  0.5, 2.6,  1, PACKED_ICE);
+
+        // 第5层 (单点核心, BLUE_ICE)
+        coreStand = spawnTreeZombie(center, 0, 3.6, 0, BLUE_ICE);
         BossMenu.registerBodyStand(BossMenu.BossType.CRYO, coreStand.getUniqueId());
+
+        // ========== 5条半圆形枝干 ==========
+
+        // 枝干1 (+X 方向, y≈1.2)
+        spawnBranch(center,  1.5, -0.3,  0,   SNOW_BLOCK);
+        spawnBranch(center,  2.2, -0.3,  0.5, PACKED_ICE);
+        spawnBranch(center,  2.2, -0.3, -0.5, PACKED_ICE);
+        spawnBranch(center,  2.8, -0.3,  0,   BLUE_ICE);
+
+        // 枝干2 (-X 方向, y≈1.8)
+        spawnBranch(center, -1.5,  0.3,  0,   SNOW_BLOCK);
+        spawnBranch(center, -2.2,  0.3,  0.5, PACKED_ICE);
+        spawnBranch(center, -2.2,  0.3, -0.5, PACKED_ICE);
+        spawnBranch(center, -2.8,  0.3,  0,   BLUE_ICE);
+
+        // 枝干3 (+Z 方向, y≈2.4)
+        spawnBranch(center,  0,   0.9,  1.5, SNOW_BLOCK);
+        spawnBranch(center,  0.5, 0.9,  2.2, PACKED_ICE);
+        spawnBranch(center, -0.5, 0.9,  2.2, PACKED_ICE);
+        spawnBranch(center,  0,   0.9,  2.8, BLUE_ICE);
+
+        // 枝干4 (-Z 方向, y≈3.0)
+        spawnBranch(center,  0,   1.5, -1.5, SNOW_BLOCK);
+        spawnBranch(center,  0.5, 1.5, -2.2, PACKED_ICE);
+        spawnBranch(center, -0.5, 1.5, -2.2, PACKED_ICE);
+        spawnBranch(center,  0,   1.5, -2.8, BLUE_ICE);
+
+        // 枝干5 (花冠散开, y≈3.8)
+        spawnBranch(center,  1.2, 2.3,  1.2, PACKED_ICE);
+        spawnBranch(center, -1.2, 2.3,  1.2, PACKED_ICE);
+        spawnBranch(center,  1.2, 2.3, -1.2, PACKED_ICE);
+        spawnBranch(center, -1.2, 2.3, -1.2, BLUE_ICE);
     }
 
-    private static void spawnBodySnowman(Location center, double x, double y, double z) {
-        LivingEntity snowman = spawnSnowman(center, x, y, z);
-        bodyStands.add(snowman);
-        BossMenu.registerBodyStand(BossMenu.BossType.CRYO, snowman.getUniqueId());
+    /** 树干节点 */
+    private static void spawnTrunk(Location center, double x, double y, double z, Material head) {
+        spawnBodyZombie(center, x, y, z, head);
     }
 
-    private static LivingEntity spawnSnowman(Location center, double x, double y, double z) {
+    /** 枝干节点 */
+    private static void spawnBranch(Location center, double x, double y, double z, Material head) {
+        spawnBodyZombie(center, x, y, z, head);
+    }
+
+    private static void spawnBodyZombie(Location center, double x, double y, double z, Material head) {
+        LivingEntity zombie = spawnTreeZombie(center, x, y, z, head);
+        bodyStands.add(zombie);
+        BossMenu.registerBodyStand(BossMenu.BossType.CRYO, zombie.getUniqueId());
+    }
+
+    /** 生成无AI隐身僵尸，佩戴指定方块作为头盔 */
+    private static LivingEntity spawnTreeZombie(Location center, double x, double y, double z, Material head) {
         Location loc = center.clone().add(x, y, z);
-        LivingEntity snowman = (LivingEntity) center.getWorld().spawnEntity(loc, EntityType.SNOW_GOLEM);
-        snowman.setAI(false);
-        snowman.setSilent(true);
-        snowman.setCollidable(false);
-        snowman.setRemoveWhenFarAway(false);
-        snowman.setPersistent(true);
-        snowman.setInvulnerable(false);
-        // 免疫环境伤害 (雨/水/热群系)
-        snowman.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 5, false, false));
-        snowman.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0, false, false));
-        return snowman;
+        LivingEntity zombie = (LivingEntity) center.getWorld().spawnEntity(loc, EntityType.ZOMBIE);
+        zombie.setAI(false);
+        zombie.setSilent(true);
+        zombie.setCollidable(false);
+        zombie.setRemoveWhenFarAway(false);
+        zombie.setPersistent(true);
+        zombie.setInvisible(true);
+        zombie.getEquipment().setHelmet(new ItemStack(head), true);
+        return zombie;
+    }
+
+    // ========================================================================
+    // 冰雹 — 从天而降的冰锥攻击
+    // ========================================================================
+
+    private static void hailAttack(Player target) {
+        Location targetLoc = target.getLocation();
+        World world = targetLoc.getWorld();
+
+        world.playSound(targetLoc, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.5f);
+        target.sendActionBar("§b❄ 冰雹来了，快躲开！");
+
+        new BukkitRunnable() {
+            int wave = 0;
+
+            @Override
+            public void run() {
+                if (bossEntity == null || bossEntity.isDead()) {
+                    cancel();
+                    return;
+                }
+                wave++;
+                if (wave > 5) {
+                    cancel();
+                    return;
+                }
+
+                for (int i = 0; i < 6; i++) {
+                    double xOffset = (RANDOM.nextDouble() - 0.5) * 7;
+                    double zOffset = (RANDOM.nextDouble() - 0.5) * 7;
+
+                    // 冰锥从天而降
+                    Location from = targetLoc.clone().add(xOffset, 14, zOffset);
+                    world.spawnParticle(Particle.SNOWFLAKE, from, 8, 0.4, 0.4, 0.4, 0.02);
+
+                    Location hitLoc = targetLoc.clone().add(xOffset, 0, zOffset);
+                    for (Entity entity : world.getNearbyEntities(hitLoc, 1.8, 3, 1.8)) {
+                        if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
+                            p.damage(10, bossEntity);
+                            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
+                            p.setFreezeTicks(40);
+                        }
+                    }
+
+                    world.spawnParticle(Particle.ITEM_SNOWBALL, hitLoc, 15, 0.5, 0.3, 0.5, 0.3);
+                    world.playSound(hitLoc, Sound.BLOCK_SNOW_BREAK, 0.6f, 1.0f);
+                }
+            }
+        }.runTaskTimer(NamespaceKey.Keys.getplugin, 0L, 12L);
+    }
+
+    // ========================================================================
+    // 横扫 — 前方6.5m喷射 + 旋转1080°
+    // ========================================================================
+
+    private static void sweepAttack(Player target) {
+        Location bossLoc = bossEntity.getLocation();
+        World world = bossLoc.getWorld();
+
+        // 看向目标
+        lookAtTarget(bossEntity, target.getLocation());
+
+        // Phase 1: 前方6.5m喷射
+        Vector dir = bossLoc.getDirection();
+        for (double d = 0; d < 6.5; d += 0.5) {
+            Location point = bossLoc.clone().add(dir.clone().multiply(d));
+            world.spawnParticle(Particle.SNOWFLAKE, point, 2, 0.2, 0.2, 0.2, 0);
+            world.spawnParticle(Particle.CRIT, point, 1, 0.1, 0.1, 0.1, 0);
+        }
+        world.playSound(bossLoc, Sound.ENTITY_BLAZE_SHOOT, 1.5f, 0.6f);
+
+        for (Entity entity : world.getNearbyEntities(bossLoc, 6.5, 2, 6.5)) {
+            if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
+                Vector toEntity = p.getLocation().toVector().subtract(bossLoc.toVector());
+                double dist = toEntity.length();
+                double angle = dir.angle(toEntity);
+                if (angle < Math.toRadians(25) && dist <= 6.5) {
+                    p.damage(12, bossEntity);
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1));
+                    p.setFreezeTicks(30);
+                }
+            }
+        }
+
+        // Phase 2: 旋转1080° (3圈, 约3秒 = 60 ticks, 18°/tick)
+        new BukkitRunnable() {
+            int tick = 0;
+
+            @Override
+            public void run() {
+                if (bossEntity == null || bossEntity.isDead()) {
+                    cancel();
+                    return;
+                }
+                tick++;
+                if (tick > 60) {
+                    cancel();
+                    return;
+                }
+
+                Location loc = bossEntity.getLocation();
+                loc.setYaw(loc.getYaw() + 18);
+                bossEntity.teleport(loc);
+
+                Vector v = loc.getDirection();
+                for (double d = 0; d < 6.5; d += 0.8) {
+                    Location point = loc.clone().add(v.clone().multiply(d));
+                    world.spawnParticle(Particle.SNOWFLAKE, point, 1, 0.15, 0.15, 0.15, 0);
+                }
+
+                for (Entity entity : world.getNearbyEntities(loc, 6.5, 2, 6.5)) {
+                    if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
+                        Vector toEntity = p.getLocation().toVector().subtract(loc.toVector());
+                        double dist = toEntity.length();
+                        double angle = v.angle(toEntity);
+                        if (angle < Math.toRadians(20) && dist <= 6.5) {
+                            p.damage(8, bossEntity);
+                            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20, 0));
+                            p.setFreezeTicks(20);
+                        }
+                    }
+                }
+
+                world.spawnParticle(Particle.SWEEP_ATTACK, loc.clone().add(0, 0.5, 0), 1, 0.5, 0, 0.5, 0);
+                if (tick % 4 == 0) {
+                    world.playSound(loc, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.4f, 0.8f);
+                }
+            }
+        }.runTaskTimer(NamespaceKey.Keys.getplugin, 0L, 1L);
     }
 
     // ========================================================================
@@ -237,6 +441,11 @@ public class CryoRegisvine {
                     bossBar.setColor(BarColor.WHITE);
                 }
 
+                // 粒子效果装饰 — 雪花飘落
+                Location bossLoc = bossEntity.getLocation();
+                bossLoc.getWorld().spawnParticle(Particle.SNOWFLAKE,
+                        bossLoc.clone().add(0, 5, 0), 5, 2, 0.5, 2, 0.05);
+
                 Player target = findNearestPlayer();
                 if (target == null) {
                     if (tick > 600) {
@@ -254,21 +463,24 @@ public class CryoRegisvine {
                     return;
                 }
 
-                int attack = RANDOM.nextInt(phase2 ? 4 : 3);
+                int r = RANDOM.nextInt(phase2 ? 6 : 5);
+                int attack = (!phase2 && r >= 3) ? r + 1 : r;
                 switch (attack) {
                     case 0 -> iceShardAttack(target);
                     case 1 -> frostAura();
                     case 2 -> frostBreath(target);
                     case 3 -> iceExplosion(target);
+                    case 4 -> hailAttack(target);
+                    case 5 -> sweepAttack(target);
                 }
 
                 attacksSinceCore++;
                 if (attacksSinceCore >= 3) {
                     exposeCore();
                     attacksSinceCore = 0;
-                    attackCooldown = phase2 ? 4 : 6;
+                    attackCooldown = phase2 ? 5 : 8;
                 } else {
-                    attackCooldown = phase2 ? 3 : 6;
+                    attackCooldown = phase2 ? 5 : 8;
                 }
             }
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 10L);
@@ -298,8 +510,8 @@ public class CryoRegisvine {
                 if (bossEntity == null || bossEntity.isDead()) return;
                 for (Entity entity : world.getNearbyEntities(targetLoc, 2.5, 2.5, 2.5)) {
                     if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
-                        p.damage(6, bossEntity);
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
+                        p.damage(12, bossEntity);
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 2));
                         p.sendActionBar("§b❄ 你受到了冰锥伤害");
                     }
                 }
@@ -318,9 +530,9 @@ public class CryoRegisvine {
 
         for (Entity entity : world.getNearbyEntities(bossLoc, ATTACK_RADIUS, 4, ATTACK_RADIUS)) {
             if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
-                p.damage(8, bossEntity);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 3));
-                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 0));
+                p.damage(15, bossEntity);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 3));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 0));
                 p.sendActionBar("§b❄ 寒冰领域把你冻住了");
             }
         }
@@ -347,9 +559,9 @@ public class CryoRegisvine {
             Vector toEntity = entity.getLocation().toVector().subtract(bossLoc.toVector());
             double angle = bossDir.angle(toEntity);
             if (angle < Math.toRadians(50)) {
-                p.damage(10, bossEntity);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 2));
-                p.setFreezeTicks(100);
+                p.damage(20, bossEntity);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 120, 2));
+                p.setFreezeTicks(140);
                 p.sendActionBar("§b❄ 极寒吐息！");
             }
         }
@@ -372,9 +584,9 @@ public class CryoRegisvine {
 
                 for (Entity entity : world.getNearbyEntities(targetLoc, 3, 3, 3)) {
                     if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
-                        p.damage(12, bossEntity);
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 2));
-                        p.setFreezeTicks(60);
+                        p.damage(25, bossEntity);
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 3));
+                        p.setFreezeTicks(100);
                     }
                 }
             }
@@ -406,7 +618,7 @@ public class CryoRegisvine {
             world.dropItemNaturally(loc, ArmsorItem.Ripples_EnchantdeBook(1, RANDOM.nextInt(3) + 1));
         }
 
-        world.dropItemNaturally(loc, new ItemStack(Material.EXPERIENCE_BOTTLE, 48));
+        world.dropItemNaturally(loc, new ItemStack(Material.EXPERIENCE_BOTTLE, 12));
 
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.sendMessage("§b◆ 急冻树已被击败！");

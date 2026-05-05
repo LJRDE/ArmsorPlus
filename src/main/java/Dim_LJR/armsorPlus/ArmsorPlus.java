@@ -75,6 +75,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(), this);
         getServer().getPluginManager().registerEvents(new EnhancementHandler(), this);
         getServer().getPluginManager().registerEvents(new BossMenu(), this);
+        getServer().getPluginManager().registerEvents(new ArmsorPlusItemHandler(), this);
     }
 
     /** 注册指令执行器 */
@@ -119,6 +120,78 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         // 基础强化石: 4个钻石块
         NamespacedKey stoneKey = new NamespacedKey(this, "StoneRecipe");
         getServer().addRecipe(new ShapelessRecipe(stoneKey, BasicStone(1)).addIngredient(4, DIAMOND_BLOCK));
+        count++;
+
+        // 匕首: 绿宝石 + 木棍
+        NamespacedKey daggerKey = new NamespacedKey(this, "ArmsorPlus_Dagger");
+        ShapedRecipe daggerRecipe = new ShapedRecipe(daggerKey, Dagger(1));
+        daggerRecipe.shape(" E ", " S ", "   ");
+        daggerRecipe.setIngredient('E', EMERALD);
+        daggerRecipe.setIngredient('S', STICK);
+        getServer().addRecipe(daggerRecipe);
+        count++;
+
+        // 飞斧: 2下界合金锭 + 绿宝石块 + 2木棍
+        NamespacedKey axeKey = new NamespacedKey(this, "ArmsorPlus_ThrowingAxe");
+        ShapedRecipe axeRecipe = new ShapedRecipe(axeKey, ThrowingAxe(1));
+        axeRecipe.shape("N N", " E ", "S S");
+        axeRecipe.setIngredient('N', NETHERITE_INGOT);
+        axeRecipe.setIngredient('E', EMERALD_BLOCK);
+        axeRecipe.setIngredient('S', STICK);
+        getServer().addRecipe(axeRecipe);
+        count++;
+
+        // 骷髅权杖: 8骷髅头颅 + 不死图腾
+        NamespacedKey scepterKey = new NamespacedKey(this, "ArmsorPlus_Scepter");
+        ShapedRecipe scepterRecipe = new ShapedRecipe(scepterKey, SkeletonScepter(1));
+        scepterRecipe.shape("SSS", "STS", "SSS");
+        scepterRecipe.setIngredient('S', SKELETON_SKULL);
+        scepterRecipe.setIngredient('T', TOTEM_OF_UNDYING);
+        getServer().addRecipe(scepterRecipe);
+        count++;
+
+        // 寒冰弓: 蓝冰 + 木棍
+        NamespacedKey frostBowKey = new NamespacedKey(this, "ArmsorPlus_FrostBow");
+        ShapedRecipe frostBowRecipe = new ShapedRecipe(frostBowKey, FrostBow(1));
+        frostBowRecipe.shape(" IB", "I B", " IB");
+        frostBowRecipe.setIngredient('I', BLUE_ICE);
+        frostBowRecipe.setIngredient('B', STICK);
+        getServer().addRecipe(frostBowRecipe);
+        count++;
+
+        // 火焰戟: 下界合金锭 + 火焰弹 + 烈焰棒
+        NamespacedKey halberdKey = new NamespacedKey(this, "ArmsorPlus_FlameHalberd");
+        ShapedRecipe halberdRecipe = new ShapedRecipe(halberdKey, FlameHalberd(1));
+        halberdRecipe.shape(" NF", " BN", "B  ");
+        halberdRecipe.setIngredient('N', NETHERITE_INGOT);
+        halberdRecipe.setIngredient('F', FIRE_CHARGE);
+        halberdRecipe.setIngredient('B', BLAZE_ROD);
+        getServer().addRecipe(halberdRecipe);
+        count++;
+
+        // 回春散: 8闪烁的西瓜片 + 玻璃瓶
+        NamespacedKey rejuvenPowderKey = new NamespacedKey(this, "ArmsorPlus_RejuvenPowder");
+        ShapelessRecipe rejuvenPowderRecipe = new ShapelessRecipe(rejuvenPowderKey, RejuvenationPowder(1));
+        rejuvenPowderRecipe.addIngredient(8, GLISTERING_MELON_SLICE);
+        rejuvenPowderRecipe.addIngredient(1, GLASS_BOTTLE);
+        getServer().addRecipe(rejuvenPowderRecipe);
+        count++;
+
+        // 止血绷带: 2地狱疣 + 白色羊毛
+        NamespacedKey bandageKey = new NamespacedKey(this, "ArmsorPlus_Bandage");
+        ShapedRecipe bandageRecipe = new ShapedRecipe(bandageKey, HemostaticBandage(1));
+        bandageRecipe.shape(" N ", "N W", "   ");
+        bandageRecipe.setIngredient('N', NETHER_WART);
+        bandageRecipe.setIngredient('W', WHITE_WOOL);
+        getServer().addRecipe(bandageRecipe);
+        count++;
+
+        // 压缩饼干: 3面包
+        NamespacedKey biscuitKey = new NamespacedKey(this, "ArmsorPlus_Biscuit");
+        ShapedRecipe biscuitRecipe = new ShapedRecipe(biscuitKey, CompressedBiscuit(1));
+        biscuitRecipe.shape("BBB", "   ", "   ");
+        biscuitRecipe.setIngredient('B', BREAD);
+        getServer().addRecipe(biscuitRecipe);
         count++;
 
         getLogger().info("ArmsorPlus 配方注册完成 数量: " + count);

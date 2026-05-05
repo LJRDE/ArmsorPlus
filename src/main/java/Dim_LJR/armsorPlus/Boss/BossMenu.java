@@ -34,7 +34,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO }
+    public enum BossType { CRYO, PYRO, SLIME }
 
     /** 身体部位实体 -> BOSS类型 */
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -119,6 +119,7 @@ public class BossMenu implements Listener {
             switch (type) {
                 case CRYO -> CryoRegisvine.onDeath();
                 case PYRO -> PyroRegisvine.onDeath();
+                case SLIME -> SlimeBoss.onDeath();
             }
             return true;
         }
@@ -306,7 +307,7 @@ public class BossMenu implements Listener {
                 "§7来自龙脊雪山的远古植物，",
                 "§7拥有操控冰元素的力量。",
                 "",
-                "§c❤ 生命值: 300",
+                "§c❤ 生命值: 750",
                 "§b❄ 冰元素攻击",
                 "§e✦ 攻击躯干部位造成20%伤害，命中核心一击必杀",
                 "§6⚡ 火焰/雷电伤害触发元素反应: 双倍伤害+50%暴露核心",
@@ -317,6 +318,24 @@ public class BossMenu implements Listener {
         cryo.setItemMeta(cryoMeta);
         bossList.setItem(11, cryo);
 
+        ItemStack slime = new ItemStack(Material.SLIME_BLOCK);
+        ItemMeta slimeMeta = slime.getItemMeta();
+        slimeMeta.setDisplayName("§a■ 史莱姆王");
+        slimeMeta.setLore(Arrays.asList(
+                "§7来自神秘沼泽的巨型史莱姆，",
+                "§7手持满级附魔重锤。",
+                "",
+                "§c❤ 生命值: 750",
+                "§a⚡ 重锤粉碎攻击",
+                "§e✦ 跳跃时触发重锤粉碎，造成大量伤害",
+                "§e✦ 半血激怒，召唤小史莱姆",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        slime.setItemMeta(slimeMeta);
+        bossList.setItem(13, slime);
+
         ItemStack pyro = new ItemStack(Material.MAGMA_BLOCK);
         ItemMeta pyroMeta = pyro.getItemMeta();
         pyroMeta.setDisplayName("§c■ 爆炎树");
@@ -324,7 +343,7 @@ public class BossMenu implements Listener {
                 "§7来自层岩巨渊的远古植物，",
                 "§7拥有操控火元素的力量。",
                 "",
-                "§c❤ 生命值: 300",
+                "§c❤ 生命值: 750",
                 "§c❄ 火元素攻击",
                 "§e✦ 攻击躯干部位造成20%伤害，命中核心一击必杀",
                 "§b❄ 雷电/冰冻伤害触发元素反应: 双倍伤害+50%暴露核心",
@@ -384,6 +403,19 @@ public class BossMenu implements Listener {
             player.closeInventory();
             player.sendMessage("§c◆ 爆炎树已降临！");
             PyroRegisvine.spawnBoss(player);
+        } else if (name.contains("史莱姆王")) {
+            if (SlimeBoss.isAlive()) {
+                Location loc = SlimeBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e史莱姆王尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§a◆ 史莱姆王已降临！");
+            SlimeBoss.spawnBoss(player);
         }
     }
 }

@@ -1,6 +1,7 @@
 package Dim_LJR.armsorPlus.ArmsorPlusEnchant;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -146,7 +147,7 @@ public class EnhancementHandler implements Listener {
         if (consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum, Armskey) == 1 && isSwordOrAxe(item)) {
             event.setCancelled(true);
             itemMeta.addEnchant(Enchantment.SHARPNESS, itemMeta.getEnchantLevel(Enchantment.SHARPNESS) + 1, true);
-            consum.setAmount(consum.getAmount() - 1);
+            consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BLUE + "武器强化成功");
             item.setItemMeta(itemMeta);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 96, 0.75, 0.75, 1);
@@ -173,7 +174,7 @@ public class EnhancementHandler implements Listener {
                                 current + 1, AttributeModifier.Operation.ADD_NUMBER,
                                 EquipmentSlotGroup.HAND));
             }
-            consum.setAmount(consum.getAmount() - 1);
+            consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BLUE + "武器强化成功");
             item.setItemMeta(itemMeta);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 96, 0.75, 0.75, 1);
@@ -186,7 +187,7 @@ public class EnhancementHandler implements Listener {
         if (consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum, Armorkey) == 1 && isArmor(item)) {
             event.setCancelled(true);
             itemMeta.addEnchant(Enchantment.PROTECTION, itemMeta.getEnchantLevel(Enchantment.PROTECTION) + 1, true);
-            consum.setAmount(consum.getAmount() - 1);
+            consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.LIGHT_PURPLE + "护甲强化成功");
             item.setItemMeta(itemMeta);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 96, 0.75, 0.75, 1);
@@ -221,7 +222,7 @@ public class EnhancementHandler implements Listener {
                                 current + 1, AttributeModifier.Operation.ADD_NUMBER, slot));
             }
 
-            consum.setAmount(consum.getAmount() - 1);
+            consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BLUE + "护甲强化成功");
             item.setItemMeta(itemMeta);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 96, 0.75, 0.75, 1);
@@ -234,7 +235,7 @@ public class EnhancementHandler implements Listener {
         if (consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum, Bowkey) != 0 && item.getType() == BOW) {
             event.setCancelled(true);
             itemMeta.addEnchant(Enchantment.POWER, itemMeta.getEnchantLevel(Enchantment.POWER) + 1, true);
-            consum.setAmount(consum.getAmount() - 1);
+            consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BOLD + "弓强化成功");
             item.setItemMeta(itemMeta);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 96, 0.75, 0.75, 1);
@@ -247,7 +248,7 @@ public class EnhancementHandler implements Listener {
         if (consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum, DiamondPluskey) != 0 && isWeaponOrArmor(item)) {
             event.setCancelled(true);
             itemMeta.setUnbreakable(true);
-            consum.setAmount(consum.getAmount() - 1);
+            consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BOLD + "金刚石强化成功");
             item.setItemMeta(itemMeta);
             player.spawnParticle(Particle.ENCHANT, player.getLocation(), 96, 0.75, 0.75, 1);
@@ -299,24 +300,34 @@ public class EnhancementHandler implements Listener {
                 isChestplate(item), ChatColor.DARK_RED + "复仇")) return;
         // [生命提升] 胸甲 (特殊: 还要加MaxHealth修饰符)
         if (tryApplyHealthBoost(event, consum, item, player, itemMeta)) return;
-        // [蓄爆] 弓/弩
+        // [蓄爆] 弓/弩 (与弹道/狙击不共存)
         if (tryApplyEnchant(event, consum, item, player, ExplosiveArrowKey, ExplosiveArrowKey,
-                item.getType() == BOW || item.getType() == Material.CROSSBOW, ChatColor.YELLOW + "蓄爆")) return;
+                (item.getType() == BOW || item.getType() == CROSSBOW)
+                        && ArmsorEnchant.getEnchantLevel(item, ArrowSpeed) == 0
+                        && ArmsorEnchant.getEnchantLevel(item, Sniping) == 0,
+                ChatColor.YELLOW + "蓄爆")) return;
         // [影避] 靴子
         if (tryApplyEnchant(event, consum, item, player, ShadowDodge, ShadowDodge,
                 isBoots(item), ChatColor.DARK_PURPLE + "影避")) return;
-        // [弹道] 弓/弩
+        // [弹道] 弓/弩 (与蓄爆不共存)
         if (tryApplyEnchant(event, consum, item, player, ArrowSpeed, ArrowSpeed,
-                item.getType() == BOW || item.getType() == Material.CROSSBOW, ChatColor.GOLD + "弹道")) return;
-        // [狙击] 弓/弩
+                (item.getType() == BOW || item.getType() == CROSSBOW)
+                        && ArmsorEnchant.getEnchantLevel(item, ExplosiveArrowKey) == 0,
+                ChatColor.GOLD + "弹道")) return;
+        // [狙击] 弓/弩 (与蓄爆不共存)
         if (tryApplyEnchant(event, consum, item, player, Sniping, Sniping,
-                item.getType() == BOW || item.getType() == Material.CROSSBOW, ChatColor.LIGHT_PURPLE + "狙击")) return;
+                (item.getType() == BOW || item.getType() == CROSSBOW)
+                        && ArmsorEnchant.getEnchantLevel(item, ExplosiveArrowKey) == 0,
+                ChatColor.LIGHT_PURPLE + "狙击")) return;
         // [双重打击] 武器
         if (tryApplyEnchant(event, consum, item, player, DoubleHitkey, DoubleHitkey,
                 isSwordOrAxe(item), ChatColor.LIGHT_PURPLE + "双重打击")) return;
         // [吸血] 武器
         if (tryApplyEnchant(event, consum, item, player, Feedingkey, Feedingkey,
                 isSwordOrAxe(item), ChatColor.RED + "吸血")) return;
+        // [疾刺] 三叉戟
+        if (tryApplyEnchant(event, consum, item, player, QuickThrustKey, QuickThrustKey,
+                item.getType() == TRIDENT, ChatColor.GOLD + "疾刺")) return;
     }
 
     /**
@@ -340,7 +351,7 @@ public class EnhancementHandler implements Listener {
             return true;
         }
 
-        consum.setAmount(consum.getAmount() - 1);
+        consumeItem(player, consum, 1);
         ArmsorEnchant.addEnchant(item, itemKey, level);
         player.sendMessage("附魔成功, 魔咒级别" + ArmsorEnchant.getEnchantLevel(item, itemKey));
         addEnchantLore(item, displayName, level, itemKey);
@@ -362,7 +373,7 @@ public class EnhancementHandler implements Listener {
             return true;
         }
 
-        consum.setAmount(consum.getAmount() - 1);
+        consumeItem(player, consum, 1);
         ArmsorEnchant.addEnchant(item, HealthBoostKey, level);
 
         // 移除旧的 MaxHealth 修饰符
@@ -397,6 +408,13 @@ public class EnhancementHandler implements Listener {
         if (type.name().endsWith("_LEGGINGS")) return EquipmentSlotGroup.LEGS;
         if (type.name().endsWith("_BOOTS")) return EquipmentSlotGroup.FEET;
         return EquipmentSlotGroup.HEAD;
+    }
+
+    /** 消耗物品 (创造模式下不消耗) */
+    private void consumeItem(Player player, ItemStack item, int amount) {
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - amount);
+        }
     }
 
     /** 添加护甲+韧性属性修饰符 */

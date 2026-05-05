@@ -131,11 +131,18 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         int level = ArmsorEnchant.getEnchantLevel(bow, ExplosiveArrowKey);
         if (level <= 0) return;
 
-        // 100%触发 (原为Math.random() < 1, 就是必触发)
+        // 蓄爆与弹道/狙击不共存
+        if (ArmsorEnchant.getEnchantLevel(bow, ArrowSpeed) > 0
+                || ArmsorEnchant.getEnchantLevel(bow, Sniping) > 0) return;
+
         event.setCancelled(true);
 
+        // 在玩家前方生成烟花，避免在体内爆炸
+        Location spawnLoc = player.getEyeLocation().add(
+                player.getLocation().getDirection().multiply(1.5));
+
         Firework firework = (Firework) player.getWorld().spawnEntity(
-                player.getLocation(), EntityType.FIREWORK_ROCKET);
+                spawnLoc, EntityType.FIREWORK_ROCKET);
 
         FireworkMeta meta = firework.getFireworkMeta();
         meta.addEffect(FireworkEffect.builder()
@@ -467,17 +474,19 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         int level = ArmsorEnchant.getEnchantLevel(
                 damager.getEquipment().getItemInMainHand(), Feedingkey);
-        if (level == 0 || !percent(20 * level)) return;
+        if (level == 0) return;
+
+        double healAmount = 1.5 * level;
 
         // 目标扣血
-        double targetHp = target.getHealth() - 2;
+        double targetHp = target.getHealth() - healAmount;
         target.setHealth(Math.max(0, targetHp));
 
         // 攻击者回血
-        double healerHp = Math.min(damager.getHealth() + 2, damager.getMaxHealth());
+        double healerHp = Math.min(damager.getHealth() + healAmount, damager.getMaxHealth());
         damager.setHealth(healerHp);
 
-        PlayerSettings.notify(event.getDamager(), ChatColor.RED + "你对敌人施加了吸血");
+        PlayerSettings.notify(event.getDamager(), ChatColor.RED + "吸血 恢复了" + String.format("%.1f", healAmount) + "点生命值");
     }
 
     // ========================================================================
