@@ -72,6 +72,8 @@ public class PyroRegisvine {
         bossEntity.setCollidable(false);
         bossEntity.setSilent(true);
         bossEntity.setInvulnerable(true);
+        bossEntity.getEquipment().clear();
+        bossEntity.eject();
 
         var maxHpAttr = bossEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
@@ -241,7 +243,9 @@ public class PyroRegisvine {
         zombie.setRemoveWhenFarAway(false);
         zombie.setPersistent(true);
         zombie.setInvisible(true);
+        zombie.getEquipment().clear();
         zombie.getEquipment().setHelmet(new ItemStack(head), true);
+        zombie.eject();
         return zombie;
     }
 
@@ -389,7 +393,7 @@ public class PyroRegisvine {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getWorld().equals(bossEntity.getWorld())
                     && online.getLocation().distance(bossEntity.getLocation()) <= 150) {
-                online.sendMessage("§e✦ 爆炎树的核心暴露了！攻击核心造成100%伤害！");
+                online.sendMessage("§e✦ 爆炎树的核心暴露了！攻击核心造成大量伤害！");
             }
         }
 

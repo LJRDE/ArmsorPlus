@@ -161,35 +161,23 @@ public class BossMenu implements Listener {
     // 元素反应检测
     // ========================================================================
 
-    private static boolean hasFireDamage(Entity damager) {
-        if (damager instanceof Player p) {
-            ItemStack weapon = p.getInventory().getItemInMainHand();
-            if (weapon.containsEnchantment(Enchantment.FIRE_ASPECT)) return true;
-        }
-        if (damager instanceof Projectile proj && proj.getShooter() instanceof Player) {
-            //noinspection deprecation
-            if (proj instanceof Arrow arrow && arrow.getFireTicks() > 0) return true;
-        }
+    private static boolean hasFireDamage(Player player, Entity originalDamager) {
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (weapon.containsEnchantment(Enchantment.FIRE_ASPECT)) return true;
+        if (originalDamager instanceof Arrow arrow && arrow.getFireTicks() > 0) return true;
         return false;
     }
 
-    private static boolean hasLightningDamage(Entity damager) {
-        if (damager instanceof Player p) {
-            ItemStack weapon = p.getInventory().getItemInMainHand();
-            if (weapon.containsEnchantment(Enchantment.CHANNELING)) return true;
-        }
-        if (damager instanceof Trident) return true;
+    private static boolean hasLightningDamage(Player player, Entity originalDamager) {
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (weapon.containsEnchantment(Enchantment.CHANNELING)) return true;
+        if (originalDamager instanceof Trident) return true;
         return false;
     }
 
-    private static boolean hasFrostDamage(Entity damager) {
-        ItemStack weapon = null;
-        if (damager instanceof Player p) {
-            weapon = p.getInventory().getItemInMainHand();
-        } else if (damager instanceof Projectile proj && proj.getShooter() instanceof Player) {
-            weapon = ((Player) proj.getShooter()).getInventory().getItemInMainHand();
-        }
-        return weapon != null && ArmsorEnchant.getEnchantLevel(weapon, FreezeKey) > 0;
+    private static boolean hasFrostDamage(Player player, Entity originalDamager) {
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        return ArmsorEnchant.getEnchantLevel(weapon, FreezeKey) > 0;
     }
 
     // ========================================================================
@@ -202,34 +190,35 @@ public class BossMenu implements Listener {
         Entity damaged = event.getEntity();
         UUID id = damaged.getUniqueId();
 
-        // 获取攻击者 (如果是投射物则追踪射手)
-        Entity damager = event.getDamager();
+        // 保存原始伤害来源和伤害值 (投射物为箭矢/三叉戟等)
+        Entity originalDamager = event.getDamager();
+        double rawDamage = event.getDamage();
+
+        Entity damager = originalDamager;
         if (damager instanceof Projectile proj) {
             ProjectileSource src = proj.getShooter();
             if (src instanceof Entity) damager = (Entity) src;
         }
-        if (!(damager instanceof Player)) return;
+        if (!(damager instanceof Player player)) return;
 
-        // ======== 身体部位命中 (20%最大生命值伤害) ========
+        // ======== 身体部位命中 (3倍武器伤害) ========
         BossType type = BOSS_BODY_PARTS.get(id);
         if (type != null) {
+            double dmg = Math.max(rawDamage, 1.0) * 3;
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
             if (boss == null || boss.isDead()) return;
 
-            double maxHp = bossMaxHealth.getOrDefault(type, 1.0);
-            double dmg = maxHp * 0.2;
-
             // 元素反应
             boolean elementalProc = false;
             if (type == BossType.CRYO) {
-                if (hasFireDamage(damager) || hasLightningDamage(damager)) {
+                if (hasFireDamage(player, originalDamager) || hasLightningDamage(player, originalDamager)) {
                     dmg *= 2;
                     elementalProc = true;
                     if (RANDOM.nextInt(100) < 50) CryoRegisvine.exposeCore();
                 }
             } else if (type == BossType.PYRO) {
-                if (hasLightningDamage(damager) || hasFrostDamage(damager)) {
+                if (hasLightningDamage(player, originalDamager) || hasFrostDamage(player, originalDamager)) {
                     dmg *= 2;
                     elementalProc = true;
                     if (RANDOM.nextInt(100) < 50) PyroRegisvine.exposeCore();
@@ -241,28 +230,25 @@ public class BossMenu implements Listener {
                 boss.getWorld().spawnParticle(Particle.FIREWORK, boss.getLocation().add(0, 2, 0),
                         40, 1.5, 1.0, 1.5, 0.3);
                 boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.5f);
-                // 发送提示
                 String msg = type == BossType.CRYO
                         ? "§e⚡ 元素反应！对急冻树造成双倍伤害！"
                         : "§e⚡ 元素反应！对爆炎树造成双倍伤害！";
-                if (damager instanceof Player p) p.sendMessage(msg);
+                player.sendMessage(msg);
             }
 
-            damageBoss(type, dmg, damager);
+            damageBoss(type, dmg, player);
             damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 0.5, 0),
                     6, 0.3, 0.3, 0.3, 0.1);
             return;
         }
 
-        // ======== 核心命中 (100%最大生命值伤害) ========
+        // ======== 核心命中 (15倍武器伤害) ========
         type = BOSS_CORE_PARTS.get(id);
         if (type != null) {
+            double dmg = Math.max(rawDamage, 1.0) * 15;
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
             if (boss == null || boss.isDead()) return;
-
-            double maxHp = bossMaxHealth.getOrDefault(type, 1.0);
-            double dmg = maxHp * 1.0;
 
             // 核心命中特效
             boss.getWorld().strikeLightningEffect(boss.getLocation());
@@ -270,11 +256,9 @@ public class BossMenu implements Listener {
                     2, 0.5, 0.5, 0.5, 0);
             boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.5f, 1.0f);
 
-            if (damager instanceof Player p) {
-                p.sendMessage("§c✦ 致命一击！命中核心！");
-            }
+            player.sendMessage("§c✦ 命中核心！造成大量伤害！");
 
-            damageBoss(type, dmg, damager);
+            damageBoss(type, dmg, player);
         }
     }
 
@@ -309,7 +293,7 @@ public class BossMenu implements Listener {
                 "",
                 "§c❤ 生命值: 750",
                 "§b❄ 冰元素攻击",
-                "§e✦ 攻击躯干部位造成20%伤害，命中核心一击必杀",
+                "§e✦ 攻击躯干部位造成3倍武器伤害，命中核心造成15倍武器伤害",
                 "§6⚡ 火焰/雷电伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",
@@ -345,7 +329,7 @@ public class BossMenu implements Listener {
                 "",
                 "§c❤ 生命值: 750",
                 "§c❄ 火元素攻击",
-                "§e✦ 攻击躯干部位造成20%伤害，命中核心一击必杀",
+                "§e✦ 攻击躯干部位造成3倍武器伤害，命中核心造成15倍武器伤害",
                 "§b❄ 雷电/冰冻伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",

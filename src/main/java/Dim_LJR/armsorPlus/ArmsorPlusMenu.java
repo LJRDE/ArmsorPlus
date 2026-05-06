@@ -180,9 +180,9 @@ public class ArmsorPlusMenu implements Listener {
                 ChatColor.RED + "点击查看可召唤的BOSS"));
         menu.setItem(16, createInfoItem(ENDER_PEARL, ChatColor.RED + "前往BOSS世界",
                 ChatColor.RED + "点击传送到BOSS世界"));
-        menu.setItem(17, createInfoItem(BREAD, ChatColor.GREEN + "食物/药品",
+        menu.setItem(19, createInfoItem(BREAD, ChatColor.GREEN + "食物/药品",
                 ChatColor.GREEN + "点击查看食物与药品"));
-        menu.setItem(19, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
+        menu.setItem(1, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
                 ChatColor.GRAY + "点击打开个人设置"));
         return menu;
     }
@@ -415,51 +415,61 @@ public class ArmsorPlusMenu implements Listener {
         return item;
     }
 
-    /** 以菜单样式展示合成配方 */
+    /** 以45格菜单展示合成配方 (3×3工作台样式) */
     private void showRecipe(Player player, ItemStack item) {
         String displayName = item.getItemMeta().getDisplayName();
         String[] recipe = RECIPES.get(displayName);
 
         String title = "§e合成配方: " + displayName;
-        Inventory recipeView = Bukkit.createInventory(null, 27, title.length() > 32 ? title.substring(0, 32) : title);
+        Inventory recipeView = Bukkit.createInventory(null, 45, title.length() > 32 ? title.substring(0, 32) : title);
 
         // 边框
         ItemStack border = new ItemStack(GRAY_STAINED_GLASS_PANE);
         ItemMeta borderMeta = border.getItemMeta();
         borderMeta.setDisplayName(" ");
         border.setItemMeta(borderMeta);
-        for (int i = 0; i < 27; i++) {
+        for (int i = 0; i < 45; i++) {
             recipeView.setItem(i, border.clone());
         }
 
+        // 清除3×3合成格区域的边框
+        int[] gridSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
+        for (int slot : gridSlots) {
+            recipeView.setItem(slot, null);
+        }
+
         if (recipe == null) {
-            recipeView.setItem(13, createInfoItem(BARRIER, "§c暂无配方",
+            recipeView.setItem(22, createInfoItem(BARRIER, "§c暂无配方",
                     "§7该物品没有预定义的合成配方"));
         } else {
-            // 展示3×3合成格 (slot 10,11,12 / 13,14,15 / 16,17,18)
-            int[] gridSlots = {10, 11, 12, 13, 14, 15, 16, 17, 18};
+            // 填充3×3合成格
             for (int i = 0; i < 3 && i < recipe.length; i++) {
                 String row = recipe[i];
                 for (int j = 0; j < 3 && j < row.length(); j++) {
                     char c = row.charAt(j);
                     if (c == ' ') continue;
                     Material mat = getRecipeMaterial(recipe, c);
-                    int slot = gridSlots[i * 3 + j];
-                    recipeView.setItem(slot, createInfoItem(mat,
-                            "§f" + mat.name().replace('_', ' '),
+                    String chineseName = getMaterialChineseName(recipe, c);
+                    recipeView.setItem(gridSlots[i * 3 + j], createInfoItem(mat,
+                            "§f" + chineseName,
                             "§c" + c));
                 }
             }
-            // 材料说明 (slot 21-25, 下方)
+
+            // 合成方式指示 (工作台)
+            recipeView.setItem(23, createInfoItem(CRAFTING_TABLE, "§e合成方式: 工作台",
+                    "§7此合成配方使用工作台合成"));
+
+            // 合成结果
+            recipeView.setItem(25, item.clone());
+
+            // 材料说明
             List<String> materialNotes = new ArrayList<>();
             for (int i = 3; i < recipe.length; i++) {
                 materialNotes.add("§7" + recipe[i]);
             }
-            recipeView.setItem(22, createInfoItem(PAPER, "§e合成材料",
+            recipeView.setItem(31, createInfoItem(PAPER, "§e合成材料",
                     materialNotes.toArray(new String[0])));
-
-            // 结果展示
-            recipeView.setItem(4, item.clone());
         }
 
         player.openInventory(recipeView);
@@ -496,5 +506,16 @@ public class ArmsorPlusMenu implements Listener {
             }
         }
         return PAPER;
+    }
+
+    /** 从配方材料说明中解析字母对应的中文名 */
+    private String getMaterialChineseName(String[] recipe, char c) {
+        for (int i = 3; i < recipe.length; i++) {
+            String note = recipe[i];
+            if (note.length() >= 2 && note.charAt(0) == c && note.charAt(1) == '=') {
+                return note.substring(2);
+            }
+        }
+        return "???";
     }
 }
