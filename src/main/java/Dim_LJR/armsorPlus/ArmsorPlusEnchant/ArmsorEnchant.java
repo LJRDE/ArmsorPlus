@@ -131,6 +131,9 @@ public class ArmsorEnchant implements Listener {
         if (key.equals(DoubleHitkey))        return "双重打击";
         if (key.equals(Feedingkey))          return "吸血";
         if (key.equals(QuickThrustKey))     return "疾刺";
+        if (key.equals(DiamondDrillKey))   return "金刚钻";
+        if (key.equals(IndestructibleKey)) return "不灭";
+        if (key.equals(BlindnessKey))      return "失明";
         return null;
     }
 }

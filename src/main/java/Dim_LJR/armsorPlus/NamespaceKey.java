@@ -68,10 +68,28 @@ public class NamespaceKey {
         // ---- 新附魔键 ----
         public static NamespacedKey QuickThrustKey;
 
+        // ---- 新附魔键 ----
+        public static NamespacedKey DiamondDrillKey;
+        public static NamespacedKey IndestructibleKey;
+        public static NamespacedKey BlindnessKey;
+
+        // ---- 新武器键 ----
+        public static NamespacedKey RainSwordKey;
+        public static NamespacedKey FlyingSwordKey;
+        public static NamespacedKey FlashStepBladeKey;
+
         // ---- 食物/药品键 ----
         public static NamespacedKey RejuvenationPowderKey;
         public static NamespacedKey HemostaticBandageKey;
         public static NamespacedKey CompressedBiscuitKey;
+        public static NamespacedKey JerkyKey;
+        public static NamespacedKey SweetBerryPieKey;
+        public static NamespacedKey WineBarrelKey;
+        public static NamespacedKey WineKey;
+        public static NamespacedKey RottenJerkyKey;
+
+        // ---- 物品键 ----
+        public static NamespacedKey SaltKey;
 
         /** 初始化所有键 — 必须在插件 onEnable 中调用 */
         public static void regkey(JavaPlugin plugin) {
@@ -123,6 +141,21 @@ public class NamespaceKey {
             RejuvenationPowderKey = new NamespacedKey(plugin, "ArmsorPlus_RejuvenationPowder");
             HemostaticBandageKey = new NamespacedKey(plugin, "ArmsorPlus_HemostaticBandage");
             CompressedBiscuitKey = new NamespacedKey(plugin, "ArmsorPlus_CompressedBiscuit");
+            JerkyKey = new NamespacedKey(plugin, "ArmsorPlus_Jerky");
+            SweetBerryPieKey = new NamespacedKey(plugin, "ArmsorPlus_SweetBerryPie");
+            WineBarrelKey = new NamespacedKey(plugin, "ArmsorPlus_WineBarrel");
+            WineKey = new NamespacedKey(plugin, "ArmsorPlus_Wine");
+            RottenJerkyKey = new NamespacedKey(plugin, "ArmsorPlus_RottenJerky");
+
+            SaltKey = new NamespacedKey(plugin, "ArmsorPlus_Salt");
+
+            DiamondDrillKey = new NamespacedKey(plugin, "ArmsorPlus_DiamondDrill");
+            IndestructibleKey = new NamespacedKey(plugin, "ArmsorPlus_Indestructible");
+            BlindnessKey = new NamespacedKey(plugin, "ArmsorPlus_Blindness");
+
+            RainSwordKey = new NamespacedKey(plugin, "ArmsorPlus_RainSword");
+            FlyingSwordKey = new NamespacedKey(plugin, "ArmsorPlus_FlyingSword");
+            FlashStepBladeKey = new NamespacedKey(plugin, "ArmsorPlus_FlashStepBlade");
         }
     }
 

@@ -8,6 +8,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -665,5 +666,71 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         // 3秒生命恢复
         player.addPotionEffect(new PotionEffect(
                 PotionEffectType.REGENERATION, 60, 10, false, false));
+    }
+
+    // ========================================================================
+    // 金刚钻 —— 概率瞬间挖掉黑曜石 (镐子)
+    // ========================================================================
+
+    @EventHandler
+    public void DiamondDrillHandler(BlockBreakEvent event) {
+        if (event.getBlock().getType() != OBSIDIAN && event.getBlock().getType() != CRYING_OBSIDIAN) return;
+        Player player = event.getPlayer();
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        int level = ArmsorEnchant.getEnchantLevel(tool, DiamondDrillKey);
+        if (level == 0) return;
+        if (!percent(20 * level)) {
+            event.setCancelled(true);
+            return;
+        }
+        PlayerSettings.notifyActionBar(player, ChatColor.AQUA + "金刚钻触发！瞬间挖掉黑曜石");
+    }
+
+    // ========================================================================
+    // 失明 —— 攻击造成失明效果 (武器)
+    // ========================================================================
+
+    @EventHandler
+    public void BlindnessHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(
+                damager.getEquipment().getItemInMainHand(), BlindnessKey);
+        if (level == 0) return;
+
+        target.addPotionEffect(new PotionEffect(
+                PotionEffectType.BLINDNESS, 40 * level, 0, false, true));
+        PlayerSettings.notifyActionBar(damager, ChatColor.DARK_GRAY + "你对敌人施加了失明");
+        PlayerSettings.notifyActionBar(target, ChatColor.DARK_GRAY + "你被敌人施加了失明");
+    }
+
+    // ========================================================================
+    // 不灭 —— 防止死亡 (任意装备栏)
+    // ========================================================================
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void IndestructibleHandler(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (player.getHealth() - event.getFinalDamage() > 0) return;
+
+        int level = 0;
+        for (ItemStack item : player.getInventory().getArmorContents()) {
+            level = Math.max(level, ArmsorEnchant.getEnchantLevel(item, IndestructibleKey));
+        }
+        level = Math.max(level, ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInMainHand(), IndestructibleKey));
+        level = Math.max(level, ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInOffHand(), IndestructibleKey));
+        if (level == 0) return;
+
+        event.setCancelled(true);
+        player.setHealth(player.getMaxHealth());
+        player.setFoodLevel(20);
+        player.setFireTicks(0);
+
+        PlayerSettings.notify(player, ChatColor.GOLD + "不灭效果触发！成功规避死亡");
+
+        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,
+                player.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.5);
+        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.8f, 1.2f);
     }
 }

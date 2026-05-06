@@ -18,6 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -186,12 +187,80 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(bandageRecipe);
         count++;
 
-        // 压缩饼干: 3面包
+        // 压缩饼干: 9面包
         NamespacedKey biscuitKey = new NamespacedKey(this, "ArmsorPlus_Biscuit");
         ShapedRecipe biscuitRecipe = new ShapedRecipe(biscuitKey, CompressedBiscuit(1));
-        biscuitRecipe.shape("BBB", "   ", "   ");
+        biscuitRecipe.shape("BBB", "BBB", "BBB");
         biscuitRecipe.setIngredient('B', BREAD);
         getServer().addRecipe(biscuitRecipe);
+        count++;
+
+        // 盐: 沙子x1
+        NamespacedKey saltKey = new NamespacedKey(this, "ArmsorPlus_Salt");
+        getServer().addRecipe(new ShapelessRecipe(saltKey, Salt(1)).addIngredient(1, SAND));
+        count++;
+
+        // 肉干: 盐x1 + 任意熟肉
+        Material[] meats = {COOKED_BEEF, COOKED_PORKCHOP, COOKED_MUTTON, COOKED_CHICKEN, COOKED_RABBIT, COOKED_COD, COOKED_SALMON};
+        for (int i = 0; i < meats.length; i++) {
+            NamespacedKey jerkyKey = new NamespacedKey(this, "ArmsorPlus_Jerky_" + i);
+            ShapelessRecipe jerkyRecipe = new ShapelessRecipe(jerkyKey, Jerky(1));
+            jerkyRecipe.addIngredient(new RecipeChoice.ExactChoice(Salt(1)));
+            jerkyRecipe.addIngredient(1, meats[i]);
+            getServer().addRecipe(jerkyRecipe);
+            count++;
+        }
+
+        // 甜浆果派: 甜浆果x3 + 小麦x3
+        NamespacedKey pieKey = new NamespacedKey(this, "ArmsorPlus_SweetBerryPie");
+        ShapelessRecipe pieRecipe = new ShapelessRecipe(pieKey, SweetBerryPie(1));
+        pieRecipe.addIngredient(3, SWEET_BERRIES);
+        pieRecipe.addIngredient(3, WHEAT);
+        getServer().addRecipe(pieRecipe);
+        count++;
+
+        // 酒桶: 小麦x3 + 桶x1
+        NamespacedKey wineBarrelKey = new NamespacedKey(this, "ArmsorPlus_WineBarrel");
+        ShapedRecipe wineBarrelRecipe = new ShapedRecipe(wineBarrelKey, WineBarrel(1));
+        wineBarrelRecipe.shape("WWW", " B ", "   ");
+        wineBarrelRecipe.setIngredient('W', WHEAT);
+        wineBarrelRecipe.setIngredient('B', BARREL);
+        getServer().addRecipe(wineBarrelRecipe);
+        count++;
+
+        // 腐肉干: 腐肉x1 + 盐x1
+        NamespacedKey rottenJerkyKey = new NamespacedKey(this, "ArmsorPlus_RottenJerky");
+        ShapelessRecipe rottenJerkyRecipe = new ShapelessRecipe(rottenJerkyKey, RottenJerky(1));
+        rottenJerkyRecipe.addIngredient(1, ROTTEN_FLESH);
+        rottenJerkyRecipe.addIngredient(new RecipeChoice.ExactChoice(Salt(1)));
+        getServer().addRecipe(rottenJerkyRecipe);
+        count++;
+
+        // 雨御前: 海晶碎片x4 + 下界合金剑x1
+        NamespacedKey rainSwordKey = new NamespacedKey(this, "ArmsorPlus_RainSword");
+        ShapedRecipe rainSwordRecipe = new ShapedRecipe(rainSwordKey, RainSword(1));
+        rainSwordRecipe.shape(" N ", "NSN", " N ");
+        rainSwordRecipe.setIngredient('N', PRISMARINE_SHARD);
+        rainSwordRecipe.setIngredient('S', NETHERITE_SWORD);
+        getServer().addRecipe(rainSwordRecipe);
+        count++;
+
+        // 飞天御剑: 幻翼膜x4 + 下界合金剑x1
+        NamespacedKey flyingSwordKey = new NamespacedKey(this, "ArmsorPlus_FlyingSword");
+        ShapedRecipe flyingSwordRecipe = new ShapedRecipe(flyingSwordKey, FlyingSword(1));
+        flyingSwordRecipe.shape(" N ", "NSN", " N ");
+        flyingSwordRecipe.setIngredient('N', PHANTOM_MEMBRANE);
+        flyingSwordRecipe.setIngredient('S', NETHERITE_SWORD);
+        getServer().addRecipe(flyingSwordRecipe);
+        count++;
+
+        // 瞬步刃: 末影珍珠x4 + 下界合金剑x1
+        NamespacedKey flashStepKey = new NamespacedKey(this, "ArmsorPlus_FlashStepBlade");
+        ShapedRecipe flashStepRecipe = new ShapedRecipe(flashStepKey, FlashStepBlade(1));
+        flashStepRecipe.shape(" N ", "NSN", " N ");
+        flashStepRecipe.setIngredient('N', ENDER_PEARL);
+        flashStepRecipe.setIngredient('S', NETHERITE_SWORD);
+        getServer().addRecipe(flashStepRecipe);
         count++;
 
         getLogger().info("ArmsorPlus 配方注册完成 数量: " + count);

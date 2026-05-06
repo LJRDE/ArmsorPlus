@@ -64,8 +64,32 @@ public class ArmsorPlusMenu implements Listener {
                 " N ", "N W", "   ",
                 "N=地狱疣", "W=白色羊毛"});
         RECIPES.put(ChatColor.GOLD + "压缩饼干", new String[]{
-                "BBB", "   ", "   ",
+                "BBB", "BBB", "BBB",
                 "B=面包"});
+        RECIPES.put(ChatColor.WHITE + "盐", new String[]{
+                "S  ", "   ", "   ",
+                "S=沙子"});
+        RECIPES.put(ChatColor.GOLD + "肉干", new String[]{
+                "S  ", "M  ", "   ",
+                "S=盐", "M=任意熟肉(非腐肉)"});
+        RECIPES.put(ChatColor.LIGHT_PURPLE + "甜浆果派", new String[]{
+                "BBB", "WWW", "   ",
+                "B=甜浆果", "W=小麦"});
+        RECIPES.put(ChatColor.GOLD + "酒桶", new String[]{
+                "WWW", " B ", "   ",
+                "W=小麦", "B=木桶"});
+        RECIPES.put(ChatColor.DARK_GRAY + "腐肉干", new String[]{
+                "R  ", "S  ", "   ",
+                "R=腐肉", "S=盐"});
+        RECIPES.put(ChatColor.DARK_AQUA + "雨御前", new String[]{
+                " N ", "NBN", " N ",
+                "N=海晶碎片", "B=下界合金剑"});
+        RECIPES.put(ChatColor.GOLD + "飞天御剑", new String[]{
+                " N ", "NEN", " N ",
+                "N=幻翼膜", "E=下界合金剑"});
+        RECIPES.put(ChatColor.DARK_PURPLE + "瞬步刃", new String[]{
+                " N ", "NEN", " N ",
+                "N=末影珍珠", "E=下界合金剑"});
         RECIPES.put(ChatColor.RED + "血祭之剑", new String[]{
                 " R ", "RSR", " R ",
                 "R=红石", "S=骷髅头颅"});
@@ -111,16 +135,24 @@ public class ArmsorPlusMenu implements Listener {
         armsList.setItem(14, SkeletonScepter(1));
         armsList.setItem(15, FrostBow(1));
         armsList.setItem(16, FlameHalberd(1));
+        armsList.setItem(19, RainSword(1));
+        armsList.setItem(20, FlyingSword(1));
+        armsList.setItem(21, FlashStepBlade(1));
         return armsList;
     }
 
     /** 食物/药品菜单 */
     public Inventory createFoodMenu() {
-        foodMenu = Bukkit.createInventory(null, 27, ChatColor.GREEN + "食物/药品");
+        foodMenu = Bukkit.createInventory(null, 45, ChatColor.GREEN + "食物/药品");
         addBorder(foodMenu, GREEN_STAINED_GLASS_PANE);
-        foodMenu.setItem(11, RejuvenationPowder(1));
-        foodMenu.setItem(13, HemostaticBandage(1));
-        foodMenu.setItem(15, CompressedBiscuit(1));
+        foodMenu.setItem(10, RejuvenationPowder(1));
+        foodMenu.setItem(11, HemostaticBandage(1));
+        foodMenu.setItem(12, CompressedBiscuit(1));
+        foodMenu.setItem(13, Jerky(1));
+        foodMenu.setItem(14, SweetBerryPie(1));
+        foodMenu.setItem(15, RottenJerky(1));
+        foodMenu.setItem(16, WineBarrel(1));
+        foodMenu.setItem(19, Salt(1));
         return foodMenu;
     }
 
@@ -138,8 +170,8 @@ public class ArmsorPlusMenu implements Listener {
         return shop;
     }
 
-    /** 高级附魔书列表 */
-    public Inventory createEnchantmentListMenu() {
+    /** 高级附魔书列表 (可传入Player用于管理员模式判断) */
+    public Inventory createEnchantmentListMenu(Player player) {
         enchantmentList = Bukkit.createInventory(null, 45, "§e高级附魔书列表");
         addBorder(enchantmentList, GRAY_STAINED_GLASS_PANE);
         enchantmentList.setItem(10, Dodge_EnchantdeBook(1, 4));
@@ -159,7 +191,18 @@ public class ArmsorPlusMenu implements Listener {
         enchantmentList.setItem(28, Sniping_EnchantdeBook(1, 5));
         enchantmentList.setItem(29, DoubleHit_EnchantdeBook(1, 5));
         enchantmentList.setItem(30, Feeding_EnchantdeBook(1, 5));
+        enchantmentList.setItem(31, DiamondDrill_EnchantedBook(1, 5));
+        enchantmentList.setItem(32, QuickThrust_EnchantedBook(1, 5));
+        enchantmentList.setItem(33, Blindness_EnchantedBook(1, 5));
+        if (player != null && PlayerSettings.isAdminMode(player.getUniqueId())
+                && player.hasPermission("ArmsorPlus.op")) {
+            enchantmentList.setItem(34, Indestructible_EnchantedBook(1, 1));
+        }
         return enchantmentList;
+    }
+
+    public Inventory createEnchantmentListMenu() {
+        return createEnchantmentListMenu(null);
     }
 
     /** 插件主菜单 */
@@ -248,7 +291,7 @@ public class ArmsorPlusMenu implements Listener {
 
             String name = clicked.getItemMeta().getDisplayName();
             if (name.equals(ChatColor.GOLD + "高级附魔书列表")) {
-                player.openInventory(createEnchantmentListMenu());
+                player.openInventory(createEnchantmentListMenu(player));
             } else if (name.equals(ChatColor.DARK_PURPLE + "兑换魔法球")) {
                 player.openInventory(createShopMenu());
             } else if (name.equals(ChatColor.AQUA + "魔法物品列表")) {
@@ -501,6 +544,17 @@ public class ArmsorPlusMenu implements Listener {
                     case "铁块" -> IRON_BLOCK;
                     case "钻石块" -> DIAMOND_BLOCK;
                     case "圆石" -> COBBLESTONE;
+                    case "沙子" -> SAND;
+                    case "盐" -> SUGAR;
+                    case "任意熟肉(非腐肉)" -> COOKED_BEEF;
+                    case "甜浆果" -> SWEET_BERRIES;
+                    case "小麦" -> WHEAT;
+                    case "木桶" -> BARREL;
+                    case "腐肉" -> ROTTEN_FLESH;
+                    case "海晶碎片" -> PRISMARINE_SHARD;
+                    case "下界合金剑" -> NETHERITE_SWORD;
+                    case "幻翼膜" -> PHANTOM_MEMBRANE;
+                    case "末影珍珠" -> ENDER_PEARL;
                     default -> PAPER;
                 };
             }

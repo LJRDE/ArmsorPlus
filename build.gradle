@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'Dim_LJR'
-version = '0.3-F+'
+version = '0.3-G'
 
 repositories {
     mavenCentral()
@@ -20,7 +20,7 @@ dependencies {
 tasks.register('runPurpur', JavaExec) {
     dependsOn jar
 
-    def serverJar = file("test/purpur-1.21.11-2566.jar")
+    def serverJar = file("test/purpur-1.21.11-2568.jar")
     def runDir = file("run")
 
     classpath = files(serverJar)

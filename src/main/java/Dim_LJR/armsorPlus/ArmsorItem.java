@@ -456,10 +456,100 @@ public class ArmsorItem {
 
     private static final String QUICKTHRUST_BOOK = ChatColor.GOLD + "疾刺";
 
-    /** 疾刺附魔书: 长矛(三叉戟) - 右键速度提升 */
+    /** 疾刺附魔书: 长矛/三叉戟 - 右键速度提升 */
     public static ItemStack QuickThrust_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, QuickThrustKey, QUICKTHRUST_BOOK,
-                "可用装备:三叉戟", "右键使用时移动速度提升" + (level * 10) + "%");
+                "可用装备:三叉戟/长矛", "右键使用时移动速度提升" + (level * 10) + "%");
+    }
+
+    private static final String DIAMONDDRILL_BOOK = ChatColor.AQUA + "金刚钻";
+    private static final String BLINDNESS_BOOK = ChatColor.DARK_GRAY + "失明";
+
+    /** 金刚钻附魔书: 镐子 - 挖掘黑曜石概率秒破 */
+    public static ItemStack DiamondDrill_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, DiamondDrillKey, DIAMONDDRILL_BOOK,
+                "可用装备:镐子", "挖掘黑曜石时" + (level * 20) + "%概率瞬间挖掉");
+    }
+
+    private static final String INDESTRUCTIBLE_BOOK = ChatColor.GOLD + "不灭";
+
+    /** 失明附魔书: 武器 - 攻击施加失明效果 */
+    public static ItemStack Blindness_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, BlindnessKey, BLINDNESS_BOOK,
+                "可用装备:武器", "攻击时" + (level * 10) + "%概率施加失明" + (level * 2) + "秒");
+    }
+
+    /** 不灭附魔书: 任意装备 - 防止死亡 (仅管理员可获取) */
+    public static ItemStack Indestructible_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, IndestructibleKey, INDESTRUCTIBLE_BOOK,
+                "可用装备:任意装备", "受到致命伤害时免疫死亡并回满状态");
+    }
+
+    // ========================================================================
+    // 新武器
+    // ========================================================================
+
+    private static final String RAIN_SWORD_NAME = ChatColor.DARK_AQUA + "雨御前";
+    private static final String FLYING_SWORD_NAME = ChatColor.GOLD + "飞天御剑";
+    private static final String FLASH_STEP_BLADE_NAME = ChatColor.DARK_PURPLE + "瞬步刃";
+
+    /** 雨御前: 右键3秒隐身+无敌，冷却15s；Shift+右键向前瞬移 */
+    public static ItemStack RainSword(int amount) {
+        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(RAIN_SWORD_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "右键: 3秒隐身(含装备)且免疫伤害",
+                ChatColor.DARK_AQUA + "冷却时间: 15秒",
+                ChatColor.LIGHT_PURPLE + "Shift+右键: 向前瞬移一小段距离",
+                ChatColor.GRAY + "传说中的雨之神剑"));
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(new NamespacedKey(getplugin, "rain_sword_damage"),
+                        7.0, AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.MAINHAND));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, RainSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 飞天御剑: 右键悬空飞行+脚下飞剑，速度8m/s */
+    public static ItemStack FlyingSword(int amount) {
+        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FLYING_SWORD_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "右键: 悬空飞行(速度8m/s)",
+                ChatColor.YELLOW + "飞行时脚下生成飞剑",
+                ChatColor.GRAY + "停下时飞剑消失",
+                ChatColor.RED + "御剑飞行之术"));
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(new NamespacedKey(getplugin, "flying_sword_damage"),
+                        8.0, AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.MAINHAND));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FlyingSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 瞬步刃: 右键瞬移，指向目标则瞬移到身后并造成伤害 */
+    public static ItemStack FlashStepBlade(int amount) {
+        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FLASH_STEP_BLADE_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_PURPLE + "右键: 向前瞬移",
+                ChatColor.LIGHT_PURPLE + "指向目标时: 瞬移至目标身后并造成伤害",
+                ChatColor.GRAY + "暗影步法之刃"));
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(new NamespacedKey(getplugin, "flash_step_damage"),
+                        6.0, AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.MAINHAND));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FlashStepBladeKey, 1);
+        item.setAmount(amount);
+        return item;
     }
 
     // ========================================================================
@@ -531,16 +621,115 @@ public class ArmsorItem {
         return item;
     }
 
-    /** 压缩饼干: 瞬间吃掉，等于3块面包 */
+    /** 压缩饼干: 瞬间吃掉，等于9块面包 */
     public static ItemStack CompressedBiscuit(int amount) {
         ItemStack item = new ItemStack(BREAD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(COMPRESSED_BISCUIT_NAME);
         meta.setLore(Arrays.asList(
                 ChatColor.LIGHT_PURPLE + "右键瞬间食用",
-                ChatColor.GOLD + "恢复等同于3块面包的饱食度"));
+                ChatColor.GOLD + "恢复等同于9块面包的饱食度"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, CompressedBiscuitKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 盐 */
+    public static ItemStack Salt(int amount) {
+        ItemStack item = new ItemStack(SUGAR);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.WHITE + "盐");
+        meta.setLore(Arrays.asList(
+                ChatColor.GRAY + "调味料",
+                ChatColor.GRAY + "用于制作肉干和腐肉干"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SaltKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 肉干: 恢复6饥饿值，7.2饱和度 */
+    public static ItemStack Jerky(int amount) {
+        ItemStack item = new ItemStack(COOKED_BEEF);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "肉干");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键食用",
+                ChatColor.GOLD + "恢复6点饥饿值",
+                ChatColor.YELLOW + "7.2饱和度"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, JerkyKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 甜浆果派: 恢复9饥饿值，8饱和度 */
+    public static ItemStack SweetBerryPie(int amount) {
+        ItemStack item = new ItemStack(PUMPKIN_PIE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "甜浆果派");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键食用",
+                ChatColor.GOLD + "恢复9点饥饿值",
+                ChatColor.YELLOW + "8.0饱和度"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SweetBerryPieKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 酒桶: 放置后打开有9瓶酒 */
+    public static ItemStack WineBarrel(int amount) {
+        ItemStack item = new ItemStack(BARREL);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "酒桶");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "放置到地上右键打开",
+                ChatColor.GOLD + "内含9瓶随机品质的酒"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, WineBarrelKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 酒 (tier: 1=酒, 2=佳酿, 3=金樽清酒) */
+    public static ItemStack Wine(int amount, int tier) {
+        ItemStack item = new ItemStack(POTION);
+        ItemMeta meta = item.getItemMeta();
+        String name;
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.LIGHT_PURPLE + "右键饮用");
+        if (tier >= 3) {
+            name = ChatColor.GOLD + "金樽清酒";
+            lore.add(ChatColor.GOLD + "力量 V 持续140秒");
+            lore.add(ChatColor.RED + "持续时间内死亡可复活一次");
+        } else if (tier >= 2) {
+            name = ChatColor.YELLOW + "佳酿";
+            lore.add(ChatColor.YELLOW + "力量 III 持续45秒");
+        } else {
+            name = ChatColor.WHITE + "酒";
+            lore.add(ChatColor.GRAY + "力量 II 持续30秒");
+        }
+        meta.setDisplayName(name);
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, WineKey, tier);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 腐肉干: 恢复4饥饿值，3饱和度 */
+    public static ItemStack RottenJerky(int amount) {
+        ItemStack item = new ItemStack(ROTTEN_FLESH);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.DARK_GRAY + "腐肉干");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键食用",
+                ChatColor.GOLD + "恢复4点饥饿值",
+                ChatColor.YELLOW + "3.0饱和度"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, RottenJerkyKey, 1);
         item.setAmount(amount);
         return item;
     }

@@ -39,14 +39,18 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "ShadowDodge_EnchantedBook", "ArrowSpeed_EnchantedBook",
             "Feeding_EnchantedBook",
             "Dagger", "ThrowingAxe", "SkeletonScepter", "FrostBow", "FlameHalberd",
-            "QuickThrust_EnchantedBook",
+            "QuickThrust_EnchantedBook", "DiamondDrill_EnchantedBook",
+            "Blindness_EnchantedBook", "Indestructible_EnchantedBook",
+            "RainSword", "FlyingSword", "FlashStepBlade",
+            "Salt", "Jerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
     private final List<String> args1_enchant = List.of(
             "Dodge", "Famine", "Ripples", "BloodSacrifice", "EffectClear",
             "Freeze", "ShadowDodge", "Blocking", "Withering", "Survivor",
             "HealthBoost", "Revenge", "ExplosiveArrow", "Sniping",
-            "ArrowSpeed", "DoubleHit", "Feeding", "QuickThrust"
+            "ArrowSpeed", "DoubleHit", "Feeding", "QuickThrust",
+            "DiamondDrill", "Blindness", "Indestructible"
     );
 
     @Override
@@ -329,6 +333,73 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(Survivor_EnchantedBook(amount, level));
                 sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GOLD + "幸存" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
+            // ===== 新附魔书 =====
+            case "DiamondDrill_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(DiamondDrill_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.AQUA + "金刚钻" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Blindness_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Blindness_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_GRAY + "失明" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Indestructible_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Indestructible_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GOLD + "不灭" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            // ===== 新武器 =====
+            case "RainSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(RainSword(amount));
+                sender.sendMessage("已获得 " + amount + " 把雨御前");
+            }
+            case "FlyingSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FlyingSword(amount));
+                sender.sendMessage("已获得 " + amount + " 把飞天御剑");
+            }
+            case "FlashStepBlade" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FlashStepBlade(amount));
+                sender.sendMessage("已获得 " + amount + " 把瞬步刃");
+            }
+            // ===== 新食物/物品 =====
+            case "Salt" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(Salt(amount));
+                sender.sendMessage("已获得 " + amount + " 个盐");
+            }
+            case "Jerky" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(Jerky(amount));
+                sender.sendMessage("已获得 " + amount + " 个肉干");
+            }
+            case "SweetBerryPie" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SweetBerryPie(amount));
+                sender.sendMessage("已获得 " + amount + " 个甜浆果派");
+            }
+            case "WineBarrel" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(WineBarrel(amount));
+                sender.sendMessage("已获得 " + amount + " 个酒桶");
+            }
+            case "Wine" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                int tier = (args.length >= 4 && IsInt(args[3])) ? Integer.parseInt(args[3]) : 1;
+                player.getInventory().addItem(Wine(amount, tier));
+                sender.sendMessage("已获得 " + amount + " 瓶酒 (品级:" + tier + ")");
+            }
+            case "RottenJerky" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(RottenJerky(amount));
+                sender.sendMessage("已获得 " + amount + " 个腐肉干");
+            }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }
     }
@@ -375,6 +446,9 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "DoubleHit" -> ArmsorEnchant.getEnchantLevel(item, DoubleHitkey);
             case "Feeding" -> ArmsorEnchant.getEnchantLevel(item, Feedingkey);
             case "QuickThrust" -> ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
+            case "DiamondDrill" -> ArmsorEnchant.getEnchantLevel(item, DiamondDrillKey);
+            case "Blindness" -> ArmsorEnchant.getEnchantLevel(item, BlindnessKey);
+            case "Indestructible" -> ArmsorEnchant.getEnchantLevel(item, IndestructibleKey);
             default -> -1;
         };
         if (level < 0) {
@@ -400,6 +474,9 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         case "DoubleHit" -> DoubleHitkey;
                         case "Feeding" -> Feedingkey;
                         case "QuickThrust" -> QuickThrustKey;
+                        case "DiamondDrill" -> DiamondDrillKey;
+                        case "Blindness" -> BlindnessKey;
+                        case "Indestructible" -> IndestructibleKey;
                         default -> null;
                     }
             );
@@ -432,7 +509,8 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         Dodgekey, Faminekey, RipplesProtectkey, BloodSacrificekey, EffectClear,
                         FreezeKey, ShadowDodge, BlockingKey, WitheringKey, SurvivorKey,
                         HealthBoostKey, RevengeKey, ExplosiveArrowKey, Sniping, ArrowSpeed,
-                        DoubleHitkey, Feedingkey, QuickThrustKey, Armskey, Armorkey, Bowkey, DiamondPluskey,
+                        DoubleHitkey, Feedingkey, QuickThrustKey, DiamondDrillKey, BlindnessKey,
+                        IndestructibleKey, Armskey, Armorkey, Bowkey, DiamondPluskey,
                         BasicStone, GuideBookKey, MagicBallKey, MenuMark
                 )) {
                     meta.getPersistentDataContainer().remove(key);
@@ -476,6 +554,9 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "DoubleHit" -> DoubleHitkey;
             case "Feeding" -> Feedingkey;
             case "QuickThrust" -> QuickThrustKey;
+            case "DiamondDrill" -> DiamondDrillKey;
+            case "Blindness" -> BlindnessKey;
+            case "Indestructible" -> IndestructibleKey;
             default -> null;
         };
         if (key == null) {

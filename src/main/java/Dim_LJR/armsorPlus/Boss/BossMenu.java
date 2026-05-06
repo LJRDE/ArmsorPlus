@@ -34,7 +34,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME }
+    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE }
 
     /** 身体部位实体 -> BOSS类型 */
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -120,6 +120,8 @@ public class BossMenu implements Listener {
                 case CRYO -> CryoRegisvine.onDeath();
                 case PYRO -> PyroRegisvine.onDeath();
                 case SLIME -> SlimeBoss.onDeath();
+                case ZOMBIE_GIANT -> ZombieGiantBoss.onDeath();
+                case BABY_ZOMBIE_DOUBLE -> BabyZombieDoubleBoss.onDeath();
             }
             return true;
         }
@@ -272,14 +274,14 @@ public class BossMenu implements Listener {
     }
 
     private static void createBossList() {
-        bossList = Bukkit.createInventory(null, 27, "§cBOSS清单");
+        bossList = Bukkit.createInventory(null, 45, "§cBOSS清单");
 
         ItemStack border = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta borderMeta = border.getItemMeta();
         borderMeta.setDisplayName(" ");
         border.setItemMeta(borderMeta);
-        for (int i = 0; i < 27; i++) {
-            if (i < 9 || i >= 18 || i % 9 == 0 || i % 9 == 8) {
+        for (int i = 0; i < 45; i++) {
+            if (i < 9 || i >= 36 || i % 9 == 0 || i % 9 == 8) {
                 bossList.setItem(i, border.clone());
             }
         }
@@ -300,7 +302,7 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         cryo.setItemMeta(cryoMeta);
-        bossList.setItem(11, cryo);
+        bossList.setItem(10, cryo);
 
         ItemStack slime = new ItemStack(Material.SLIME_BLOCK);
         ItemMeta slimeMeta = slime.getItemMeta();
@@ -318,7 +320,7 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         slime.setItemMeta(slimeMeta);
-        bossList.setItem(13, slime);
+        bossList.setItem(12, slime);
 
         ItemStack pyro = new ItemStack(Material.MAGMA_BLOCK);
         ItemMeta pyroMeta = pyro.getItemMeta();
@@ -336,7 +338,41 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         pyro.setItemMeta(pyroMeta);
-        bossList.setItem(15, pyro);
+        bossList.setItem(14, pyro);
+
+        ItemStack giant = new ItemStack(Material.ZOMBIE_HEAD);
+        ItemMeta giantMeta = giant.getItemMeta();
+        giantMeta.setDisplayName("§4■ 僵尸巨人");
+        giantMeta.setLore(Arrays.asList(
+                "§7沉睡了千年的巨型僵尸，",
+                "§7每一步都能让大地颤抖。",
+                "",
+                "§c❤ 生命值: 1500",
+                "§4⚔ 攻击伤害: 80",
+                "§e✦ 范围击退+缓慢效果",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        giant.setItemMeta(giantMeta);
+        bossList.setItem(16, giant);
+
+        ItemStack doubleZombie = new ItemStack(Material.ZOMBIE_SPAWN_EGG);
+        ItemMeta doubleMeta = doubleZombie.getItemMeta();
+        doubleMeta.setDisplayName("§5■ 小僵尸Double");
+        doubleMeta.setLore(Arrays.asList(
+                "§7两个小僵尸的组合，",
+                "§7全身保护IV下界合金套。",
+                "",
+                "§c❤ 生命值: 600×2",
+                "§5⚔ 一矛一剑，双重打击",
+                "§e✦ 装备不可掉落",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        doubleZombie.setItemMeta(doubleMeta);
+        bossList.setItem(28, doubleZombie);
     }
 
     // ========================================================================
@@ -400,6 +436,32 @@ public class BossMenu implements Listener {
             player.closeInventory();
             player.sendMessage("§a◆ 史莱姆王已降临！");
             SlimeBoss.spawnBoss(player);
+        } else if (name.contains("僵尸巨人")) {
+            if (ZombieGiantBoss.isAlive()) {
+                Location loc = ZombieGiantBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e僵尸巨人尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§4◆ 僵尸巨人苏醒了！");
+            ZombieGiantBoss.spawnBoss(player);
+        } else if (name.contains("小僵尸Double")) {
+            if (BabyZombieDoubleBoss.isAlive()) {
+                Location loc = BabyZombieDoubleBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e小僵尸Double尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§5◆ 小僵尸Double出现了！");
+            BabyZombieDoubleBoss.spawnBoss(player);
         }
     }
 }

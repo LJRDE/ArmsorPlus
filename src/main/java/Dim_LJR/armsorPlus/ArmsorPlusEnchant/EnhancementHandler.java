@@ -73,6 +73,14 @@ public class EnhancementHandler implements Listener {
                 || type == BOW;
     }
 
+    private boolean isPickaxe(ItemStack item) {
+        return item.getType().name().endsWith("_PICKAXE");
+    }
+
+    private boolean isSpearOrTrident(ItemStack item) {
+        return item.getType() == TRIDENT || ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) > 0;
+    }
+
     // ===== 武器等级对照 =====
 
     /**
@@ -119,6 +127,46 @@ public class EnhancementHandler implements Listener {
             case CHAINMAIL_LEGGINGS -> 4;
             case CHAINMAIL_BOOTS -> 3;
             default -> 0;
+        };
+    }
+
+    // ===== 护甲默认属性值 (硬编码, 不依赖服务端 API) =====
+
+    /** 护甲默认属性: 护甲值, 韧性, 击退抗性 */
+    private record ArmorStats(double armor, double toughness, double knockback) {}
+
+    /**
+     * 根据材质返回该护甲的原版默认属性值。
+     * 硬编码以避免依赖服务端 API 实现差异 (如 Purpur 插件重映射)。
+     */
+    private ArmorStats getDefaultArmorStats(Material type) {
+        return switch (type) {
+            case DIAMOND_HELMET -> new ArmorStats(3, 2, 0);
+            case DIAMOND_CHESTPLATE -> new ArmorStats(8, 2, 0);
+            case DIAMOND_LEGGINGS -> new ArmorStats(6, 2, 0);
+            case DIAMOND_BOOTS -> new ArmorStats(3, 2, 0);
+            case IRON_HELMET -> new ArmorStats(2, 0, 0);
+            case IRON_CHESTPLATE -> new ArmorStats(6, 0, 0);
+            case IRON_LEGGINGS -> new ArmorStats(5, 0, 0);
+            case IRON_BOOTS -> new ArmorStats(2, 0, 0);
+            case GOLDEN_HELMET -> new ArmorStats(2, 0, 0);
+            case GOLDEN_CHESTPLATE -> new ArmorStats(5, 0, 0);
+            case GOLDEN_LEGGINGS -> new ArmorStats(3, 0, 0);
+            case GOLDEN_BOOTS -> new ArmorStats(1, 0, 0);
+            case NETHERITE_HELMET -> new ArmorStats(3, 3, 0.1);
+            case NETHERITE_CHESTPLATE -> new ArmorStats(8, 3, 0.1);
+            case NETHERITE_LEGGINGS -> new ArmorStats(6, 3, 0.1);
+            case NETHERITE_BOOTS -> new ArmorStats(3, 3, 0.1);
+            case LEATHER_HELMET -> new ArmorStats(1, 0, 0);
+            case LEATHER_CHESTPLATE -> new ArmorStats(3, 0, 0);
+            case LEATHER_LEGGINGS -> new ArmorStats(2, 0, 0);
+            case LEATHER_BOOTS -> new ArmorStats(1, 0, 0);
+            case CHAINMAIL_HELMET -> new ArmorStats(2, 0, 0);
+            case CHAINMAIL_CHESTPLATE -> new ArmorStats(5, 0, 0);
+            case CHAINMAIL_LEGGINGS -> new ArmorStats(4, 0, 0);
+            case CHAINMAIL_BOOTS -> new ArmorStats(1, 0, 0);
+            case TURTLE_HELMET -> new ArmorStats(2, 0, 0);
+            default -> new ArmorStats(0, 0, 0);
         };
     }
 
@@ -195,32 +243,56 @@ public class EnhancementHandler implements Listener {
         }
 
         // ====================================================================
-        // 二级护甲强化石 → 护甲值+1 (属性修饰符)
+        // 二级护甲强化石 → 护甲/韧性/击退抗性+1 (属性修饰符)
         // ====================================================================
         if (consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum, Armorkey) == 2 && isArmor(item)) {
             event.setCancelled(true);
             Material type = item.getType();
+            ArmorStats defaults = getDefaultArmorStats(type);
 
+            getplugin.getLogger().info("[ArmsorPlus] 二级护甲强化石: 材质=" + type
+                    + " 默认护甲=" + defaults.armor()
+                    + " 默认韧性=" + defaults.toughness()
+                    + " 默认击退=" + defaults.knockback());
+
+            // 计算当前已升级次数
+            int upgradeCount;
             if (!itemMeta.hasAttributeModifiers()) {
-                double base = getBaseValue(item);
-                if (type.name().endsWith("_HELMET")) {
-                    addArmorModifier(itemMeta, base + 1, EquipmentSlotGroup.HEAD);
-                } else if (type.name().endsWith("_CHESTPLATE")) {
-                    addArmorModifier(itemMeta, base + 1, EquipmentSlotGroup.CHEST);
-                } else if (type.name().endsWith("_LEGGINGS")) {
-                    addArmorModifier(itemMeta, base + 1, EquipmentSlotGroup.LEGS);
-                } else if (type.name().endsWith("_BOOTS")) {
-                    addArmorModifier(itemMeta, base + 1, EquipmentSlotGroup.FEET);
-                }
+                upgradeCount = 0;
+                getplugin.getLogger().info("[ArmsorPlus] 首次强化, upgradeCount=0");
             } else {
-                double current = itemMeta.getAttributeModifiers().get(Attribute.GENERIC_ARMOR).stream()
+                double currentArmor = itemMeta.getAttributeModifiers().get(Attribute.GENERIC_ARMOR).stream()
                         .mapToDouble(AttributeModifier::getAmount).sum();
-                itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR);
-                EquipmentSlotGroup slot = getSlotByType(type);
-                itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR,
-                        new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorUpgrade"),
-                                current + 1, AttributeModifier.Operation.ADD_NUMBER, slot));
+                upgradeCount = (int) (currentArmor - defaults.armor());
+                getplugin.getLogger().info("[ArmsorPlus] 非首次强化, currentArmor=" + currentArmor
+                        + " upgradeCount=" + upgradeCount);
             }
+            int newCount = upgradeCount + 1;
+
+            double newArmor = defaults.armor() + newCount;
+            double newToughness = defaults.toughness() + newCount;
+            double newKnockback = defaults.knockback() + newCount * 0.1;
+            getplugin.getLogger().info("[ArmsorPlus] newCount=" + newCount
+                    + " 新护甲=" + newArmor
+                    + " 新韧性=" + newToughness
+                    + " 新击退=" + newKnockback);
+
+            // 清除旧的属性修饰符
+            itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR);
+            itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS);
+            itemMeta.removeAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+
+            // 添加强化后的属性修饰符
+            EquipmentSlotGroup slot = getSlotByType(type);
+            itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+                    new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorUpgrade"),
+                            newArmor, AttributeModifier.Operation.ADD_NUMBER, slot));
+            itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+                    new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ToughnessUpgrade"),
+                            newToughness, AttributeModifier.Operation.ADD_NUMBER, slot));
+            itemMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE,
+                    new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_KnockbackUpgrade"),
+                            newKnockback, AttributeModifier.Operation.ADD_NUMBER, slot));
 
             consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BLUE + "护甲强化成功");
@@ -325,9 +397,15 @@ public class EnhancementHandler implements Listener {
         // [吸血] 武器
         if (tryApplyEnchant(event, consum, item, player, Feedingkey, Feedingkey,
                 isSwordOrAxe(item), ChatColor.RED + "吸血")) return;
-        // [疾刺] 三叉戟
+        // [疾刺] 三叉戟/长矛
         if (tryApplyEnchant(event, consum, item, player, QuickThrustKey, QuickThrustKey,
-                item.getType() == TRIDENT, ChatColor.GOLD + "疾刺")) return;
+                isSpearOrTrident(item), ChatColor.GOLD + "疾刺")) return;
+        // [金刚钻] 镐子
+        if (tryApplyEnchant(event, consum, item, player, DiamondDrillKey, DiamondDrillKey,
+                isPickaxe(item), ChatColor.AQUA + "金刚钻")) return;
+        // [失明] 武器
+        if (tryApplyEnchant(event, consum, item, player, BlindnessKey, BlindnessKey,
+                isSwordOrAxe(item), ChatColor.DARK_GRAY + "失明")) return;
     }
 
     /**

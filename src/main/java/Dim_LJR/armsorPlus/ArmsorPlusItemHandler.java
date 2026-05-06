@@ -36,6 +36,9 @@ public class ArmsorPlusItemHandler implements Listener {
     private static final Map<UUID, Long> axeChargeStart = new HashMap<>();
     private static final Map<UUID, Integer> axeChargeTask = new HashMap<>();
     private static final Map<UUID, Integer> scepterCooldown = new HashMap<>();
+    private static final Map<UUID, Integer> rainSwordCooldown = new HashMap<>();
+    private static final Map<UUID, Integer> flashStepBladeCooldown = new HashMap<>();
+    private static final Map<UUID, Boolean> flyingSwordActive = new HashMap<>();
     private static final Random RANDOM = new Random();
 
     // ========================================================================
@@ -211,14 +214,14 @@ public class ArmsorPlusItemHandler implements Listener {
                 }
 
                 for (int i = 0; i < 8; i++) {
-                    double xOffset = (RANDOM.nextDouble() - 0.5) * 8;
-                    double zOffset = (RANDOM.nextDouble() - 0.5) * 8;
+                    double xOffset = (RANDOM.nextDouble() - 0.5) * 3;
+                    double zOffset = (RANDOM.nextDouble() - 0.5) * 3;
                     Location arrowLoc = target.clone().add(xOffset, 15, zOffset);
 
                     // 射出箭矢
                     Arrow arrow = target.getWorld().spawn(arrowLoc, Arrow.class);
                     arrow.setVelocity(new Vector(0, -3, 0));
-                    arrow.setDamage(8);
+                    arrow.setDamage(12);
                     arrow.setShooter(player);
                     arrow.setMetadata("ScepterArrow", new FixedMetadataValue(getplugin, true));
 
@@ -371,7 +374,8 @@ public class ArmsorPlusItemHandler implements Listener {
     public void onQuickThrustUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         ItemStack item = event.getItem();
-        if (item == null || item.getType() != TRIDENT) return;
+        if (item == null) return;
+        if (item.getType() != TRIDENT && ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) == 0) return;
 
         int level = ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
         if (level == 0) return;
@@ -500,15 +504,342 @@ public class ArmsorPlusItemHandler implements Listener {
             item.setAmount(item.getAmount() - 1);
         }
 
-        // 瞬间恢复3块面包的饱食度
-        int foodLevel = Math.min(20, player.getFoodLevel() + 15);
-        player.setFoodLevel(foodLevel);
-        float saturation = Math.min((float) foodLevel, player.getSaturation() + 18);
-        player.setSaturation(saturation);
+        // 瞬间恢复9块面包的饱食度
+        player.setFoodLevel(20);
+        player.setSaturation(20);
 
         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0),
                 5, 0.3, 0.3, 0.3, 0.05);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.5f);
         player.sendActionBar("§6压缩饼干 饱食度已恢复");
+    }
+
+    // ========================================================================
+    // 雨御前: 右键3秒隐身+无敌(冷却15s) / Shift+右键瞬移
+    // ========================================================================
+
+    @EventHandler
+    public void onRainSwordUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, RainSwordKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        if (player.isSneaking()) {
+            // Shift+右键: 向前瞬移一小段距离
+            Vector direction = player.getEyeLocation().getDirection().normalize().multiply(3);
+            Location teleportTo = player.getLocation().add(direction);
+            if (teleportTo.getBlock().isPassable() && teleportTo.add(0, 1, 0).getBlock().isPassable()) {
+                player.teleport(teleportTo);
+                player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 20, 0.3, 0.3, 0.3, 0.1);
+                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+            }
+            return;
+        }
+
+        // 右键: 3秒隐身+无敌
+        int cd = rainSwordCooldown.getOrDefault(uuid, 0);
+        if (cd > 0) {
+            player.sendActionBar("§c雨御前冷却中... " + cd / 20 + "秒");
+            return;
+        }
+
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 60, 0, false, false));
+        player.setInvulnerable(true);
+        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 1.0f, 1.5f);
+        player.sendActionBar("§b雨御前！3秒隐身");
+
+        // 3秒后取消无敌
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.setInvulnerable(false);
+                player.sendActionBar("§c隐身效果已结束");
+            }
+        }.runTaskLater(getplugin, 60L);
+
+        rainSwordCooldown.put(uuid, 300); // 15秒冷却
+        new BukkitRunnable() {
+            int remaining = 300;
+            @Override
+            public void run() {
+                remaining--;
+                rainSwordCooldown.put(uuid, Math.max(0, remaining));
+                if (remaining <= 0) cancel();
+            }
+        }.runTaskTimer(getplugin, 1L, 1L);
+    }
+
+    // ========================================================================
+    // 飞天御剑: 右键悬空飞行+脚下飞剑，速度8m/s
+    // ========================================================================
+
+    @EventHandler
+    public void onFlyingSwordUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, FlyingSwordKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        Boolean active = flyingSwordActive.getOrDefault(uuid, false);
+        if (active) {
+            // 停止飞行
+            flyingSwordActive.put(uuid, false);
+            player.setFlying(false);
+            player.setAllowFlight(false);
+            player.setFlySpeed(0.1f);
+            player.sendActionBar("§6飞天御剑 已收起");
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.0f);
+        } else {
+            // 开启飞行 (绕过原版飞行检测)
+            player.setAllowFlight(true);
+            player.setFlying(true);
+            player.setFlySpeed(0.4f); // 8m/s ≈ 0.4 * 20m/s
+            flyingSwordActive.put(uuid, true);
+            player.sendActionBar("§6飞天御剑 已起航！");
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 2.0f);
+
+            // 脚下生成飞剑显示
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (!flyingSwordActive.getOrDefault(uuid, false) || !player.isOnline()) {
+                        // 停止时飞剑消失
+                        if (player.isOnline()) {
+                            player.setFlying(false);
+                            player.setAllowFlight(false);
+                            player.setFlySpeed(0.1f);
+                        }
+                        cancel();
+                        return;
+                    }
+                    if (!player.isFlying()) {
+                        player.setFlying(true);
+                    }
+                    Location foot = player.getLocation().subtract(0, 0.5, 0);
+                    player.getWorld().spawnParticle(Particle.END_ROD, foot, 1, 0, 0, 0, 0);
+                    player.getWorld().spawnParticle(Particle.SWEEP_ATTACK, foot, 1, 0.5, 0, 0.5, 0);
+                }
+            }.runTaskTimer(getplugin, 0L, 2L);
+        }
+    }
+
+    // ========================================================================
+    // 瞬步刃: 右键向前瞬移，指向目标则瞬移到身后并造成伤害
+    // ========================================================================
+
+    @EventHandler
+    public void onFlashStepBladeUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, FlashStepBladeKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        int cd = flashStepBladeCooldown.getOrDefault(uuid, 0);
+        if (cd > 0) {
+            player.sendActionBar("§c瞬步刃冷却中... " + cd / 20 + "秒");
+            return;
+        }
+
+        // 检查是否指向目标
+        LivingEntity target = null;
+        for (Entity entity : player.getNearbyEntities(10, 10, 10)) {
+            if (entity instanceof LivingEntity living && living != player
+                    && living.hasLineOfSight(player)) {
+                Location eyeLoc = player.getEyeLocation();
+                Vector dir = eyeLoc.getDirection();
+                Vector toTarget = living.getLocation().add(0, 1, 0).subtract(eyeLoc).toVector();
+                double angle = dir.angle(toTarget);
+                if (angle < 0.3) { // ~17度锥形范围
+                    target = living;
+                    break;
+                }
+            }
+        }
+
+        if (target != null) {
+            // 瞬移到目标身后并造成伤害
+            Vector behind = target.getLocation().getDirection().normalize().multiply(-2);
+            Location behindTarget = target.getLocation().add(behind).add(0, 0.5, 0);
+            if (behindTarget.getBlock().isPassable()) {
+                player.teleport(behindTarget);
+            }
+            target.damage(15, player);
+            target.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, target.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
+            target.getWorld().playSound(target.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
+            player.sendActionBar("§5瞬步！已闪至目标身后");
+        } else {
+            // 纯粹向前瞬移
+            Vector direction = player.getEyeLocation().getDirection().normalize().multiply(5);
+            Location teleportTo = player.getLocation().add(direction);
+            if (teleportTo.getBlock().isPassable() && teleportTo.add(0, 1, 0).getBlock().isPassable()) {
+                player.teleport(teleportTo);
+            }
+            player.sendActionBar("§5瞬步！");
+        }
+
+        player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 30, 0.5, 0.5, 0.5, 0.1);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.5f);
+
+        flashStepBladeCooldown.put(uuid, 40); // 2秒冷却
+        new BukkitRunnable() {
+            int remaining = 40;
+            @Override
+            public void run() {
+                remaining--;
+                flashStepBladeCooldown.put(uuid, Math.max(0, remaining));
+                if (remaining <= 0) cancel();
+            }
+        }.runTaskTimer(getplugin, 1L, 1L);
+    }
+
+    // ========================================================================
+    // 食物: 肉干
+    // ========================================================================
+
+    @EventHandler
+    public void onJerkyUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, JerkyKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
+        player.setSaturation(Math.min(20, player.getSaturation() + 7.2f));
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
+        player.sendActionBar("§6已食用肉干");
+    }
+
+    // ========================================================================
+    // 食物: 甜浆果派
+    // ========================================================================
+
+    @EventHandler
+    public void onSweetBerryPieUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, SweetBerryPieKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 9));
+        player.setSaturation(Math.min(20, player.getSaturation() + 8f));
+        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 8, 0.3, 0.3, 0.3, 0.05);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.2f);
+        player.sendActionBar("§d已食用甜浆果派");
+    }
+
+    // ========================================================================
+    // 食物: 腐肉干
+    // ========================================================================
+
+    @EventHandler
+    public void onRottenJerkyUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, RottenJerkyKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
+        player.setSaturation(Math.min(20, player.getSaturation() + 3f));
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.6f, 0.8f);
+        player.sendActionBar("§8已食用腐肉干");
+    }
+
+    // ========================================================================
+    // 酒桶: 放置到地上右键打开
+    // ========================================================================
+
+    @EventHandler
+    public void onWineBarrelUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, WineBarrelKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+
+        // 给玩家9瓶随机品质的酒
+        for (int i = 0; i < 9; i++) {
+            double roll = RANDOM.nextDouble();
+            int wineTier;
+            if (roll < 0.001)       wineTier = 3; // 0.1% 金樽清酒
+            else if (roll < 0.1)    wineTier = 2; // 9.9% 佳酿
+            else                    wineTier = 1; // 90% 酒
+
+            ItemStack wine = ArmsorItem.Wine(1, wineTier);
+            if (player.getInventory().firstEmpty() != -1) {
+                player.getInventory().addItem(wine);
+            } else {
+                player.getWorld().dropItemNaturally(player.getLocation(), wine);
+            }
+        }
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BARREL_OPEN, 1.0f, 1.0f);
+        player.sendMessage("§6桶盖打开，9瓶美酒已收入背包！");
+    }
+
+    // ========================================================================
+    // 酒: 饮用效果
+    // ========================================================================
+
+    @EventHandler
+    public void onWineDrink(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        ItemStack item = event.getItem();
+        if (item == null) return;
+        int tier = ArmsorEnchant.getEnchantLevel(item, WineKey);
+        if (tier == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+
+        switch (tier) {
+            case 3: // 金樽清酒
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 2800, 4)); // V = amplifier 4
+                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
+                player.sendMessage("§6🍶 金樽清酒！力量 V 140秒！死亡可复活一次！");
+                player.setMetadata("WineRevive", new FixedMetadataValue(getplugin, true));
+                break;
+            case 2: // 佳酿
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 900, 2)); // III
+                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.5f);
+                player.sendMessage("§e佳酿 力量 III 45秒");
+                break;
+            default: // 酒
+                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 600, 1)); // II
+                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 0.8f, 1.0f);
+                player.sendMessage("§7酒 力量 II 30秒");
+                break;
+        }
+        player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
     }
 }
