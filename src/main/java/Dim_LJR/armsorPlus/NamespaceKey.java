@@ -89,6 +89,22 @@ public class NamespaceKey {
         public static NamespacedKey WineKey;
         public static NamespacedKey RottenJerkyKey;
 
+        // ---- 新武器键 (0.3H) ----
+        public static NamespacedKey IceSwordKey;
+        public static NamespacedKey WebBowKey;
+        public static NamespacedKey ExplosionBowKey;
+
+        // ---- 新附魔键 (0.3H) ----
+        public static NamespacedKey ProtectionPROKey;
+        public static NamespacedKey StunKey;
+        public static NamespacedKey GolemGuardianKey;
+        public static NamespacedKey CriticalStrikeKey;
+        public static NamespacedKey PiercingKey;
+        public static NamespacedKey LavaWalkerKey;
+        public static NamespacedKey LightningCallKey;
+        public static NamespacedKey HolographicKey;
+        public static NamespacedKey TrackingKey;
+
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
 
@@ -158,6 +174,22 @@ public class NamespaceKey {
             RainSwordKey = new NamespacedKey(plugin, "ArmsorPlus_RainSword");
             FlyingSwordKey = new NamespacedKey(plugin, "ArmsorPlus_FlyingSword");
             FlashStepBladeKey = new NamespacedKey(plugin, "ArmsorPlus_FlashStepBlade");
+
+            // 0.3H 新武器
+            IceSwordKey = new NamespacedKey(plugin, "ArmsorPlus_IceSword");
+            WebBowKey = new NamespacedKey(plugin, "ArmsorPlus_WebBow");
+            ExplosionBowKey = new NamespacedKey(plugin, "ArmsorPlus_ExplosionBow");
+
+            // 0.3H 新附魔
+            ProtectionPROKey = new NamespacedKey(plugin, "ArmsorPlus_ProtectionPRO");
+            StunKey = new NamespacedKey(plugin, "ArmsorPlus_Stun");
+            GolemGuardianKey = new NamespacedKey(plugin, "ArmsorPlus_GolemGuardian");
+            CriticalStrikeKey = new NamespacedKey(plugin, "ArmsorPlus_CriticalStrike");
+            PiercingKey = new NamespacedKey(plugin, "ArmsorPlus_Piercing");
+            LavaWalkerKey = new NamespacedKey(plugin, "ArmsorPlus_LavaWalker");
+            LightningCallKey = new NamespacedKey(plugin, "ArmsorPlus_LightningCall");
+            HolographicKey = new NamespacedKey(plugin, "ArmsorPlus_Holographic");
+            TrackingKey = new NamespacedKey(plugin, "ArmsorPlus_Tracking");
         }
     }
 

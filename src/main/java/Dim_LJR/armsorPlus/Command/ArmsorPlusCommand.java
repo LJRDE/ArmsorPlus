@@ -41,7 +41,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "Dagger", "ThrowingAxe", "SkeletonScepter", "FrostBow", "FlameHalberd",
             "QuickThrust_EnchantedBook", "DiamondDrill_EnchantedBook",
             "Blindness_EnchantedBook", "Indestructible_EnchantedBook",
-            "RainSword", "FlyingSword", "FlashStepBlade",
+            "RainSword", "FlyingSword", "FlashStepBlade", "MagicStick",
             "Salt", "Jerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
@@ -367,6 +367,11 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(FlashStepBlade(amount));
                 sender.sendMessage("已获得 " + amount + " 把瞬步刃");
+            }
+            case "MagicStick" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(MagicStick(amount));
+                sender.sendMessage("已获得 " + amount + " 个法杖");
             }
             // ===== 新食物/物品 =====
             case "Salt" -> {
