@@ -138,6 +138,7 @@ public class ArmsorPlusMenu implements Listener {
         armsList.setItem(19, RainSword(1));
         armsList.setItem(20, FlyingSword(1));
         armsList.setItem(21, FlashStepBlade(1));
+        armsList.setItem(22, MagicStick(1));
         return armsList;
     }
 

@@ -48,6 +48,7 @@ public class ArmsorItem {
 
     // 武器
     private static final String BLOOD_SWORD_NAME = ChatColor.RED + "血祭之剑";
+    private static final String MAGIC_STICK = ChatColor.MAGIC + "法杖";
 
     // 附魔书名称 (等级I~V)
     private static final String DODGE_BOOK = ChatColor.GOLD + "闪避";
@@ -493,16 +494,16 @@ public class ArmsorItem {
     private static final String FLYING_SWORD_NAME = ChatColor.GOLD + "飞天御剑";
     private static final String FLASH_STEP_BLADE_NAME = ChatColor.DARK_PURPLE + "瞬步刃";
 
-    /** 雨御前: 右键3秒隐身+无敌，冷却15s；Shift+右键向前瞬移 */
+    /** 雨御前: 右键3秒隐身+无敌+冰霜领域，冷却15s */
     public static ItemStack RainSword(int amount) {
         ItemStack item = new ItemStack(NETHERITE_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(RAIN_SWORD_NAME);
         meta.setLore(Arrays.asList(
                 ChatColor.AQUA + "右键: 3秒隐身(含装备)且免疫伤害",
+                ChatColor.AQUA + "同时释放冰霜领域: 周围生物缓慢255+挖掘疲劳3秒",
                 ChatColor.DARK_AQUA + "冷却时间: 15秒",
-                ChatColor.LIGHT_PURPLE + "Shift+右键: 向前瞬移一小段距离",
-                ChatColor.GRAY + "传说中的雨之神剑"));
+                ChatColor.GRAY + "冰霜之剑"));
         meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "rain_sword_damage"),
                         7.0, AttributeModifier.Operation.ADD_NUMBER,
@@ -513,13 +514,13 @@ public class ArmsorItem {
         return item;
     }
 
-    /** 飞天御剑: 右键悬空飞行+脚下飞剑，速度8m/s */
+    /** 飞天御剑: 右键悬空飞行+脚下飞剑，沿指向方向飞行 */
     public static ItemStack FlyingSword(int amount) {
         ItemStack item = new ItemStack(NETHERITE_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(FLYING_SWORD_NAME);
         meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键: 悬空飞行(速度8m/s)",
+                ChatColor.GOLD + "右键: 悬空飞行(沿指向方向)",
                 ChatColor.YELLOW + "飞行时脚下生成飞剑",
                 ChatColor.GRAY + "停下时飞剑消失",
                 ChatColor.RED + "御剑飞行之术"));
@@ -548,6 +549,20 @@ public class ArmsorItem {
                         EquipmentSlotGroup.MAINHAND));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, FlashStepBladeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    //法杖
+    public static ItemStack MagicStick(int amount) {
+        ItemStack item = new ItemStack(BLAZE_ROD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(MAGIC_STICK);
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_PURPLE + "左键: 发射魔法球直射攻击",
+                ChatColor.DARK_PURPLE + "命中附带灼烧效果"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, MagicStickKey, 1);
         item.setAmount(amount);
         return item;
     }

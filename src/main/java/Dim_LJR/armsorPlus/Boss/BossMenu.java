@@ -34,7 +34,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE }
+    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN }
 
     /** 身体部位实体 -> BOSS类型 */
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -122,6 +122,7 @@ public class BossMenu implements Listener {
                 case SLIME -> SlimeBoss.onDeath();
                 case ZOMBIE_GIANT -> ZombieGiantBoss.onDeath();
                 case BABY_ZOMBIE_DOUBLE -> BabyZombieDoubleBoss.onDeath();
+                case TREASURE_GUARDIAN -> TreasureGuardianBoss.onDeath();
             }
             return true;
         }
@@ -203,15 +204,15 @@ public class BossMenu implements Listener {
         }
         if (!(damager instanceof Player player)) return;
 
-        // ======== 身体部位命中 (3倍武器伤害) ========
+        // ======== 身体部位命中 (伤害转移至核心) ========
         BossType type = BOSS_BODY_PARTS.get(id);
         if (type != null) {
-            double dmg = Math.max(rawDamage, 1.0) * 3;
+            double dmg = Math.max(rawDamage, 1.0);
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
             if (boss == null || boss.isDead()) return;
 
-            // 元素反应
+            // 元素反应 (仅2x伤害加成)
             boolean elementalProc = false;
             if (type == BossType.CRYO) {
                 if (hasFireDamage(player, originalDamager) || hasLightningDamage(player, originalDamager)) {
@@ -244,10 +245,10 @@ public class BossMenu implements Listener {
             return;
         }
 
-        // ======== 核心命中 (15倍武器伤害) ========
+        // ======== 核心命中 (伤害转移至核心) ========
         type = BOSS_CORE_PARTS.get(id);
         if (type != null) {
-            double dmg = Math.max(rawDamage, 1.0) * 15;
+            double dmg = Math.max(rawDamage, 1.0);
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
             if (boss == null || boss.isDead()) return;
@@ -261,7 +262,56 @@ public class BossMenu implements Listener {
             player.sendMessage("§c✦ 命中核心！造成大量伤害！");
 
             damageBoss(type, dmg, player);
+            return;
         }
+
+        // ======== 直接命中BOSS本体 ========
+        type = findBossTypeByEntity(id);
+        if (type != null) {
+            double dmg = Math.max(rawDamage, 1.0);
+            event.setCancelled(true);
+            LivingEntity boss = bossEntities.get(type);
+            if (boss == null || boss.isDead()) return;
+
+            // 元素反应
+            boolean elementalProc = false;
+            if (type == BossType.CRYO) {
+                if (hasFireDamage(player, originalDamager) || hasLightningDamage(player, originalDamager)) {
+                    dmg *= 2;
+                    elementalProc = true;
+                    if (RANDOM.nextInt(100) < 50) CryoRegisvine.exposeCore();
+                }
+            } else if (type == BossType.PYRO) {
+                if (hasLightningDamage(player, originalDamager) || hasFrostDamage(player, originalDamager)) {
+                    dmg *= 2;
+                    elementalProc = true;
+                    if (RANDOM.nextInt(100) < 50) PyroRegisvine.exposeCore();
+                }
+            }
+
+            if (elementalProc) {
+                boss.getWorld().spawnParticle(Particle.FIREWORK, boss.getLocation().add(0, 2, 0),
+                        40, 1.5, 1.0, 1.5, 0.3);
+                boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.5f);
+                String msg = type == BossType.CRYO
+                        ? "§e⚡ 元素反应！对急冻树造成双倍伤害！"
+                        : "§e⚡ 元素反应！对爆炎树造成双倍伤害！";
+                player.sendMessage(msg);
+            }
+
+            damageBoss(type, dmg, player);
+            damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 1, 0),
+                    6, 0.3, 0.3, 0.3, 0.1);
+        }
+    }
+
+    private static BossType findBossTypeByEntity(UUID id) {
+        for (Map.Entry<BossType, LivingEntity> entry : bossEntities.entrySet()) {
+            if (entry.getValue() != null && entry.getValue().getUniqueId().equals(id)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     // ========================================================================
@@ -293,9 +343,9 @@ public class BossMenu implements Listener {
                 "§7来自龙脊雪山的远古植物，",
                 "§7拥有操控冰元素的力量。",
                 "",
-                "§c❤ 生命值: 750",
-                "§b❄ 冰元素攻击",
-                "§e✦ 攻击躯干部位造成3倍武器伤害，命中核心造成15倍武器伤害",
+                "§c❤ 生命值: 700",
+                "§b❄ 核心: 雪人",
+                "§e✦ 攻击树状盔甲架转移伤害至核心",
                 "§6⚡ 火焰/雷电伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",
@@ -329,9 +379,9 @@ public class BossMenu implements Listener {
                 "§7来自层岩巨渊的远古植物，",
                 "§7拥有操控火元素的力量。",
                 "",
-                "§c❤ 生命值: 750",
-                "§c❄ 火元素攻击",
-                "§e✦ 攻击躯干部位造成3倍武器伤害，命中核心造成15倍武器伤害",
+                "§c❤ 生命值: 700",
+                "§c❄ 核心: 烈焰人",
+                "§e✦ 攻击树状盔甲架转移伤害至核心",
                 "§b❄ 雷电/冰冻伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",
@@ -356,6 +406,23 @@ public class BossMenu implements Listener {
         ));
         giant.setItemMeta(giantMeta);
         bossList.setItem(16, giant);
+
+        ItemStack treasure = new ItemStack(Material.SKELETON_SKULL);
+        ItemMeta treasureMeta = treasure.getItemMeta();
+        treasureMeta.setDisplayName("§6■ 宝藏守护者");
+        treasureMeta.setLore(Arrays.asList(
+                "§7守护着深海宝藏的神秘骷髅，",
+                "§7手持重剑，身手敏捷。",
+                "",
+                "§c❤ 生命值: 250",
+                "§6⚔ 攻击伤害: 15",
+                "§e✦ 移速极快，拥有冰冻能力",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        treasure.setItemMeta(treasureMeta);
+        bossList.setItem(30, treasure);
 
         ItemStack doubleZombie = new ItemStack(Material.ZOMBIE_SPAWN_EGG);
         ItemMeta doubleMeta = doubleZombie.getItemMeta();
@@ -462,6 +529,19 @@ public class BossMenu implements Listener {
             player.closeInventory();
             player.sendMessage("§5◆ 小僵尸Double出现了！");
             BabyZombieDoubleBoss.spawnBoss(player);
+        } else if (name.contains("宝藏守护者")) {
+            if (TreasureGuardianBoss.isAlive()) {
+                Location loc = TreasureGuardianBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e宝藏守护者尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§6◆ 宝藏守护者出现了！");
+            TreasureGuardianBoss.spawnBoss(player);
         }
     }
 }

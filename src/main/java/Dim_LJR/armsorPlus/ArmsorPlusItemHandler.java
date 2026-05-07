@@ -7,6 +7,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -39,6 +40,7 @@ public class ArmsorPlusItemHandler implements Listener {
     private static final Map<UUID, Integer> rainSwordCooldown = new HashMap<>();
     private static final Map<UUID, Integer> flashStepBladeCooldown = new HashMap<>();
     private static final Map<UUID, Boolean> flyingSwordActive = new HashMap<>();
+    private static final Map<UUID, Integer> magicStickCooldown = new HashMap<>();
     private static final Random RANDOM = new Random();
 
     // ========================================================================
@@ -241,6 +243,79 @@ public class ArmsorPlusItemHandler implements Listener {
                 if (remaining <= 0) cancel();
             }
         }.runTaskTimer(getplugin, 1L, 1L);
+    }
+
+    // ========================================================================
+    // 法杖: 左键发射魔法球 (SmallFireball) 直射攻击
+    // ========================================================================
+
+    @EventHandler
+    public void onMagicStickLeftClick(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, MagicStickKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        int cd = magicStickCooldown.getOrDefault(uuid, 0);
+        //if (cd > 0) {
+        //    return; // 冷却中,静默阻止
+        //}
+
+        // 发射魔法球 (SmallFireball直射)
+        SmallFireball fireball = player.launchProjectile(SmallFireball.class);
+        fireball.setVelocity(player.getEyeLocation().getDirection().multiply(2.0));
+        fireball.setMetadata("MagicStick", new FixedMetadataValue(getplugin, true));
+
+        // 飞行粒子追踪
+        new BukkitRunnable() {
+            int tick = 0;
+
+            @Override
+            public void run() {
+                tick++;
+                if (!fireball.isValid() || fireball.isDead() || tick > 80) {
+                    if (fireball.isValid()) fireball.remove();
+                    cancel();
+                    return;
+                }
+                Location loc = fireball.getLocation();
+                loc.getWorld().spawnParticle(Particle.FLAME, loc, 3, 0.15, 0.15, 0.15, 0.02);
+                loc.getWorld().spawnParticle(Particle.SMOKE, loc, 1, 0.1, 0.1, 0.1, 0.01);
+            }
+        }.runTaskTimer(getplugin, 0L, 1L);
+
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 0.5f, 1.5f);
+
+        // 0.5秒冷却 (10 ticks)
+        magicStickCooldown.put(uuid, 10);
+        new BukkitRunnable() {
+            int remaining = 10;
+            @Override
+            public void run() {
+                remaining--;
+                magicStickCooldown.put(uuid, Math.max(0, remaining));
+                if (remaining <= 0) cancel();
+            }
+        }.runTaskTimer(getplugin, 1L, 1L);
+    }
+
+    @EventHandler
+    public void onMagicStickHit(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof SmallFireball fireball)) return;
+        if (!fireball.hasMetadata("MagicStick")) return;
+
+        if (event.getEntity() instanceof LivingEntity target) {
+            event.setDamage(20);
+            target.getWorld().spawnParticle(Particle.EXPLOSION, target.getLocation().add(0, 1, 0),
+                    2, 0.3, 0.3, 0.3, 0);
+            target.getWorld().playSound(target.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.0f);
+            target.setFireTicks(60);
+        }
     }
 
     // ========================================================================
@@ -515,7 +590,7 @@ public class ArmsorPlusItemHandler implements Listener {
     }
 
     // ========================================================================
-    // 雨御前: 右键3秒隐身+无敌(冷却15s) / Shift+右键瞬移
+    // 雨御前: 右键3秒隐身+无敌+周围生物缓慢255/挖掘疲劳3秒 (冷却15s)
     // ========================================================================
 
     @EventHandler
@@ -528,30 +603,27 @@ public class ArmsorPlusItemHandler implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (player.isSneaking()) {
-            // Shift+右键: 向前瞬移一小段距离
-            Vector direction = player.getEyeLocation().getDirection().normalize().multiply(3);
-            Location teleportTo = player.getLocation().add(direction);
-            if (teleportTo.getBlock().isPassable() && teleportTo.add(0, 1, 0).getBlock().isPassable()) {
-                player.teleport(teleportTo);
-                player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 20, 0.3, 0.3, 0.3, 0.1);
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-            }
-            return;
-        }
-
-        // 右键: 3秒隐身+无敌
         int cd = rainSwordCooldown.getOrDefault(uuid, 0);
         if (cd > 0) {
             player.sendActionBar("§c雨御前冷却中... " + cd / 20 + "秒");
             return;
         }
 
+        // 3秒隐身+无敌
         player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 60, 0, false, false));
         player.setInvulnerable(true);
         player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 1.0f, 1.5f);
-        player.sendActionBar("§b雨御前！3秒隐身");
+
+        // 给周围所有生物施加缓慢255 + 挖掘疲劳 3秒
+        for (Entity entity : player.getNearbyEntities(10, 10, 10)) {
+            if (entity instanceof LivingEntity living && living != player) {
+                living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 254, false, false));
+                living.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 60, 2, false, false));
+            }
+        }
+        player.getWorld().spawnParticle(Particle.SNOWFLAKE, player.getLocation(), 50, 5, 3, 5, 0.1);
+        player.sendActionBar("§b雨御前！3秒隐身 + 冰霜领域");
 
         // 3秒后取消无敌
         new BukkitRunnable() {
@@ -575,7 +647,7 @@ public class ArmsorPlusItemHandler implements Listener {
     }
 
     // ========================================================================
-    // 飞天御剑: 右键悬空飞行+脚下飞剑，速度8m/s
+    // 飞天御剑: 右键悬空飞行+脚下飞剑，沿玩家指向方向飞行
     // ========================================================================
 
     @EventHandler
@@ -598,20 +670,19 @@ public class ArmsorPlusItemHandler implements Listener {
             player.sendActionBar("§6飞天御剑 已收起");
             player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.0f);
         } else {
-            // 开启飞行 (绕过原版飞行检测)
+            // 开启飞行 (沿玩家指向方向飞行)
             player.setAllowFlight(true);
             player.setFlying(true);
-            player.setFlySpeed(0.4f); // 8m/s ≈ 0.4 * 20m/s
+            player.setFlySpeed(0.02f); // WASD移动速度极低,主要由velocity驱动
             flyingSwordActive.put(uuid, true);
             player.sendActionBar("§6飞天御剑 已起航！");
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 2.0f);
 
-            // 脚下生成飞剑显示
+            // 脚下生成飞剑显示 + 沿指向方向推进
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     if (!flyingSwordActive.getOrDefault(uuid, false) || !player.isOnline()) {
-                        // 停止时飞剑消失
                         if (player.isOnline()) {
                             player.setFlying(false);
                             player.setAllowFlight(false);
@@ -623,6 +694,10 @@ public class ArmsorPlusItemHandler implements Listener {
                     if (!player.isFlying()) {
                         player.setFlying(true);
                     }
+                    // 沿玩家指向方向飞行
+                    Vector lookDir = player.getEyeLocation().getDirection().normalize().multiply(0.8);
+                    player.setVelocity(lookDir);
+
                     Location foot = player.getLocation().subtract(0, 0.5, 0);
                     player.getWorld().spawnParticle(Particle.END_ROD, foot, 1, 0, 0, 0, 0);
                     player.getWorld().spawnParticle(Particle.SWEEP_ATTACK, foot, 1, 0.5, 0, 0.5, 0);
@@ -671,8 +746,9 @@ public class ArmsorPlusItemHandler implements Listener {
             // 瞬移到目标身后并造成伤害
             Vector behind = target.getLocation().getDirection().normalize().multiply(-2);
             Location behindTarget = target.getLocation().add(behind).add(0, 0.5, 0);
-            if (behindTarget.getBlock().isPassable()) {
-                player.teleport(behindTarget);
+            Location safeLoc = findSafeTeleportLocation(behindTarget);
+            if (safeLoc != null) {
+                player.teleport(safeLoc);
             }
             target.damage(15, player);
             target.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, target.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
@@ -682,8 +758,9 @@ public class ArmsorPlusItemHandler implements Listener {
             // 纯粹向前瞬移
             Vector direction = player.getEyeLocation().getDirection().normalize().multiply(5);
             Location teleportTo = player.getLocation().add(direction);
-            if (teleportTo.getBlock().isPassable() && teleportTo.add(0, 1, 0).getBlock().isPassable()) {
-                player.teleport(teleportTo);
+            Location safeLoc = findSafeTeleportLocation(teleportTo);
+            if (safeLoc != null) {
+                player.teleport(safeLoc);
             }
             player.sendActionBar("§5瞬步！");
         }
@@ -841,5 +918,18 @@ public class ArmsorPlusItemHandler implements Listener {
                 break;
         }
         player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
+    }
+
+    /**
+     * 寻找安全传送位置: 向上搜索5格寻找双脚和头部均可通行的位置
+     */
+    private static Location findSafeTeleportLocation(Location base) {
+        for (int yOffset = 0; yOffset <= 5; yOffset++) {
+            Location check = base.clone().add(0, yOffset, 0);
+            if (check.getBlock().isPassable() && check.clone().add(0, 1, 0).getBlock().isPassable()) {
+                return check;
+            }
+        }
+        return null;
     }
 }

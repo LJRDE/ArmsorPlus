@@ -15,32 +15,29 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import static org.bukkit.Material.*;
 
 /**
  * 爆炎树 —— 火元素BOSS (原神: 爆炎树)
  * <p>
- * 本体隐身无AI僵尸，装饰为无AI隐身僵尸佩戴下界岩/岩浆块。
- * 3×3树干向上延伸，5条半圆形枝干环绕，粒子火焰装饰。
+ * 核心为烈焰人，树状结构由盔甲架佩戴方块构成。
+ * 对盔甲架的伤害转移至核心，元素反应造成双倍伤害。
  */
 public class PyroRegisvine {
 
-    private static final double MAX_HEALTH = 750;
+    private static final double MAX_HEALTH = 700;
     private static final int ATTACK_RADIUS = 8;
     private static final int FOLLOW_RANGE = 50;
 
     private static boolean bossAlive = false;
     private static LivingEntity bossEntity;
     private static BukkitTask aiTask;
-    private static UUID bossUuid;
     private static BossBar bossBar;
 
-    // 僵尸躯干 (树状结构)
-    private static LivingEntity coreStand;
-    private static final java.util.List<LivingEntity> bodyStands = new java.util.ArrayList<>();
+    private static ArmorStand coreStand;
+    private static final List<ArmorStand> bodyStands = new ArrayList<>();
 
     private static final Random RANDOM = new Random();
 
@@ -62,28 +59,23 @@ public class PyroRegisvine {
 
         spawnLoc.getWorld().loadChunk(spawnLoc.getChunk());
 
-        // ---- 隐身本体 (存血量/位置) ----
-        bossEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
+        // ---- 烈焰人核心 (存血量/位置) ----
+        bossEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.BLAZE);
         bossEntity.setCustomName("§c■ 爆炎树 §7Lv.90");
-        bossEntity.setCustomNameVisible(false);
+        bossEntity.setCustomNameVisible(true);
         bossEntity.setRemoveWhenFarAway(false);
         bossEntity.setPersistent(true);
         bossEntity.setAI(false);
         bossEntity.setCollidable(false);
         bossEntity.setSilent(true);
-        bossEntity.setInvulnerable(true);
         bossEntity.getEquipment().clear();
-        bossEntity.eject();
 
         var maxHpAttr = bossEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
         bossEntity.setHealth(MAX_HEALTH);
 
-        bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, -1, 1, false, false));
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0, false, false));
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
-
-        bossUuid = bossEntity.getUniqueId();
 
         // ---- BossBar ----
         bossBar = Bukkit.createBossBar("§c■ 爆炎树", BarColor.RED, BarStyle.SOLID);
@@ -92,7 +84,7 @@ public class PyroRegisvine {
 
         BossMenu.registerBoss(BossMenu.BossType.PYRO, bossEntity, MAX_HEALTH, bossBar);
 
-        // ---- 僵尸树状结构 ----
+        // ---- 盔甲架树状结构 ----
         spawnTree(spawnLoc);
 
         // ---- 召唤特效 ----
@@ -131,13 +123,9 @@ public class PyroRegisvine {
     }
 
     // ========================================================================
-    // 僵尸树状结构
+    // 盔甲架树状结构 (浮空小方块)
     // ========================================================================
 
-    /**
-     * 生成由无AI隐身僵尸+带头方块组成的火树。
-     * 树干3×3剖面向上收窄，5条半圆枝干向外伸展。
-     */
     private static void spawnTree(Location center) {
         // ========== 树干 (3×3 逐渐收窄) ==========
 
@@ -174,14 +162,14 @@ public class PyroRegisvine {
         spawnTrunk(center,  1,  1.4,  0, MAGMA_BLOCK);
         spawnTrunk(center,  1,  1.4,  1, MAGMA_BLOCK);
 
-        // 第4层 (3×3 边角, MAGMA_BLOCK→SHROOMLIGHT 过渡)
-        spawnTrunk(center, -0.5, 2.6, -1, MAGMA_BLOCK);
-        spawnTrunk(center, -0.5, 2.6,  1, MAGMA_BLOCK);
-        spawnTrunk(center,  0.5, 2.6, -1, MAGMA_BLOCK);
-        spawnTrunk(center,  0.5, 2.6,  1, MAGMA_BLOCK);
+        // 第4层 (3×3 边角, SHROOMLIGHT)
+        spawnTrunk(center, -0.5, 2.6, -1, SHROOMLIGHT);
+        spawnTrunk(center, -0.5, 2.6,  1, SHROOMLIGHT);
+        spawnTrunk(center,  0.5, 2.6, -1, SHROOMLIGHT);
+        spawnTrunk(center,  0.5, 2.6,  1, SHROOMLIGHT);
 
-        // 第5层 (单点核心, SHROOMLIGHT)
-        coreStand = spawnTreeZombie(center, 0, 3.6, 0, SHROOMLIGHT);
+        // 第5层 (单点核心盔甲架, SHROOMLIGHT)
+        coreStand = spawnTreeArmorStand(center, 0, 3.6, 0, SHROOMLIGHT);
         BossMenu.registerBodyStand(BossMenu.BossType.PYRO, coreStand.getUniqueId());
 
         // ========== 5条半圆形枝干 ==========
@@ -217,36 +205,31 @@ public class PyroRegisvine {
         spawnBranch(center, -1.2, 2.3, -1.2, SHROOMLIGHT);
     }
 
-    /** 树干节点 */
     private static void spawnTrunk(Location center, double x, double y, double z, Material head) {
-        spawnBodyZombie(center, x, y, z, head);
+        spawnBodyArmorStand(center, x, y, z, head);
     }
 
-    /** 枝干节点 */
     private static void spawnBranch(Location center, double x, double y, double z, Material head) {
-        spawnBodyZombie(center, x, y, z, head);
+        spawnBodyArmorStand(center, x, y, z, head);
     }
 
-    private static void spawnBodyZombie(Location center, double x, double y, double z, Material head) {
-        LivingEntity zombie = spawnTreeZombie(center, x, y, z, head);
-        bodyStands.add(zombie);
-        BossMenu.registerBodyStand(BossMenu.BossType.PYRO, zombie.getUniqueId());
+    private static void spawnBodyArmorStand(Location center, double x, double y, double z, Material head) {
+        ArmorStand stand = spawnTreeArmorStand(center, x, y, z, head);
+        bodyStands.add(stand);
+        BossMenu.registerBodyStand(BossMenu.BossType.PYRO, stand.getUniqueId());
     }
 
-    /** 生成无AI隐身僵尸，佩戴指定方块作为头盔 */
-    private static LivingEntity spawnTreeZombie(Location center, double x, double y, double z, Material head) {
+    /** 生成浮空盔甲架，佩戴指定方块作为头盔 */
+    private static ArmorStand spawnTreeArmorStand(Location center, double x, double y, double z, Material head) {
         Location loc = center.clone().add(x, y, z);
-        LivingEntity zombie = (LivingEntity) center.getWorld().spawnEntity(loc, EntityType.ZOMBIE);
-        zombie.setAI(false);
-        zombie.setSilent(true);
-        zombie.setCollidable(false);
-        zombie.setRemoveWhenFarAway(false);
-        zombie.setPersistent(true);
-        zombie.setInvisible(true);
-        zombie.getEquipment().clear();
-        zombie.getEquipment().setHelmet(new ItemStack(head), true);
-        zombie.eject();
-        return zombie;
+        ArmorStand stand = center.getWorld().spawn(loc, ArmorStand.class);
+        stand.setVisible(false);
+        stand.setGravity(false);
+        stand.setSmall(true);
+        stand.setRemoveWhenFarAway(false);
+        stand.setPersistent(true);
+        stand.getEquipment().setHelmet(new ItemStack(head), true);
+        return stand;
     }
 
     // ========================================================================
@@ -393,7 +376,7 @@ public class PyroRegisvine {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getWorld().equals(bossEntity.getWorld())
                     && online.getLocation().distance(bossEntity.getLocation()) <= 150) {
-                online.sendMessage("§e✦ 爆炎树的核心暴露了！攻击核心造成大量伤害！");
+                online.sendMessage("§e✦ 爆炎树的核心暴露了！攻击核心造成伤害！");
             }
         }
 
@@ -646,8 +629,8 @@ public class PyroRegisvine {
     private static void cleanup() {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
 
-        for (LivingEntity entity : bodyStands) {
-            if (entity != null && !entity.isDead()) entity.remove();
+        for (ArmorStand stand : bodyStands) {
+            if (stand != null && !stand.isDead()) stand.remove();
         }
         bodyStands.clear();
         if (coreStand != null && !coreStand.isDead()) { coreStand.remove(); coreStand = null; }
@@ -660,7 +643,6 @@ public class PyroRegisvine {
 
         bossAlive = false;
         bossEntity = null;
-        bossUuid = null;
     }
 
     // ========================================================================

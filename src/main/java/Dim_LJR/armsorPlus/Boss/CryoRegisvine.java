@@ -15,32 +15,29 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import static org.bukkit.Material.*;
 
 /**
  * 急冻树 —— 冰元素BOSS (原神: 急冻树)
  * <p>
- * 本体隐身无AI尸壳，装饰为无AI隐身僵尸佩戴雪块/冰块。
- * 3×3树干向上延伸，5条半圆形枝干环绕，粒子雪花装饰。
+ * 核心为雪人，树状结构由盔甲架佩戴方块构成。
+ * 对盔甲架的伤害转移至核心，元素反应造成双倍伤害。
  */
 public class CryoRegisvine {
 
-    private static final double MAX_HEALTH = 750;
+    private static final double MAX_HEALTH = 700;
     private static final int ATTACK_RADIUS = 8;
     private static final int FOLLOW_RANGE = 50;
 
     private static boolean bossAlive = false;
     private static LivingEntity bossEntity;
     private static BukkitTask aiTask;
-    private static UUID bossUuid;
     private static BossBar bossBar;
 
-    // 僵尸躯干 (树状结构)
-    private static LivingEntity coreStand;
-    private static final java.util.List<LivingEntity> bodyStands = new java.util.ArrayList<>();
+    private static ArmorStand coreStand;
+    private static final List<ArmorStand> bodyStands = new ArrayList<>();
 
     private static final Random RANDOM = new Random();
 
@@ -62,27 +59,23 @@ public class CryoRegisvine {
 
         spawnLoc.getWorld().loadChunk(spawnLoc.getChunk());
 
-        // ---- 隐身本体 (存血量/位置) ----
-        bossEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.HUSK);
+        // ---- 雪人核心 (存血量/位置) ----
+        bossEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.SNOW_GOLEM);
         bossEntity.setCustomName("§b■ 急冻树 §7Lv.90");
-        bossEntity.setCustomNameVisible(false);
+        bossEntity.setCustomNameVisible(true);
         bossEntity.setRemoveWhenFarAway(false);
         bossEntity.setPersistent(true);
         bossEntity.setAI(false);
         bossEntity.setCollidable(false);
         bossEntity.setSilent(true);
-        bossEntity.setInvulnerable(true);
         bossEntity.getEquipment().clear();
-        bossEntity.eject();
 
         var maxHpAttr = bossEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
         bossEntity.setHealth(MAX_HEALTH);
 
-        bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, -1, 1, false, false));
+        bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, -1, 0, false, false));
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
-
-        bossUuid = bossEntity.getUniqueId();
 
         // ---- BossBar ----
         bossBar = Bukkit.createBossBar("§b■ 急冻树", BarColor.BLUE, BarStyle.SOLID);
@@ -91,7 +84,7 @@ public class CryoRegisvine {
 
         BossMenu.registerBoss(BossMenu.BossType.CRYO, bossEntity, MAX_HEALTH, bossBar);
 
-        // ---- 僵尸树状结构 ----
+        // ---- 盔甲架树状结构 ----
         spawnTree(spawnLoc);
 
         // ---- 召唤特效 ----
@@ -129,13 +122,9 @@ public class CryoRegisvine {
     }
 
     // ========================================================================
-    // 僵尸树状结构
+    // 盔甲架树状结构 (浮空小方块)
     // ========================================================================
 
-    /**
-     * 生成由无AI隐身僵尸+带头方块组成的冰树。
-     * 树干3×3剖面向上收窄，5条半圆枝干向外伸展。
-     */
     private static void spawnTree(Location center) {
         // ========== 树干 (3×3 逐渐收窄) ==========
 
@@ -172,14 +161,14 @@ public class CryoRegisvine {
         spawnTrunk(center,  1,  1.4,  0, PACKED_ICE);
         spawnTrunk(center,  1,  1.4,  1, PACKED_ICE);
 
-        // 第4层 (3×3 边角, PACKED_ICE→BLUE_ICE 过渡)
-        spawnTrunk(center, -0.5, 2.6, -1, PACKED_ICE);
-        spawnTrunk(center, -0.5, 2.6,  1, PACKED_ICE);
-        spawnTrunk(center,  0.5, 2.6, -1, PACKED_ICE);
-        spawnTrunk(center,  0.5, 2.6,  1, PACKED_ICE);
+        // 第4层 (3×3 边角, BLUE_ICE)
+        spawnTrunk(center, -0.5, 2.6, -1, BLUE_ICE);
+        spawnTrunk(center, -0.5, 2.6,  1, BLUE_ICE);
+        spawnTrunk(center,  0.5, 2.6, -1, BLUE_ICE);
+        spawnTrunk(center,  0.5, 2.6,  1, BLUE_ICE);
 
-        // 第5层 (单点核心, BLUE_ICE)
-        coreStand = spawnTreeZombie(center, 0, 3.6, 0, BLUE_ICE);
+        // 第5层 (单点核心盔甲架, BLUE_ICE)
+        coreStand = spawnTreeArmorStand(center, 0, 3.6, 0, BLUE_ICE);
         BossMenu.registerBodyStand(BossMenu.BossType.CRYO, coreStand.getUniqueId());
 
         // ========== 5条半圆形枝干 ==========
@@ -215,36 +204,31 @@ public class CryoRegisvine {
         spawnBranch(center, -1.2, 2.3, -1.2, BLUE_ICE);
     }
 
-    /** 树干节点 */
     private static void spawnTrunk(Location center, double x, double y, double z, Material head) {
-        spawnBodyZombie(center, x, y, z, head);
+        spawnBodyArmorStand(center, x, y, z, head);
     }
 
-    /** 枝干节点 */
     private static void spawnBranch(Location center, double x, double y, double z, Material head) {
-        spawnBodyZombie(center, x, y, z, head);
+        spawnBodyArmorStand(center, x, y, z, head);
     }
 
-    private static void spawnBodyZombie(Location center, double x, double y, double z, Material head) {
-        LivingEntity zombie = spawnTreeZombie(center, x, y, z, head);
-        bodyStands.add(zombie);
-        BossMenu.registerBodyStand(BossMenu.BossType.CRYO, zombie.getUniqueId());
+    private static void spawnBodyArmorStand(Location center, double x, double y, double z, Material head) {
+        ArmorStand stand = spawnTreeArmorStand(center, x, y, z, head);
+        bodyStands.add(stand);
+        BossMenu.registerBodyStand(BossMenu.BossType.CRYO, stand.getUniqueId());
     }
 
-    /** 生成无AI隐身僵尸，佩戴指定方块作为头盔 */
-    private static LivingEntity spawnTreeZombie(Location center, double x, double y, double z, Material head) {
+    /** 生成浮空盔甲架，佩戴指定方块作为头盔 */
+    private static ArmorStand spawnTreeArmorStand(Location center, double x, double y, double z, Material head) {
         Location loc = center.clone().add(x, y, z);
-        LivingEntity zombie = (LivingEntity) center.getWorld().spawnEntity(loc, EntityType.ZOMBIE);
-        zombie.setAI(false);
-        zombie.setSilent(true);
-        zombie.setCollidable(false);
-        zombie.setRemoveWhenFarAway(false);
-        zombie.setPersistent(true);
-        zombie.setInvisible(true);
-        zombie.getEquipment().clear();
-        zombie.getEquipment().setHelmet(new ItemStack(head), true);
-        zombie.eject();
-        return zombie;
+        ArmorStand stand = center.getWorld().spawn(loc, ArmorStand.class);
+        stand.setVisible(false);
+        stand.setGravity(false);
+        stand.setSmall(true);
+        stand.setRemoveWhenFarAway(false);
+        stand.setPersistent(true);
+        stand.getEquipment().setHelmet(new ItemStack(head), true);
+        return stand;
     }
 
     // ========================================================================
@@ -277,7 +261,6 @@ public class CryoRegisvine {
                     double xOffset = (RANDOM.nextDouble() - 0.5) * 7;
                     double zOffset = (RANDOM.nextDouble() - 0.5) * 7;
 
-                    // 冰锥从天而降
                     Location from = targetLoc.clone().add(xOffset, 14, zOffset);
                     world.spawnParticle(Particle.SNOWFLAKE, from, 8, 0.4, 0.4, 0.4, 0.02);
 
@@ -305,7 +288,6 @@ public class CryoRegisvine {
         Location bossLoc = bossEntity.getLocation();
         World world = bossLoc.getWorld();
 
-        // 看向目标
         lookAtTarget(bossEntity, target.getLocation());
 
         // Phase 1: 前方6.5m喷射
@@ -394,7 +376,7 @@ public class CryoRegisvine {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getWorld().equals(bossEntity.getWorld())
                     && online.getLocation().distance(bossEntity.getLocation()) <= 150) {
-                online.sendMessage("§e✦ 急冻树的核心暴露了！攻击核心造成大量伤害！");
+                online.sendMessage("§e✦ 急冻树的核心暴露了！攻击核心造成伤害！");
             }
         }
 
@@ -644,8 +626,8 @@ public class CryoRegisvine {
     private static void cleanup() {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
 
-        for (LivingEntity entity : bodyStands) {
-            if (entity != null && !entity.isDead()) entity.remove();
+        for (ArmorStand stand : bodyStands) {
+            if (stand != null && !stand.isDead()) stand.remove();
         }
         bodyStands.clear();
         if (coreStand != null && !coreStand.isDead()) { coreStand.remove(); coreStand = null; }
@@ -658,7 +640,6 @@ public class CryoRegisvine {
 
         bossAlive = false;
         bossEntity = null;
-        bossUuid = null;
     }
 
     // ========================================================================

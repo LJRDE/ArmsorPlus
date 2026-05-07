@@ -77,6 +77,7 @@ public class NamespaceKey {
         public static NamespacedKey RainSwordKey;
         public static NamespacedKey FlyingSwordKey;
         public static NamespacedKey FlashStepBladeKey;
+        public static NamespacedKey MagicStickKey;
 
         // ---- 食物/药品键 ----
         public static NamespacedKey RejuvenationPowderKey;
@@ -95,6 +96,7 @@ public class NamespaceKey {
         public static void regkey(JavaPlugin plugin) {
             getplugin = plugin;
 
+            MagicStickKey = new NamespacedKey(plugin,"ArmsorPlus_MagicStick");
             MenuMark = new NamespacedKey(plugin, "ArmsorPlus_MenuMark");
 
             ShowParticles = new NamespacedKey(plugin, "ArmsorPlus_ShowParticles");
