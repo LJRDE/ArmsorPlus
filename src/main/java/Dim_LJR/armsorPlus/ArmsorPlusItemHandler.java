@@ -18,6 +18,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -931,5 +932,104 @@ public class ArmsorPlusItemHandler implements Listener {
             }
         }
         return null;
+    }
+
+    // ========================================================================
+    // 寒冰剑: 攻击时对敌方造成缓慢II 3秒
+    // ========================================================================
+
+    @EventHandler
+    public void onIceSwordAttack(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (ArmsorEnchant.getEnchantLevel(weapon, IceSwordKey) == 0) return;
+
+        if (event.getEntity() instanceof LivingEntity target) {
+            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1, false, false));
+            target.getWorld().spawnParticle(Particle.SNOWFLAKE,
+                    target.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+        }
+    }
+
+    // ========================================================================
+    // 盘丝弓: 攻击时在敌方周围生成蜘蛛网30秒, PDC计数9次后损坏
+    // ========================================================================
+
+    @EventHandler
+    public void onWebBowShoot(EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        ItemStack bow = event.getBow();
+        if (bow == null || ArmsorEnchant.getEnchantLevel(bow, WebBowKey) == 0) return;
+
+        // PDC使用次数管理
+        int uses = ArmsorEnchant.getEnchantLevel(bow, WebBowUsesKey);
+        if (uses == 0) uses = 9; // 首次使用初始化
+        uses--;
+        final int finalUses = uses;
+        bow.editMeta(meta -> meta.getPersistentDataContainer()
+                .set(WebBowUsesKey, PersistentDataType.INTEGER, finalUses));
+        if (finalUses <= 0) {
+            bow.setAmount(0);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+        }
+    }
+
+    @EventHandler
+    public void onWebBowHit(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Arrow arrow)) return;
+        if (!(arrow.getShooter() instanceof Player player)) return;
+        if (ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInMainHand(), WebBowKey) == 0) return;
+
+        Location loc = event.getEntity().getLocation();
+        World world = loc.getWorld();
+        for (int x = -2; x <= 2; x++) {
+            for (int z = -2; z <= 2; z++) {
+                Location webLoc = loc.clone().add(x, 0, z);
+                if (webLoc.getBlock().getType() == Material.AIR) {
+                    webLoc.getBlock().setType(Material.COBWEB);
+                    Bukkit.getScheduler().runTaskLater(getplugin, () -> {
+                        if (webLoc.getBlock().getType() == Material.COBWEB) {
+                            webLoc.getBlock().setType(Material.AIR);
+                        }
+                    }, 600L); // 30秒后恢复
+                }
+            }
+        }
+        world.spawnParticle(Particle.ITEM_COBWEB, loc.add(0, 1, 0), 20, 1, 1, 1, 0.1);
+        world.playSound(loc, Sound.BLOCK_SLIME_BLOCK_PLACE, 0.5f, 0.8f);
+    }
+
+    // ========================================================================
+    // 爆炸弓: 攻击时在敌方周围爆炸, PDC计数9次后损坏
+    // ========================================================================
+
+    @EventHandler
+    public void onExplosionBowShoot(EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        ItemStack bow = event.getBow();
+        if (bow == null || ArmsorEnchant.getEnchantLevel(bow, ExplosionBowKey) == 0) return;
+
+        // PDC使用次数管理
+        int uses = ArmsorEnchant.getEnchantLevel(bow, ExplosionBowUsesKey);
+        if (uses == 0) uses = 9;
+        uses--;
+        final int finalUses = uses;
+        bow.editMeta(meta -> meta.getPersistentDataContainer()
+                .set(ExplosionBowUsesKey, PersistentDataType.INTEGER, finalUses));
+        if (finalUses <= 0) {
+            bow.setAmount(0);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+        }
+    }
+
+    @EventHandler
+    public void onExplosionBowHit(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Arrow arrow)) return;
+        if (!(arrow.getShooter() instanceof Player player)) return;
+        if (ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInMainHand(), ExplosionBowKey) == 0) return;
+
+        Location loc = event.getEntity().getLocation();
+        loc.getWorld().createExplosion(loc, 2.0f, false, false);
+        loc.getWorld().spawnParticle(Particle.EXPLOSION, loc.add(0, 1, 0), 5, 0.5, 0.5, 0.5, 0);
     }
 }

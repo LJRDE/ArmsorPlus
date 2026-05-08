@@ -216,7 +216,7 @@ public class ArmsorItem {
         return item;
     }
 
-    /** 重剑: 基础攻击+5的铁剑 */
+    /** 重剑: 基础攻击+7.5的铁剑 */
     public static ItemStack Iron_Epee(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -224,7 +224,7 @@ public class ArmsorItem {
         meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
                 new AttributeModifier(
                         NamespacedKey.fromString("armsorplus:custom_damage"),
-                        5.0,
+                        7.5,
                         AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.MAINHAND));
         item.setItemMeta(meta);
@@ -486,6 +486,102 @@ public class ArmsorItem {
     }
 
     // ========================================================================
+    // 新附魔书 (0.3I)
+    // ========================================================================
+
+    private static final String PROTECTIONPRO_BOOK = ChatColor.GOLD + "保护PRO";
+    private static final String STUN_BOOK = ChatColor.DARK_GREEN + "眩晕";
+    private static final String GOLEM_GUARDIAN_BOOK = ChatColor.GRAY + "傀儡守护者";
+    private static final String CRITICAL_STRIKE_BOOK = ChatColor.RED + "暴击";
+    private static final String PIERCING_BOOK = ChatColor.DARK_RED + "穿甲";
+    private static final String LAVA_WALKER_BOOK = ChatColor.GOLD + "熔岩行者";
+    private static final String LIGHTNING_CALL_BOOK = ChatColor.YELLOW + "唤雷";
+    private static final String HOLOGRAPHIC_BOOK = ChatColor.AQUA + "全息";
+    private static final String TRACKING_BOOK = ChatColor.GREEN + "追踪";
+    private static final String HARVEST_BOOK = ChatColor.GOLD + "丰收";
+    private static final String AUTO_PLANT_BOOK = ChatColor.GREEN + "自动种植";
+    private static final String STRONG_BURST_BOOK = ChatColor.DARK_PURPLE + "强风暴";
+    private static final String MULTI_SHOT_BOOK = ChatColor.LIGHT_PURPLE + "千重射击";
+
+    /** 保护PRO附魔书: 胸甲 - 每级额外减少6%伤害，满级V */
+    public static ItemStack ProtectionPRO_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, ProtectionPROKey, PROTECTIONPRO_BOOK,
+                "可用装备:胸甲", "每级额外减少6%伤害", "满级V");
+    }
+
+    /** 眩晕附魔书: 剑 - 攻击造成反胃效果，每级0.7秒，满级V */
+    public static ItemStack Stun_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, StunKey, STUN_BOOK,
+                "可用装备:剑", "攻击时造成反胃效果" + String.format("%.1f", level * 0.7) + "秒", "满级V");
+    }
+
+    /** 傀儡守护者附魔书: 胸甲 - 受伤召唤铁傀儡，每级1只，冷却300秒，满级V */
+    public static ItemStack GolemGuardian_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, GolemGuardianKey, GOLEM_GUARDIAN_BOOK,
+                "可用装备:胸甲", "被攻击时召唤" + level + "只铁傀儡反击", "冷却300秒", "满级V");
+    }
+
+    /** 暴击附魔书: 斧 - 概率造成额外伤害，满级V */
+    public static ItemStack CriticalStrike_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, CriticalStrikeKey, CRITICAL_STRIKE_BOOK,
+                "可用装备:斧", "暴击概率" + (15 * level) + "%", "额外伤害" + (25 * level) + "%", "满级V");
+    }
+
+    /** 穿甲附魔书: 弓/弩 - 概率使盾牌CD+5穿透伤害 */
+    public static ItemStack Piercing_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, PiercingKey, PIERCING_BOOK,
+                "可用装备:弓/弩", "击中时使敌方盾牌进入冷却", "造成5点穿透伤害");
+    }
+
+    /** 熔岩行者附魔书: 靴子 - 岩浆行走5格内变为岩浆块5s后恢复 */
+    public static ItemStack LavaWalker_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, LavaWalkerKey, LAVA_WALKER_BOOK,
+                "可用装备:靴子", "在岩浆上行走时5格内岩浆变为岩浆块", "5秒后恢复");
+    }
+
+    /** 唤雷附魔书: 三叉戟 - 无视天气召唤level道雷，满级III */
+    public static ItemStack LightningCall_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, LightningCallKey, LIGHTNING_CALL_BOOK,
+                "可用装备:三叉戟", "无视天气召唤" + level + "道雷", "满级III");
+    }
+
+    /** 全息附魔书: 盾牌 - 全角度持盾防御 */
+    public static ItemStack Holographic_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, HolographicKey, HOLOGRAPHIC_BOOK,
+                "可用装备:盾牌", "持盾防御扩展到全角度");
+    }
+
+    /** 追踪附魔书: 弓 - 箭矢追踪450格内指向目标 */
+    public static ItemStack Tracking_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, TrackingKey, TRACKING_BOOK,
+                "可用装备:弓", "箭矢追踪450格内玩家指向的目标", "未指向目标则不生效");
+    }
+
+    /** 丰收附魔书: 锄头 - 概率获得多倍收获，满级III */
+    public static ItemStack Harvest_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, HarvestKey, HARVEST_BOOK,
+                "可用装备:锄头", (30 * level) + "%概率获得" + (level + 1) + "倍收获", "满级III");
+    }
+
+    /** 自动种植附魔书: 锄头 - 自动种植副手种子 */
+    public static ItemStack AutoPlant_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, AutoPlantKey, AUTO_PLANT_BOOK,
+                "可用装备:锄头", "采集作物时自动补种副手种子");
+    }
+
+    /** 强风暴附魔书: 重锤 - 无需下落即可触发风暴 */
+    public static ItemStack StrongBurst_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, StrongBurstKey, STRONG_BURST_BOOK,
+                "可用装备:重锤", "无需蓄力下落即可触发风暴");
+    }
+
+    /** 千重射击附魔书: 弩 - 射击时多射level支箭，满级III */
+    public static ItemStack MultiShot_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, MultiShotKey, MULTI_SHOT_BOOK,
+                "可用装备:弩", "射击时额外射出" + level + "支箭", "满级III");
+    }
+
+    // ========================================================================
     // 新武器
     // ========================================================================
 
@@ -493,16 +589,16 @@ public class ArmsorItem {
     private static final String FLYING_SWORD_NAME = ChatColor.GOLD + "飞天御剑";
     private static final String FLASH_STEP_BLADE_NAME = ChatColor.DARK_PURPLE + "瞬步刃";
 
-    /** 雨御前: 右键3秒隐身+无敌，冷却15s；Shift+右键向前瞬移 */
+    /** 雨御前: 右键3秒隐身+无敌+冰霜领域，冷却15s */
     public static ItemStack RainSword(int amount) {
-        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemStack item = new ItemStack(DIAMOND_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(RAIN_SWORD_NAME);
         meta.setLore(Arrays.asList(
-                ChatColor.AQUA + "右键: 3秒隐身(含装备)且免疫伤害",
+                ChatColor.AQUA + "右键: 3秒隐身+免疫伤害",
+                ChatColor.AQUA + "释放冰霜领域: 周围生物缓慢255+挖掘疲劳3秒",
                 ChatColor.DARK_AQUA + "冷却时间: 15秒",
-                ChatColor.LIGHT_PURPLE + "Shift+右键: 向前瞬移一小段距离",
-                ChatColor.GRAY + "传说中的雨之神剑"));
+                ChatColor.GRAY + "冰霜之剑"));
         meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "rain_sword_damage"),
                         7.0, AttributeModifier.Operation.ADD_NUMBER,
@@ -513,9 +609,9 @@ public class ArmsorItem {
         return item;
     }
 
-    /** 飞天御剑: 右键悬空飞行+脚下飞剑，速度8m/s */
+    /** 飞天御剑: 右键悬空飞行+脚下飞剑，沿指向方向飞行 */
     public static ItemStack FlyingSword(int amount) {
-        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemStack item = new ItemStack(GOLDEN_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(FLYING_SWORD_NAME);
         meta.setLore(Arrays.asList(
@@ -570,6 +666,72 @@ public class ArmsorItem {
                 ChatColor.GRAY + "蕴含魔力的法杖"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, MagicStickKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // ========================================================================
+    // 寒冰剑: 攻击时对敌方造成缓慢II 3秒
+    // ========================================================================
+
+    private static final String ICE_SWORD_NAME = ChatColor.AQUA + "寒冰剑";
+
+    /** 寒冰剑: 攻击时缓慢II 3秒 */
+    public static ItemStack IceSword(int amount) {
+        ItemStack item = new ItemStack(DIAMOND_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ICE_SWORD_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "攻击时对敌方造成缓慢II 3秒",
+                ChatColor.GRAY + "极寒之刃"));
+        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                new AttributeModifier(new NamespacedKey(getplugin, "ice_sword_damage"),
+                        7.0, AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.MAINHAND));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, IceSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // ========================================================================
+    // 盘丝弓: 攻击时在敌方周围生成蜘蛛网30秒，使用9次后损坏
+    // ========================================================================
+
+    private static final String WEB_BOW_NAME = ChatColor.WHITE + "盘丝弓";
+
+    /** 盘丝弓: 击中目标时生成蜘蛛网30秒，PDC计数9次后损坏 */
+    public static ItemStack WebBow(int amount) {
+        ItemStack item = new ItemStack(BOW);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(WEB_BOW_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.WHITE + "攻击时在敌方周围生成蜘蛛网持续30秒",
+                ChatColor.DARK_GRAY + "使用9次后必定损坏",
+                ChatColor.GRAY + "蛛网缠绕之弓"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, WebBowKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // ========================================================================
+    // 爆炸弓: 攻击时在敌方周围爆炸，使用9次后损坏
+    // ========================================================================
+
+    private static final String EXPLOSION_BOW_NAME = ChatColor.RED + "爆炸弓";
+
+    /** 爆炸弓: 击中目标时产生爆炸，PDC计数9次后损坏 */
+    public static ItemStack ExplosionBow(int amount) {
+        ItemStack item = new ItemStack(BOW);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(EXPLOSION_BOW_NAME);
+        meta.setLore(Arrays.asList(
+                ChatColor.RED + "攻击时在敌方周围产生爆炸",
+                ChatColor.DARK_GRAY + "使用9次后必定损坏",
+                ChatColor.GRAY + "爆破之力"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, ExplosionBowKey, 1);
         item.setAmount(amount);
         return item;
     }

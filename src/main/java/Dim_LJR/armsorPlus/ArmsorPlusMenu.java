@@ -35,6 +35,7 @@ public class ArmsorPlusMenu implements Listener {
     private static Inventory menu;
     private static Inventory shop;
     private static Inventory enchantmentList;
+    private static final Map<UUID, Integer> playerEnchantPage = new HashMap<>();
     private static Inventory armsList;
     private static Inventory magicItemsList;
     private static Inventory foodMenu;
@@ -83,10 +84,10 @@ public class ArmsorPlusMenu implements Listener {
                 "R=腐肉", "S=盐"});
         RECIPES.put(ChatColor.DARK_AQUA + "雨御前", new String[]{
                 " N ", "NBN", " N ",
-                "N=海晶碎片", "B=下界合金剑"});
+                "N=海晶碎片", "B=钻石剑"});
         RECIPES.put(ChatColor.GOLD + "飞天御剑", new String[]{
                 " N ", "NEN", " N ",
-                "N=幻翼膜", "E=下界合金剑"});
+                "N=幻翼膜", "E=金剑"});
         RECIPES.put(ChatColor.DARK_PURPLE + "瞬步刃", new String[]{
                 " N ", "NEN", " N ",
                 "N=末影珍珠", "E=下界合金剑"});
@@ -102,6 +103,15 @@ public class ArmsorPlusMenu implements Listener {
         RECIPES.put(ChatColor.GOLD + "基础强化石", new String[]{
                 "DD  ", "    ", "    ",
                 "D=钻石块", "需要4个"});
+        RECIPES.put(ChatColor.AQUA + "寒冰剑", new String[]{
+                "BBB", "BSB", "BBB",
+                "B=蓝冰", "S=钻石剑"});
+        RECIPES.put(ChatColor.WHITE + "盘丝弓", new String[]{
+                "CCC", "CBC", "CCC",
+                "C=蜘蛛网", "B=弓"});
+        RECIPES.put(ChatColor.RED + "爆炸弓", new String[]{
+                "TTT", "TBT", "TTT",
+                "T=TNT", "B=弓"});
         RECIPES.put(ChatColor.GOLD + "高级附魔向导", new String[]{
                 " C ", "   ", "   ",
                 "C=圆石"});
@@ -139,6 +149,9 @@ public class ArmsorPlusMenu implements Listener {
         armsList.setItem(20, FlyingSword(1));
         armsList.setItem(21, FlashStepBlade(1));
         armsList.setItem(22, MagicStick(1));
+        armsList.setItem(23, IceSword(1));
+        armsList.setItem(24, WebBow(1));
+        armsList.setItem(25, ExplosionBow(1));
         return armsList;
     }
 
@@ -171,39 +184,74 @@ public class ArmsorPlusMenu implements Listener {
         return shop;
     }
 
-    /** 高级附魔书列表 (可传入Player用于管理员模式判断) */
-    public Inventory createEnchantmentListMenu(Player player) {
-        enchantmentList = Bukkit.createInventory(null, 45, "§e高级附魔书列表");
+    /** 获取玩家当前附魔列表页码 */
+    public static int getEnchantPage(UUID uuid) { return playerEnchantPage.getOrDefault(uuid, 0); }
+
+    /** 高级附魔书列表 (支持翻页) */
+    public Inventory createEnchantmentListMenu(Player player, int page) {
+        if (player != null) playerEnchantPage.put(player.getUniqueId(), page);
+        String title = "§e高级附魔书列表 " + (page + 1) + "/2";
+        enchantmentList = Bukkit.createInventory(null, 45, title);
         addBorder(enchantmentList, GRAY_STAINED_GLASS_PANE);
-        enchantmentList.setItem(10, Dodge_EnchantdeBook(1, 4));
-        enchantmentList.setItem(11, Famine_EnchantdeBook(1, 3));
-        enchantmentList.setItem(12, BloodSacrifice_EnchantdeBook(1, 3));
-        enchantmentList.setItem(13, Ripples_EnchantdeBook(1, 3));
-        enchantmentList.setItem(14, EffectClear_EnchantdeBook(1, 3));
-        enchantmentList.setItem(15, Freeze_EnchantedBook(1, 3));
-        enchantmentList.setItem(16, Survivor_EnchantedBook(1, 5));
-        enchantmentList.setItem(19, Withering_EnchantedBook(1, 5));
-        enchantmentList.setItem(20, Blocking_EnchantedBook(1, 5));
-        enchantmentList.setItem(21, Revenge_EnchantedBook(1, 3));
-        enchantmentList.setItem(22, HealthBoost_EnchantedBook(1, 4));
-        enchantmentList.setItem(23, ExplosiveArrow_EnchantedBook(1, 3));
-        enchantmentList.setItem(24, ShadowDodge_EnchantdeBook(1, 4));
-        enchantmentList.setItem(25, ArrowSpeed_EnchantdeBook(1, 5));
-        enchantmentList.setItem(28, Sniping_EnchantdeBook(1, 5));
-        enchantmentList.setItem(29, DoubleHit_EnchantdeBook(1, 5));
-        enchantmentList.setItem(30, Feeding_EnchantdeBook(1, 5));
-        enchantmentList.setItem(31, DiamondDrill_EnchantedBook(1, 5));
-        enchantmentList.setItem(32, QuickThrust_EnchantedBook(1, 5));
-        enchantmentList.setItem(33, Blindness_EnchantedBook(1, 5));
-        if (player != null && PlayerSettings.isAdminMode(player.getUniqueId())
-                && player.hasPermission("ArmsorPlus.op")) {
-            enchantmentList.setItem(34, Indestructible_EnchantedBook(1, 1));
+
+        if (page == 0) {
+            // 第1页: 原有附魔
+            enchantmentList.setItem(10, Dodge_EnchantdeBook(1, 4));
+            enchantmentList.setItem(11, Famine_EnchantdeBook(1, 3));
+            enchantmentList.setItem(12, BloodSacrifice_EnchantdeBook(1, 3));
+            enchantmentList.setItem(13, Ripples_EnchantdeBook(1, 3));
+            enchantmentList.setItem(14, EffectClear_EnchantdeBook(1, 3));
+            enchantmentList.setItem(15, Freeze_EnchantedBook(1, 3));
+            enchantmentList.setItem(16, Survivor_EnchantedBook(1, 5));
+            enchantmentList.setItem(19, Withering_EnchantedBook(1, 5));
+            enchantmentList.setItem(20, Blocking_EnchantedBook(1, 5));
+            enchantmentList.setItem(21, Revenge_EnchantedBook(1, 3));
+            enchantmentList.setItem(22, HealthBoost_EnchantedBook(1, 4));
+            enchantmentList.setItem(23, ExplosiveArrow_EnchantedBook(1, 3));
+            enchantmentList.setItem(24, ShadowDodge_EnchantdeBook(1, 4));
+            enchantmentList.setItem(25, ArrowSpeed_EnchantdeBook(1, 5));
+            enchantmentList.setItem(28, Sniping_EnchantdeBook(1, 5));
+            enchantmentList.setItem(29, DoubleHit_EnchantdeBook(1, 5));
+            enchantmentList.setItem(30, Feeding_EnchantdeBook(1, 5));
+            enchantmentList.setItem(31, DiamondDrill_EnchantedBook(1, 5));
+            enchantmentList.setItem(32, QuickThrust_EnchantedBook(1, 5));
+            enchantmentList.setItem(33, Blindness_EnchantedBook(1, 5));
+            if (player != null && PlayerSettings.isAdminMode(player.getUniqueId())
+                    && player.hasPermission("ArmsorPlus.op")) {
+                enchantmentList.setItem(34, Indestructible_EnchantedBook(1, 1));
+            }
+        } else {
+            // 第2页: 0.3I 新附魔
+            enchantmentList.setItem(10, ProtectionPRO_EnchantedBook(1, 5));
+            enchantmentList.setItem(11, Stun_EnchantedBook(1, 5));
+            enchantmentList.setItem(12, GolemGuardian_EnchantedBook(1, 5));
+            enchantmentList.setItem(13, CriticalStrike_EnchantedBook(1, 5));
+            enchantmentList.setItem(14, Piercing_EnchantedBook(1, 1));
+            enchantmentList.setItem(15, LavaWalker_EnchantedBook(1, 1));
+            enchantmentList.setItem(16, LightningCall_EnchantedBook(1, 3));
+            enchantmentList.setItem(19, Holographic_EnchantedBook(1, 1));
+            enchantmentList.setItem(20, Tracking_EnchantedBook(1, 1));
+            enchantmentList.setItem(21, Harvest_EnchantedBook(1, 3));
+            enchantmentList.setItem(22, AutoPlant_EnchantedBook(1, 1));
+            enchantmentList.setItem(23, StrongBurst_EnchantedBook(1, 1));
+            enchantmentList.setItem(24, MultiShot_EnchantedBook(1, 3));
         }
+
+        // 翻页导航按钮
+        if (page > 0) {
+            enchantmentList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
+        }
+        enchantmentList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+
         return enchantmentList;
     }
 
+    public Inventory createEnchantmentListMenu(Player player) {
+        return createEnchantmentListMenu(player, 0);
+    }
+
     public Inventory createEnchantmentListMenu() {
-        return createEnchantmentListMenu(null);
+        return createEnchantmentListMenu(null, 0);
     }
 
     /** 插件主菜单 */
@@ -355,9 +403,10 @@ public class ArmsorPlusMenu implements Listener {
         }
 
         // ---- 浏览菜单 — 管理员模式可拿取物品，普通模式显示配方 ----
+        String invTitle = event.getView().getTitle();
         boolean isBrowseMenu = event.getClickedInventory() == armsList
                 || event.getClickedInventory() == magicItemsList
-                || event.getClickedInventory() == enchantmentList
+                || invTitle.startsWith("§e高级附魔书列表")
                 || event.getClickedInventory() == foodMenu;
 
         if (isBrowseMenu) {
@@ -365,6 +414,20 @@ public class ArmsorPlusMenu implements Listener {
             ItemStack clicked = event.getCurrentItem();
             if (clicked == null || !clicked.hasItemMeta()) return;
             String itemName = clicked.getItemMeta().getDisplayName();
+
+            // 附魔菜单翻页导航
+            if (invTitle.startsWith("§e高级附魔书列表")) {
+                int page = playerEnchantPage.getOrDefault(uuid, 0);
+                if (event.getSlot() == 39 && page > 0) {
+                    player.openInventory(createEnchantmentListMenu(player, page - 1));
+                    return;
+                }
+                if (event.getSlot() == 41) {
+                    player.openInventory(createEnchantmentListMenu(player, page + 1));
+                    return;
+                }
+            }
+
             if (" ".equals(itemName)) return;
 
             if (PlayerSettings.isAdminMode(uuid) && player.hasPermission("ArmsorPlus.op")) {
@@ -556,6 +619,11 @@ public class ArmsorPlusMenu implements Listener {
                     case "下界合金剑" -> NETHERITE_SWORD;
                     case "幻翼膜" -> PHANTOM_MEMBRANE;
                     case "末影珍珠" -> ENDER_PEARL;
+                    case "钻石剑" -> DIAMOND_SWORD;
+                    case "金剑" -> GOLDEN_SWORD;
+                    case "蜘蛛网" -> COBWEB;
+                    case "TNT" -> TNT;
+                    case "弓" -> BOW;
                     default -> PAPER;
                 };
             }

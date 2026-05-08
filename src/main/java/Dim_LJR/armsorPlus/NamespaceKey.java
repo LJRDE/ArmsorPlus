@@ -105,6 +105,16 @@ public class NamespaceKey {
         public static NamespacedKey HolographicKey;
         public static NamespacedKey TrackingKey;
 
+        // ---- 新附魔键 (0.3I) ----
+        public static NamespacedKey HarvestKey;
+        public static NamespacedKey AutoPlantKey;
+        public static NamespacedKey StrongBurstKey;
+        public static NamespacedKey MultiShotKey;
+
+        // ---- 武器使用次数键 ----
+        public static NamespacedKey WebBowUsesKey;
+        public static NamespacedKey ExplosionBowUsesKey;
+
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
 
@@ -190,6 +200,16 @@ public class NamespaceKey {
             LightningCallKey = new NamespacedKey(plugin, "ArmsorPlus_LightningCall");
             HolographicKey = new NamespacedKey(plugin, "ArmsorPlus_Holographic");
             TrackingKey = new NamespacedKey(plugin, "ArmsorPlus_Tracking");
+
+            // 0.3I 新附魔
+            HarvestKey = new NamespacedKey(plugin, "ArmsorPlus_Harvest");
+            AutoPlantKey = new NamespacedKey(plugin, "ArmsorPlus_AutoPlant");
+            StrongBurstKey = new NamespacedKey(plugin, "ArmsorPlus_StrongBurst");
+            MultiShotKey = new NamespacedKey(plugin, "ArmsorPlus_MultiShot");
+
+            // 武器使用次数键
+            WebBowUsesKey = new NamespacedKey(plugin, "ArmsorPlus_WebBowUses");
+            ExplosionBowUsesKey = new NamespacedKey(plugin, "ArmsorPlus_ExplosionBowUses");
         }
     }
 

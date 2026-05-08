@@ -236,22 +236,49 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(rottenJerkyRecipe);
         count++;
 
-        // 雨御前: 海晶碎片x4 + 下界合金剑x1
+        // 雨御前: 海晶碎片x4 + 钻石剑x1
         NamespacedKey rainSwordKey = new NamespacedKey(this, "ArmsorPlus_RainSword");
         ShapedRecipe rainSwordRecipe = new ShapedRecipe(rainSwordKey, RainSword(1));
         rainSwordRecipe.shape(" N ", "NSN", " N ");
         rainSwordRecipe.setIngredient('N', PRISMARINE_SHARD);
-        rainSwordRecipe.setIngredient('S', NETHERITE_SWORD);
+        rainSwordRecipe.setIngredient('S', DIAMOND_SWORD);
         getServer().addRecipe(rainSwordRecipe);
         count++;
 
-        // 飞天御剑: 幻翼膜x4 + 下界合金剑x1
+        // 飞天御剑: 幻翼膜x4 + 金剑x1
         NamespacedKey flyingSwordKey = new NamespacedKey(this, "ArmsorPlus_FlyingSword");
         ShapedRecipe flyingSwordRecipe = new ShapedRecipe(flyingSwordKey, FlyingSword(1));
         flyingSwordRecipe.shape(" N ", "NSN", " N ");
         flyingSwordRecipe.setIngredient('N', PHANTOM_MEMBRANE);
-        flyingSwordRecipe.setIngredient('S', NETHERITE_SWORD);
+        flyingSwordRecipe.setIngredient('S', GOLDEN_SWORD);
         getServer().addRecipe(flyingSwordRecipe);
+        count++;
+
+        // 寒冰剑: 蓝冰x8 + 钻石剑x1
+        NamespacedKey iceSwordKey = new NamespacedKey(this, "ArmsorPlus_IceSword");
+        ShapedRecipe iceSwordRecipe = new ShapedRecipe(iceSwordKey, IceSword(1));
+        iceSwordRecipe.shape("BBB", "BSB", "BBB");
+        iceSwordRecipe.setIngredient('B', BLUE_ICE);
+        iceSwordRecipe.setIngredient('S', DIAMOND_SWORD);
+        getServer().addRecipe(iceSwordRecipe);
+        count++;
+
+        // 盘丝弓: 蜘蛛网x8 + 弓x1
+        NamespacedKey webBowKey = new NamespacedKey(this, "ArmsorPlus_WebBow");
+        ShapedRecipe webBowRecipe = new ShapedRecipe(webBowKey, WebBow(1));
+        webBowRecipe.shape("CCC", "CBC", "CCC");
+        webBowRecipe.setIngredient('C', COBWEB);
+        webBowRecipe.setIngredient('B', BOW);
+        getServer().addRecipe(webBowRecipe);
+        count++;
+
+        // 爆炸弓: TNTx8 + 弓x1
+        NamespacedKey explosionBowKey = new NamespacedKey(this, "ArmsorPlus_ExplosionBow");
+        ShapedRecipe explosionBowRecipe = new ShapedRecipe(explosionBowKey, ExplosionBow(1));
+        explosionBowRecipe.shape("TTT", "TBT", "TTT");
+        explosionBowRecipe.setIngredient('T', TNT);
+        explosionBowRecipe.setIngredient('B', BOW);
+        getServer().addRecipe(explosionBowRecipe);
         count++;
 
         // 瞬步刃: 末影珍珠x4 + 下界合金剑x1

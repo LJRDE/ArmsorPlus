@@ -42,6 +42,14 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "QuickThrust_EnchantedBook", "DiamondDrill_EnchantedBook",
             "Blindness_EnchantedBook", "Indestructible_EnchantedBook",
             "RainSword", "FlyingSword", "FlashStepBlade", "MagicStick",
+            "IceSword", "WebBow", "ExplosionBow",
+            "ProtectionPRO_EnchantedBook", "Stun_EnchantedBook",
+            "GolemGuardian_EnchantedBook", "CriticalStrike_EnchantedBook",
+            "Piercing_EnchantedBook", "LavaWalker_EnchantedBook",
+            "LightningCall_EnchantedBook", "Holographic_EnchantedBook",
+            "Tracking_EnchantedBook", "Harvest_EnchantedBook",
+            "AutoPlant_EnchantedBook", "StrongBurst_EnchantedBook",
+            "MultiShot_EnchantedBook",
             "Salt", "Jerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
@@ -50,7 +58,10 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "Freeze", "ShadowDodge", "Blocking", "Withering", "Survivor",
             "HealthBoost", "Revenge", "ExplosiveArrow", "Sniping",
             "ArrowSpeed", "DoubleHit", "Feeding", "QuickThrust",
-            "DiamondDrill", "Blindness", "Indestructible"
+            "DiamondDrill", "Blindness", "Indestructible",
+            "ProtectionPRO", "Stun", "GolemGuardian", "CriticalStrike",
+            "Piercing", "LavaWalker", "LightningCall", "Holographic",
+            "Tracking", "Harvest", "AutoPlant", "StrongBurst", "MultiShot"
     );
 
     @Override
@@ -404,6 +415,101 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(RottenJerky(amount));
                 sender.sendMessage("已获得 " + amount + " 个腐肉干");
+            }
+            // ===== 0.3I 新武器 =====
+            case "IceSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(IceSword(amount));
+                sender.sendMessage("已获得 " + amount + " 把寒冰剑");
+            }
+            case "WebBow" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(WebBow(amount));
+                sender.sendMessage("已获得 " + amount + " 把盘丝弓");
+            }
+            case "ExplosionBow" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(ExplosionBow(amount));
+                sender.sendMessage("已获得 " + amount + " 把爆炸弓");
+            }
+            // ===== 0.3I 新附魔书 =====
+            case "ProtectionPRO_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(ProtectionPRO_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GOLD + "保护PRO" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Stun_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Stun_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_GREEN + "眩晕" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "GolemGuardian_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(GolemGuardian_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GRAY + "傀儡守护者" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "CriticalStrike_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(CriticalStrike_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.RED + "暴击" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Piercing_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Piercing_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_RED + "穿甲" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "LavaWalker_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(LavaWalker_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GOLD + "熔岩行者" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "LightningCall_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(LightningCall_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.YELLOW + "唤雷" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Holographic_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Holographic_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.AQUA + "全息" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Tracking_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Tracking_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GREEN + "追踪" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Harvest_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Harvest_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GOLD + "丰收" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "AutoPlant_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(AutoPlant_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GREEN + "自动种植" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "StrongBurst_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(StrongBurst_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_PURPLE + "强风暴" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "MultiShot_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(MultiShot_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.LIGHT_PURPLE + "千重射击" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }

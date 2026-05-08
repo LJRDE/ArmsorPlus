@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -394,6 +395,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     // 涟漪 —— 受到伤害时回复生命 (靴子)
     // ========================================================================
 
+    // 涟漪 —— 减缓血量下降，每级减少20%伤害 (靴子, 满级III)
     @EventHandler
     public void RipplesHandler(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
@@ -402,20 +404,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 entity.getEquipment().getBoots(), RipplesProtectkey);
         if (level <= 0) return;
 
-        double maxHp = entity.getMaxHealth();
-        double newHp = entity.getHealth() + level - event.getDamage();
+        double reduction = 1.0 - (0.2 * level); // 每级减缓20%血量下降
+        event.setDamage(event.getDamage() * reduction);
 
-        if (newHp >= maxHp) {
-            entity.setHealth(maxHp);
-            event.setDamage(0);
-        } else if (level > event.getDamage()) {
-            event.setDamage(0);
-            entity.setHealth(newHp);
-        } else {
-            event.setDamage(event.getDamage() - level);
-        }
-
-        PlayerSettings.notify(entity, ChatColor.BLUE + "涟漪恢复了" + level + "点生命值");
+        PlayerSettings.notify(entity, ChatColor.BLUE + "涟漪减缓了" + (int)(level * 20) + "%伤害");
     }
 
     // ========================================================================
@@ -455,7 +447,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         int rate = new Random().nextInt(level) + 2;
         event.setDamage(event.getDamage() * rate);
-        damager.damage(15, damager);
+        damager.damage(10, damager); // 穿透伤害
 
         PlayerSettings.notify(event.getDamager(), "你发动了" + ChatColor.RED + "血祭"
                 + ChatColor.RESET + "对对方造成" + rate + "倍伤害");
@@ -619,6 +611,87 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 PlayerSettings.notify(player,ChatColor.GOLD + "获得吸血附魔书");
                 count++;
             }
+            if (percent(10)) {
+                player.getInventory().addItem(QuickThrust_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得疾刺附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(DiamondDrill_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.AQUA + "获得金刚钻附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(Blindness_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.DARK_GRAY + "获得失明附魔书");
+                count++;
+            }
+            // 0.3I 新附魔
+            if (percent(10)) {
+                player.getInventory().addItem(ProtectionPRO_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得保护PRO附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(Stun_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.DARK_GREEN + "获得眩晕附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(GolemGuardian_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.GRAY + "获得傀儡守护者附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(CriticalStrike_EnchantedBook(1, r.nextInt(5) + 1));
+                PlayerSettings.notify(player,ChatColor.RED + "获得暴击附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(Piercing_EnchantedBook(1, 1));
+                PlayerSettings.notify(player,ChatColor.DARK_RED + "获得穿甲附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(LavaWalker_EnchantedBook(1, 1));
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得熔岩行者附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(LightningCall_EnchantedBook(1, r.nextInt(3) + 1));
+                PlayerSettings.notify(player,ChatColor.YELLOW + "获得唤雷附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(Holographic_EnchantedBook(1, 1));
+                PlayerSettings.notify(player,ChatColor.AQUA + "获得全息附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(Tracking_EnchantedBook(1, 1));
+                PlayerSettings.notify(player,ChatColor.GREEN + "获得追踪附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(Harvest_EnchantedBook(1, r.nextInt(3) + 1));
+                PlayerSettings.notify(player,ChatColor.GOLD + "获得丰收附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(AutoPlant_EnchantedBook(1, 1));
+                PlayerSettings.notify(player,ChatColor.GREEN + "获得自动种植附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(StrongBurst_EnchantedBook(1, 1));
+                PlayerSettings.notify(player,ChatColor.DARK_PURPLE + "获得强风暴附魔书");
+                count++;
+            }
+            if (percent(10)) {
+                player.getInventory().addItem(MultiShot_EnchantedBook(1, r.nextInt(3) + 1));
+                PlayerSettings.notify(player,ChatColor.LIGHT_PURPLE + "获得千重射击附魔书");
+                count++;
+            }
         }
 
         PlayerSettings.notify(player,"获得数量: " + count);
@@ -732,5 +805,361 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,
                 player.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.5);
         player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.8f, 1.2f);
+    }
+
+    // ========================================================================
+    // 保护PRO —— 每级额外减少6%伤害 (胸甲, 满级V)
+    // ========================================================================
+
+    @EventHandler
+    public void ProtectionPROHandler(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        ItemStack chest = player.getEquipment().getChestplate();
+        int level = ArmsorEnchant.getEnchantLevel(chest, ProtectionPROKey);
+        if (level <= 0) return;
+
+        double reduction = 1.0 - (0.06 * level);
+        event.setDamage(event.getDamage() * reduction);
+    }
+
+    // ========================================================================
+    // 眩晕 —— 攻击造成反胃效果 (剑, 每级0.7秒, 满级V)
+    // ========================================================================
+
+    @EventHandler
+    public void StunHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(
+                damager.getEquipment().getItemInMainHand(), StunKey);
+        if (level <= 0) return;
+
+        int duration = (int)(level * 0.7 * 20);
+        target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, duration, 0, false, false));
+    }
+
+    // ========================================================================
+    // 傀儡守护者 —— 受伤时召唤铁傀儡反击 (胸甲, 每级1只, 冷却300秒, 满级V)
+    // ========================================================================
+
+    private final Map<UUID, Long> golemCooldowns = new HashMap<>();
+
+    @EventHandler
+    public void GolemGuardianHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getDamager() instanceof LivingEntity attacker)) return;
+
+        ItemStack chest = player.getEquipment().getChestplate();
+        int level = ArmsorEnchant.getEnchantLevel(chest, GolemGuardianKey);
+        if (level <= 0) return;
+
+        UUID uuid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        if (golemCooldowns.containsKey(uuid) && (now - golemCooldowns.get(uuid)) < 300000) return;
+        golemCooldowns.put(uuid, now);
+
+        if (attacker.getLocation().distance(player.getLocation()) > 70) return;
+
+        for (int i = 0; i < level; i++) {
+            IronGolem golem = player.getWorld().spawn(player.getLocation(), IronGolem.class);
+            golem.setTarget(attacker);
+            golem.setPlayerCreated(false);
+        }
+        player.sendMessage(ChatColor.GRAY + "傀儡守护者: 召唤了" + level + "只铁傀儡");
+    }
+
+    // ========================================================================
+    // 暴击 —— 概率造成额外伤害 (斧, 15%*level暴击, +25%*level伤害, 满级V)
+    // ========================================================================
+
+    @EventHandler
+    public void CriticalStrikeHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+
+        ItemStack weapon = damager.getEquipment().getItemInMainHand();
+        int level = ArmsorEnchant.getEnchantLevel(weapon, CriticalStrikeKey);
+        if (level <= 0) return;
+
+        if (!percent(15 * level)) return;
+
+        double bonus = 1.0 + (0.25 * level);
+        event.setDamage(event.getDamage() * bonus);
+        damager.getWorld().playSound(damager.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
+
+        if (damager instanceof Player player) {
+            PlayerSettings.notify(player, ChatColor.RED + "暴击! 造成" + (int)(25 * level) + "%额外伤害");
+        }
+    }
+
+    // ========================================================================
+    // 穿甲 —— 盾牌进入CD + 5点穿透伤害 (弓/弩)
+    // ========================================================================
+
+    @EventHandler
+    public void PiercingHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Arrow arrow)) return;
+        if (!(arrow.getShooter() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        ItemStack bow = player.getInventory().getItemInMainHand();
+        int level = ArmsorEnchant.getEnchantLevel(bow, PiercingKey);
+        if (level <= 0) return;
+
+        // 如果目标使用盾牌，使其进入冷却
+        if (target instanceof Player targetPlayer && targetPlayer.isBlocking()) {
+            targetPlayer.setCooldown(Material.SHIELD, 100);
+        }
+
+        // 5点穿透伤害
+        target.damage(5, player);
+        target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0),
+                10, 0.3, 0.3, 0.3, 0.1);
+    }
+
+    // ========================================================================
+    // 熔岩行者 —— 岩浆行走5格内变为岩浆块，5秒后恢复 (靴子)
+    // ========================================================================
+
+    @EventHandler
+    public void LavaWalkerHandler(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        ItemStack boots = player.getEquipment().getBoots();
+        int level = ArmsorEnchant.getEnchantLevel(boots, LavaWalkerKey);
+        if (level <= 0) return;
+
+        Location loc = player.getLocation();
+        World world = loc.getWorld();
+
+        for (int x = -5; x <= 5; x++) {
+            for (int z = -5; z <= 5; z++) {
+                for (int y = -1; y <= 0; y++) {
+                    Location check = loc.clone().add(x, y, z);
+                    if (check.getBlock().getType() == Material.LAVA) {
+                        check.getBlock().setType(Material.MAGMA_BLOCK);
+                        Bukkit.getScheduler().runTaskLater(getplugin, () -> {
+                            if (check.getBlock().getType() == Material.MAGMA_BLOCK) {
+                                check.getBlock().setType(Material.LAVA);
+                            }
+                        }, 100L);
+                    }
+                }
+            }
+        }
+    }
+
+    // ========================================================================
+    // 唤雷 —— 无视天气召唤level道雷 (三叉戟, 满级III)
+    // ========================================================================
+
+    @EventHandler
+    public void LightningCallHandler(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Trident trident)) return;
+        if (!(trident.getShooter() instanceof Player player)) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInMainHand(), LightningCallKey);
+        if (level <= 0) return;
+
+        Location hitLoc = trident.getLocation();
+        World world = hitLoc.getWorld();
+
+        for (int i = 0; i < level; i++) {
+            world.strikeLightning(hitLoc);
+        }
+    }
+
+    // ========================================================================
+    // 全息 —— 持盾扩展到全角度防御 (盾牌)
+    // ========================================================================
+
+    @EventHandler
+    public void HolographicHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        int level = ArmsorEnchant.getEnchantLevel(mainHand, HolographicKey);
+        if (level <= 0) level = ArmsorEnchant.getEnchantLevel(offHand, HolographicKey);
+        if (level <= 0) return;
+
+        event.setCancelled(true);
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.0f);
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0),
+                5, 0.3, 0.3, 0.3, 0);
+    }
+
+    // ========================================================================
+    // 追踪 —— 箭矢追踪450格内指向目标 (弓)
+    // ========================================================================
+
+    private final Map<UUID, UUID> trackingArrows = new HashMap<>();
+
+    @EventHandler
+    public void TrackingHandler(EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(event.getBow(), TrackingKey);
+        if (level <= 0) return;
+
+        LivingEntity target = null;
+        double nearestDist = 450;
+        for (Entity entity : player.getNearbyEntities(nearestDist, nearestDist, nearestDist)) {
+            if (entity instanceof LivingEntity living && living != player
+                    && player.hasLineOfSight(living)) {
+                double angle = player.getEyeLocation().getDirection()
+                        .angle(living.getLocation().add(0, 1, 0).subtract(player.getEyeLocation()).toVector());
+                if (angle < 0.3) {
+                    double dist = player.getLocation().distance(living.getLocation());
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        target = living;
+                    }
+                }
+            }
+        }
+
+        if (target != null && event.getProjectile() instanceof Arrow arrow) {
+            trackingArrows.put(arrow.getUniqueId(), target.getUniqueId());
+            Bukkit.getScheduler().runTaskTimer(getplugin, () -> {
+                if (!arrow.isValid() || arrow.isDead()) {
+                    trackingArrows.remove(arrow.getUniqueId());
+                    return;
+                }
+                LivingEntity t = (LivingEntity) Bukkit.getEntity(trackingArrows.get(arrow.getUniqueId()));
+                if (t == null || t.isDead()) {
+                    trackingArrows.remove(arrow.getUniqueId());
+                    return;
+                }
+                Vector toTarget = t.getLocation().add(0, 1, 0).subtract(arrow.getLocation()).toVector();
+                arrow.setVelocity(toTarget.normalize().multiply(2.0));
+            }, 0L, 2L);
+        }
+    }
+
+    // ========================================================================
+    // 丰收 —— 概率多倍收获 (锄头, 30%*level概率level+1倍, 满级III)
+    // ========================================================================
+
+    @EventHandler
+    public void HarvestHandler(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        ItemStack hoe = player.getInventory().getItemInMainHand();
+        int level = ArmsorEnchant.getEnchantLevel(hoe, HarvestKey);
+        if (level <= 0) return;
+
+        Material block = event.getBlock().getType();
+        if (!isCrop(block)) return;
+
+        if (!percent(30 * level)) return;
+
+        event.setDropItems(false);
+        Collection<ItemStack> drops = event.getBlock().getDrops(hoe);
+        for (int i = 0; i <= level; i++) {
+            for (ItemStack drop : drops) {
+                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation(), drop.clone());
+            }
+        }
+    }
+
+    // 检查是否为作物 (包括甜浆果)
+    private boolean isCrop(Material mat) {
+        return mat == Material.WHEAT || mat == Material.CARROTS || mat == Material.POTATOES
+                || mat == Material.BEETROOTS || mat == Material.NETHER_WART
+                || mat == Material.SWEET_BERRY_BUSH || mat == Material.COCOA;
+    }
+
+    // ========================================================================
+    // 自动种植 —— 采集作物时自动补种副手种子 (锄头)
+    // ========================================================================
+
+    @EventHandler
+    public void AutoPlantHandler(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        ItemStack hoe = player.getInventory().getItemInMainHand();
+        int level = ArmsorEnchant.getEnchantLevel(hoe, AutoPlantKey);
+        if (level <= 0) return;
+
+        Material block = event.getBlock().getType();
+        if (!isCrop(block)) return;
+
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        if (offHand == null || offHand.getType() == Material.AIR) return;
+
+        Material seedType = offHand.getType();
+        Material soil = event.getBlock().getLocation().subtract(0, 1, 0).getBlock().getType();
+        if (soil != Material.FARMLAND && soil != Material.SOUL_SAND) return;
+
+        Material cropToPlant = getCropFromSeed(seedType);
+        if (cropToPlant == null) return;
+
+        Bukkit.getScheduler().runTaskLater(getplugin, () -> {
+            Location loc = event.getBlock().getLocation();
+            if (loc.getBlock().getType() == Material.AIR) {
+                loc.getBlock().setType(cropToPlant);
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    offHand.setAmount(offHand.getAmount() - 1);
+                }
+            }
+        }, 1L);
+    }
+
+    private Material getCropFromSeed(Material seed) {
+        return switch (seed) {
+            case WHEAT_SEEDS -> Material.WHEAT;
+            case CARROT -> Material.CARROTS;
+            case POTATO -> Material.POTATOES;
+            case BEETROOT_SEEDS -> Material.BEETROOTS;
+            case SWEET_BERRIES -> Material.SWEET_BERRY_BUSH;
+            case COCOA_BEANS -> Material.COCOA;
+            default -> null;
+        };
+    }
+
+    // ========================================================================
+    // 强风暴 —— 无需下落即可触发风暴 (重锤)
+    // ========================================================================
+
+    @EventHandler
+    public void StrongBurstHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (weapon.getType() != Material.MACE) return;
+        int level = ArmsorEnchant.getEnchantLevel(weapon, StrongBurstKey);
+        if (level <= 0) return;
+
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        Location loc = target.getLocation();
+        loc.getWorld().createExplosion(loc, 2.0f, false, false);
+        loc.getWorld().spawnParticle(Particle.GUST, loc, 30, 2, 1, 2, 0.5);
+        loc.getWorld().playSound(loc, Sound.ENTITY_WIND_CHARGE_WIND_BURST, 1.0f, 1.0f);
+    }
+
+    // ========================================================================
+    // 千重射击 —— 射击时多射level支箭 (弩, 满级III)
+    // ========================================================================
+
+    @EventHandler
+    public void MultiShotHandler(ProjectileLaunchEvent event) {
+        if (!(event.getEntity() instanceof Arrow arrow)) return;
+        if (!(arrow.getShooter() instanceof Player player)) return;
+
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (weapon.getType() != Material.CROSSBOW) return;
+        int level = ArmsorEnchant.getEnchantLevel(weapon, MultiShotKey);
+        if (level <= 0) return;
+
+        Location eye = player.getEyeLocation();
+        Vector dir = eye.getDirection();
+        World world = player.getWorld();
+
+        for (int i = 0; i < level; i++) {
+            double spread = (Math.random() - 0.5) * 0.3;
+            Vector offset = new Vector(-dir.getZ() * spread, (Math.random() - 0.5) * 0.15, dir.getX() * spread);
+            Arrow extraArrow = world.spawn(eye, Arrow.class);
+            extraArrow.setShooter(player);
+            extraArrow.setVelocity(dir.clone().add(offset).normalize().multiply(3.0));
+        }
     }
 }

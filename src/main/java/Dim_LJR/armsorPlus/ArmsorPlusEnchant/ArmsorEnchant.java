@@ -134,6 +134,19 @@ public class ArmsorEnchant implements Listener {
         if (key.equals(DiamondDrillKey))   return "金刚钻";
         if (key.equals(IndestructibleKey)) return "不灭";
         if (key.equals(BlindnessKey))      return "失明";
+        if (key.equals(ProtectionPROKey))  return "保护PRO";
+        if (key.equals(StunKey))           return "眩晕";
+        if (key.equals(GolemGuardianKey))  return "傀儡守护者";
+        if (key.equals(CriticalStrikeKey)) return "暴击";
+        if (key.equals(PiercingKey))       return "穿甲";
+        if (key.equals(LavaWalkerKey))     return "熔岩行者";
+        if (key.equals(LightningCallKey))  return "唤雷";
+        if (key.equals(HolographicKey))    return "全息";
+        if (key.equals(TrackingKey))       return "追踪";
+        if (key.equals(HarvestKey))        return "丰收";
+        if (key.equals(AutoPlantKey))      return "自动种植";
+        if (key.equals(StrongBurstKey))    return "强风暴";
+        if (key.equals(MultiShotKey))      return "千重射击";
         return null;
     }
 }

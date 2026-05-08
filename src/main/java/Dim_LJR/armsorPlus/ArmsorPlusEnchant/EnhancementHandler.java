@@ -81,6 +81,26 @@ public class EnhancementHandler implements Listener {
         return item.getType() == TRIDENT || ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) > 0;
     }
 
+    private boolean isAxe(ItemStack item) {
+        return item.getType().name().endsWith("_AXE");
+    }
+
+    private boolean isHoe(ItemStack item) {
+        return item.getType().name().endsWith("_HOE");
+    }
+
+    private boolean isMace(ItemStack item) {
+        return item.getType() == MACE;
+    }
+
+    private boolean isShield(ItemStack item) {
+        return item.getType() == SHIELD;
+    }
+
+    private boolean isBowOrCrossbow(ItemStack item) {
+        return item.getType() == BOW || item.getType() == CROSSBOW;
+    }
+
     // ===== 武器等级对照 =====
 
     /**
@@ -406,6 +426,45 @@ public class EnhancementHandler implements Listener {
         // [失明] 武器
         if (tryApplyEnchant(event, consum, item, player, BlindnessKey, BlindnessKey,
                 isSwordOrAxe(item), ChatColor.DARK_GRAY + "失明")) return;
+        // [保护PRO] 胸甲 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, ProtectionPROKey, ProtectionPROKey,
+                isChestplate(item), ChatColor.GOLD + "保护PRO")) return;
+        // [眩晕] 剑 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, StunKey, StunKey,
+                item.getType().name().endsWith("_SWORD"), ChatColor.DARK_GREEN + "眩晕")) return;
+        // [傀儡守护者] 胸甲 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, GolemGuardianKey, GolemGuardianKey,
+                isChestplate(item), ChatColor.GRAY + "傀儡守护者")) return;
+        // [暴击] 斧 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, CriticalStrikeKey, CriticalStrikeKey,
+                isAxe(item), ChatColor.RED + "暴击")) return;
+        // [穿甲] 弓/弩 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, PiercingKey, PiercingKey,
+                isBowOrCrossbow(item), ChatColor.DARK_RED + "穿甲")) return;
+        // [熔岩行者] 靴子 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, LavaWalkerKey, LavaWalkerKey,
+                isBoots(item), ChatColor.GOLD + "熔岩行者")) return;
+        // [唤雷] 三叉戟 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, LightningCallKey, LightningCallKey,
+                item.getType() == TRIDENT, ChatColor.YELLOW + "唤雷")) return;
+        // [全息] 盾牌 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, HolographicKey, HolographicKey,
+                isShield(item), ChatColor.AQUA + "全息")) return;
+        // [追踪] 弓 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, TrackingKey, TrackingKey,
+                item.getType() == BOW, ChatColor.GREEN + "追踪")) return;
+        // [丰收] 锄头 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, HarvestKey, HarvestKey,
+                isHoe(item), ChatColor.GOLD + "丰收")) return;
+        // [自动种植] 锄头 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, AutoPlantKey, AutoPlantKey,
+                isHoe(item), ChatColor.GREEN + "自动种植")) return;
+        // [强风暴] 重锤 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, StrongBurstKey, StrongBurstKey,
+                isMace(item), ChatColor.DARK_PURPLE + "强风暴")) return;
+        // [千重射击] 弩 (0.3I)
+        if (tryApplyEnchant(event, consum, item, player, MultiShotKey, MultiShotKey,
+                item.getType() == CROSSBOW, ChatColor.LIGHT_PURPLE + "千重射击")) return;
     }
 
     /**
