@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -969,19 +970,45 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     }
 
     // ========================================================================
-    // 全息 —— 持盾扩展到全角度防御 (盾牌)
+    // 全息 —— 持盾时扩展到全角度防御 (盾牌, 需右键举盾, 斧子可破盾)
     // ========================================================================
 
     @EventHandler
     public void HolographicHandler(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
+        // 检查玩家是否正在举盾防御
+        if (!player.isBlocking()) return;
+
+        // 查找带有全息附魔的盾牌 (主手或副手)
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         ItemStack offHand = player.getInventory().getItemInOffHand();
-        int level = ArmsorEnchant.getEnchantLevel(mainHand, HolographicKey);
-        if (level <= 0) level = ArmsorEnchant.getEnchantLevel(offHand, HolographicKey);
-        if (level <= 0) return;
+        ItemStack shield = mainHand.getType() == Material.SHIELD && ArmsorEnchant.getEnchantLevel(mainHand, HolographicKey) > 0
+                ? mainHand : offHand.getType() == Material.SHIELD && ArmsorEnchant.getEnchantLevel(offHand, HolographicKey) > 0
+                ? offHand : null;
+        if (shield == null) return;
 
+        // 消耗盾牌耐久
+        Damageable dmg = (Damageable) shield.getItemMeta();
+        dmg.setDamage(dmg.getDamage() + 1);
+        if (dmg.getDamage() >= shield.getType().getMaxDurability()) {
+            shield.setAmount(0);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+        } else {
+            shield.setItemMeta(dmg);
+        }
+
+        // 斧子攻击: 盾牌进入冷却, 但不格挡伤害
+        if (event.getDamager() instanceof LivingEntity damager) {
+            ItemStack weapon = damager.getEquipment().getItemInMainHand();
+            if (weapon.getType().name().endsWith("_AXE")) {
+                player.setCooldown(Material.SHIELD, 100); // 5秒冷却
+                player.getWorld().playSound(player.getLocation(), Sound.ITEM_SHIELD_BREAK, 1.0f, 1.0f);
+                return;
+            }
+        }
+
+        // 非斧子: 全角度格挡伤害
         event.setCancelled(true);
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.0f);
         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0),

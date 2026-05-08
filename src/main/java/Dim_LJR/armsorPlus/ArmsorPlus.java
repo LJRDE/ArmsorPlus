@@ -200,8 +200,8 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(new ShapelessRecipe(saltKey, Salt(1)).addIngredient(1, SAND));
         count++;
 
-        // 肉干: 盐x1 + 任意熟肉
-        Material[] meats = {COOKED_BEEF, COOKED_PORKCHOP, COOKED_MUTTON, COOKED_CHICKEN, COOKED_RABBIT, COOKED_COD, COOKED_SALMON};
+        // 肉干: 盐x1 + 任意熟肉 (猪肉/羊肉单独配方)
+        Material[] meats = {COOKED_BEEF, COOKED_CHICKEN, COOKED_RABBIT, COOKED_COD, COOKED_SALMON};
         for (int i = 0; i < meats.length; i++) {
             NamespacedKey jerkyKey = new NamespacedKey(this, "ArmsorPlus_Jerky_" + i);
             ShapelessRecipe jerkyRecipe = new ShapelessRecipe(jerkyKey, Jerky(1));
@@ -210,6 +210,22 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
             getServer().addRecipe(jerkyRecipe);
             count++;
         }
+
+        // 猪肉干: 盐x1 + 熟猪排x1
+        NamespacedKey porkJerkyKey = new NamespacedKey(this, "ArmsorPlus_PorkJerky");
+        ShapelessRecipe porkJerkyRecipe = new ShapelessRecipe(porkJerkyKey, PorkJerky(1));
+        porkJerkyRecipe.addIngredient(new RecipeChoice.ExactChoice(Salt(1)));
+        porkJerkyRecipe.addIngredient(1, COOKED_PORKCHOP);
+        getServer().addRecipe(porkJerkyRecipe);
+        count++;
+
+        // 羊肉干: 盐x1 + 熟羊肉x1
+        NamespacedKey muttonJerkyKey = new NamespacedKey(this, "ArmsorPlus_MuttonJerky");
+        ShapelessRecipe muttonJerkyRecipe = new ShapelessRecipe(muttonJerkyKey, MuttonJerky(1));
+        muttonJerkyRecipe.addIngredient(new RecipeChoice.ExactChoice(Salt(1)));
+        muttonJerkyRecipe.addIngredient(1, COOKED_MUTTON);
+        getServer().addRecipe(muttonJerkyRecipe);
+        count++;
 
         // 甜浆果派: 甜浆果x3 + 小麦x3
         NamespacedKey pieKey = new NamespacedKey(this, "ArmsorPlus_SweetBerryPie");

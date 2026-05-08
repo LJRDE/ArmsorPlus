@@ -1,6 +1,7 @@
 package Dim_LJR.armsorPlus.Command;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
+import Dim_LJR.armsorPlus.ArmsorPlusMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -50,7 +51,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "Tracking_EnchantedBook", "Harvest_EnchantedBook",
             "AutoPlant_EnchantedBook", "StrongBurst_EnchantedBook",
             "MultiShot_EnchantedBook",
-            "Salt", "Jerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
+            "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
     private final List<String> args1_enchant = List.of(
@@ -104,8 +105,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.RED + "该指令必须由玩家执行");
             return;
         }
-        player.getInventory().addItem(GuideBook(1));
-        player.sendMessage(ChatColor.GREEN + "已获得高级附魔向导书，右键打开菜单");
+        player.openInventory(new ArmsorPlusMenu().createMenu());
     }
 
     private void handleGive(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -394,6 +394,16 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(Jerky(amount));
                 sender.sendMessage("已获得 " + amount + " 个肉干");
+            }
+            case "PorkJerky" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(PorkJerky(amount));
+                sender.sendMessage("已获得 " + amount + " 个猪肉干");
+            }
+            case "MuttonJerky" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(MuttonJerky(amount));
+                sender.sendMessage("已获得 " + amount + " 个羊肉干");
             }
             case "SweetBerryPie" -> {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
@@ -689,7 +699,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GOLD + "===== ArmsorPlus 指令帮助 =====");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus help" + ChatColor.RESET + " - 显示本帮助");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus info" + ChatColor.RESET + " - 插件信息");
-        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus guide" + ChatColor.RESET + " - 获取高级附魔向导书");
+        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus guide" + ChatColor.RESET + " - 打开插件主菜单");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus give <物品> [数量] [等级]" + ChatColor.RESET + " - 给予物品");
         sender.sendMessage(ChatColor.GRAY + "  可用物品: Arms_I, Arms_II, Armor_I, Armor_II, Bow_I, DiamondPlus,");
         sender.sendMessage(ChatColor.GRAY + "  MagicBal_I~IV, Blood_Sword, Iron_Epee, BasicStone, GuideBook,");

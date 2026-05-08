@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
@@ -475,6 +476,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onRejuvenationUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, RejuvenationPowderKey) == 0) return;
 
@@ -527,6 +529,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onBandageUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, HemostaticBandageKey) == 0) return;
 
@@ -570,6 +573,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onBiscuitUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, CompressedBiscuitKey) == 0) return;
 
@@ -648,7 +652,7 @@ public class ArmsorPlusItemHandler implements Listener {
     }
 
     // ========================================================================
-    // 飞天御剑: 右键悬空飞行+脚下飞剑，沿玩家指向方向飞行
+    // 飞天御剑: 右键起飞/收起，按W沿视角方向飞行
     // ========================================================================
 
     @EventHandler
@@ -671,15 +675,15 @@ public class ArmsorPlusItemHandler implements Listener {
             player.sendActionBar("§6飞天御剑 已收起");
             player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.0f);
         } else {
-            // 开启飞行 (沿玩家指向方向飞行)
+            // 开启飞行 (按W沿视角方向前进，松开即停)
             player.setAllowFlight(true);
             player.setFlying(true);
-            player.setFlySpeed(0.02f); // WASD移动速度极低,主要由velocity驱动
+            player.setFlySpeed(0.4f); // 8m/s, W按下时沿视角方向移动
             flyingSwordActive.put(uuid, true);
             player.sendActionBar("§6飞天御剑 已起航！");
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 2.0f);
 
-            // 脚下生成飞剑显示 + 沿指向方向推进
+            // 脚下生成飞剑显示 + 检测是否仍手持飞天御剑
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -692,12 +696,20 @@ public class ArmsorPlusItemHandler implements Listener {
                         cancel();
                         return;
                     }
+                    // 切物品自动取消飞行
+                    ItemStack currentItem = player.getInventory().getItemInMainHand();
+                    if (ArmsorEnchant.getEnchantLevel(currentItem, FlyingSwordKey) == 0) {
+                        flyingSwordActive.put(uuid, false);
+                        player.setFlying(false);
+                        player.setAllowFlight(false);
+                        player.setFlySpeed(0.1f);
+                        player.sendActionBar("§c已收起飞天御剑");
+                        cancel();
+                        return;
+                    }
                     if (!player.isFlying()) {
                         player.setFlying(true);
                     }
-                    // 沿玩家指向方向飞行
-                    Vector lookDir = player.getEyeLocation().getDirection().normalize().multiply(0.8);
-                    player.setVelocity(lookDir);
 
                     Location foot = player.getLocation().subtract(0, 0.5, 0);
                     player.getWorld().spawnParticle(Particle.END_ROD, foot, 1, 0, 0, 0, 0);
@@ -714,6 +726,8 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onFlashStepBladeUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        // 仅右键触发
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, FlashStepBladeKey) == 0) return;
 
@@ -788,6 +802,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onJerkyUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, JerkyKey) == 0) return;
 
@@ -804,12 +819,85 @@ public class ArmsorPlusItemHandler implements Listener {
     }
 
     // ========================================================================
+    // 食物: 猪肉干
+    // ========================================================================
+
+    @EventHandler
+    public void onPorkJerkyUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, PorkJerkyKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 7));
+        player.setSaturation(Math.min(20, player.getSaturation() + 8.0f));
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
+        player.sendActionBar("§6已食用猪肉干");
+    }
+
+    // ========================================================================
+    // 食物: 羊肉干
+    // ========================================================================
+
+    @EventHandler
+    public void onMuttonJerkyUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, MuttonJerkyKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
+        player.setSaturation(Math.min(20, player.getSaturation() + 6.0f));
+        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.6f, 0.8f);
+        player.sendActionBar("§6已食用羊肉干");
+    }
+
+    // ========================================================================
+    // 食物: 大苹果 (满饱食度+生命恢复III+伤害吸收IV)
+    // ========================================================================
+
+    @EventHandler
+    public void onBigAppleUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, BigAppleKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.setFoodLevel(20);
+        player.setSaturation(20f);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 600, 2, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 1200, 3, false, false));
+        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0),
+                30, 0.8, 0.8, 0.8, 0.1);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
+        player.sendMessage("§6🍎 吃下了大苹果！");
+    }
+
+    // ========================================================================
     // 食物: 甜浆果派
     // ========================================================================
 
     @EventHandler
     public void onSweetBerryPieUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, SweetBerryPieKey) == 0) return;
 
@@ -832,6 +920,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onRottenJerkyUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, RottenJerkyKey) == 0) return;
 
@@ -854,6 +943,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onWineBarrelUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, WineBarrelKey) == 0) return;
 
@@ -889,6 +979,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onWineDrink(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null) return;
         int tier = ArmsorEnchant.getEnchantLevel(item, WineKey);
@@ -919,6 +1010,24 @@ public class ArmsorPlusItemHandler implements Listener {
                 break;
         }
         player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
+    }
+
+    /**
+     * 更新武器Lore中的剩余次数显示
+     */
+    private static void updateUsesLore(ItemStack item, int uses) {
+        if (item == null || !item.hasItemMeta()) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore()) return;
+        java.util.List<String> lore = meta.getLore();
+        for (int i = 0; i < lore.size(); i++) {
+            if (ChatColor.stripColor(lore.get(i)).contains("剩余次数")) {
+                lore.set(i, ChatColor.YELLOW + "剩余次数: " + uses);
+                break;
+            }
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
     }
 
     /**
@@ -963,11 +1072,12 @@ public class ArmsorPlusItemHandler implements Listener {
 
         // PDC使用次数管理
         int uses = ArmsorEnchant.getEnchantLevel(bow, WebBowUsesKey);
-        if (uses == 0) uses = 9; // 首次使用初始化
+        if (uses == 0) uses = 9;
         uses--;
         final int finalUses = uses;
         bow.editMeta(meta -> meta.getPersistentDataContainer()
                 .set(WebBowUsesKey, PersistentDataType.INTEGER, finalUses));
+        updateUsesLore(bow, finalUses);
         if (finalUses <= 0) {
             bow.setAmount(0);
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
@@ -1016,6 +1126,7 @@ public class ArmsorPlusItemHandler implements Listener {
         final int finalUses = uses;
         bow.editMeta(meta -> meta.getPersistentDataContainer()
                 .set(ExplosionBowUsesKey, PersistentDataType.INTEGER, finalUses));
+        updateUsesLore(bow, finalUses);
         if (finalUses <= 0) {
             bow.setAmount(0);
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);

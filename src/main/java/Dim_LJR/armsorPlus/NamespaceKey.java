@@ -88,6 +88,9 @@ public class NamespaceKey {
         public static NamespacedKey WineBarrelKey;
         public static NamespacedKey WineKey;
         public static NamespacedKey RottenJerkyKey;
+        public static NamespacedKey PorkJerkyKey;
+        public static NamespacedKey BigAppleKey;
+        public static NamespacedKey MuttonJerkyKey;
 
         // ---- 新武器键 (0.3H) ----
         public static NamespacedKey IceSwordKey;
@@ -174,6 +177,9 @@ public class NamespaceKey {
             WineBarrelKey = new NamespacedKey(plugin, "ArmsorPlus_WineBarrel");
             WineKey = new NamespacedKey(plugin, "ArmsorPlus_Wine");
             RottenJerkyKey = new NamespacedKey(plugin, "ArmsorPlus_RottenJerky");
+            PorkJerkyKey = new NamespacedKey(plugin, "ArmsorPlus_PorkJerky");
+            MuttonJerkyKey = new NamespacedKey(plugin, "ArmsorPlus_MuttonJerky");
+            BigAppleKey = new NamespacedKey(plugin, "ArmsorPlus_BigApple");
 
             SaltKey = new NamespacedKey(plugin, "ArmsorPlus_Salt");
 

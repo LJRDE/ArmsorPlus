@@ -10,8 +10,13 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -704,13 +709,14 @@ public class ArmsorItem {
     public static ItemStack WebBow(int amount) {
         ItemStack item = new ItemStack(BOW);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(WEB_BOW_NAME);
         meta.setLore(Arrays.asList(
                 ChatColor.WHITE + "攻击时在敌方周围生成蜘蛛网持续30秒",
                 ChatColor.DARK_GRAY + "使用9次后必定损坏",
+                ChatColor.YELLOW + "剩余次数: 9",
                 ChatColor.GRAY + "蛛网缠绕之弓"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, WebBowKey, 1);
+        ArmsorEnchant.addEnchant(item, WebBowUsesKey, 9);
         item.setAmount(amount);
         return item;
     }
@@ -729,9 +735,11 @@ public class ArmsorItem {
         meta.setLore(Arrays.asList(
                 ChatColor.RED + "攻击时在敌方周围产生爆炸",
                 ChatColor.DARK_GRAY + "使用9次后必定损坏",
+                ChatColor.YELLOW + "剩余次数: 9",
                 ChatColor.GRAY + "爆破之力"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, ExplosionBowKey, 1);
+        ArmsorEnchant.addEnchant(item, ExplosionBowUsesKey, 9);
         item.setAmount(amount);
         return item;
     }
@@ -844,6 +852,59 @@ public class ArmsorItem {
                 ChatColor.YELLOW + "7.2饱和度"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, JerkyKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 猪肉干: 恢复7饥饿值，8.0饱和度 */
+    public static ItemStack PorkJerky(int amount) {
+        ItemStack item = new ItemStack(COOKED_PORKCHOP);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "猪肉干");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键食用",
+                ChatColor.GOLD + "恢复7点饥饿值",
+                ChatColor.YELLOW + "8.0饱和度"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, PorkJerkyKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 羊肉干: 恢复5饥饿值，6.0饱和度 */
+    public static ItemStack MuttonJerky(int amount) {
+        ItemStack item = new ItemStack(COOKED_MUTTON);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "羊肉干");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "右键食用",
+                ChatColor.GOLD + "恢复5点饥饿值",
+                ChatColor.YELLOW + "6.0饱和度"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, MuttonJerkyKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // 大苹果: 玩家头颅贴图，暂无获得方法，仅限食物菜单展示
+    private static final String BIG_APPLE_TEXTURE = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABPklEQVR4AeybQQ6DMAwETQ98q2/vt7hQfMmhQjhOinE2ixoJNQ7Jjkfqpbwk+bWL7D3DipcegBWgd34YAO917c16un4YAJ9tE4Wg4zRJ45fDAGjMZy4bCoBaoMNM5SgYCoAjV3UpAVSjaizs+Q3XtY3blmX6jKtBAwqqSW9owKSNL7FpQEEx6Q28AYvI8ZFy/d7cDuDYfXlyaOCr/W8HoAfIPAggc3cizkYDIihn3oMGZO5OxNloQATlzHvQgMzdiTgbDYignHkPGpC5O/84m/UMGmARQp+nAegdtvLRAIsQ+jwNQO+wlY8GWITQ52kAeoetfDTAIoQ+TwPQOuzNQwO8xNDqaQBaR715aICXGFo9DUDrqDcPDfASQ6uHNUDfEqlpFiwA/Xvs1ABqwmsNpAG1+sMCqNUfAoCG6BlfAAAA//9LRXPWAAAABklEQVQDALrHXYHF59X6AAAAAElFTkSuQmCC";
+
+    /** 大苹果: 恢复满饱食度/饱和度 + 30秒生命恢复III + 60秒伤害吸收IV */
+    public static ItemStack BigApple(int amount) {
+        ItemStack item = new ItemStack(PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), null);
+        profile.setProperty(new ProfileProperty("textures", BIG_APPLE_TEXTURE));
+        meta.setPlayerProfile(profile);
+        meta.setDisplayName(ChatColor.RED + "大苹果");
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "右键食用",
+                ChatColor.RED + "恢复满饱食度+饱和度",
+                ChatColor.LIGHT_PURPLE + "生命恢复III 30秒",
+                ChatColor.YELLOW + "伤害吸收IV 60秒",
+                ChatColor.GRAY + "传说中的金色大苹果"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, BigAppleKey, 1);
         item.setAmount(amount);
         return item;
     }

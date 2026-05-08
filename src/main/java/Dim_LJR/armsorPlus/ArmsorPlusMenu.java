@@ -82,6 +82,12 @@ public class ArmsorPlusMenu implements Listener {
         RECIPES.put(ChatColor.DARK_GRAY + "腐肉干", new String[]{
                 "R  ", "S  ", "   ",
                 "R=腐肉", "S=盐"});
+        RECIPES.put(ChatColor.GOLD + "猪肉干", new String[]{
+                "P  ", "S  ", "   ",
+                "P=熟猪排", "S=盐"});
+        RECIPES.put(ChatColor.GOLD + "羊肉干", new String[]{
+                "M  ", "S  ", "   ",
+                "M=熟羊肉", "S=盐"});
         RECIPES.put(ChatColor.DARK_AQUA + "雨御前", new String[]{
                 " N ", "NBN", " N ",
                 "N=海晶碎片", "B=钻石剑"});
@@ -167,6 +173,9 @@ public class ArmsorPlusMenu implements Listener {
         foodMenu.setItem(15, RottenJerky(1));
         foodMenu.setItem(16, WineBarrel(1));
         foodMenu.setItem(19, Salt(1));
+        foodMenu.setItem(20, PorkJerky(1));
+        foodMenu.setItem(21, MuttonJerky(1));
+        foodMenu.setItem(25, BigApple(1));
         return foodMenu;
     }
 
@@ -611,6 +620,8 @@ public class ArmsorPlusMenu implements Listener {
                     case "沙子" -> SAND;
                     case "盐" -> SUGAR;
                     case "任意熟肉(非腐肉)" -> COOKED_BEEF;
+                    case "熟猪排" -> COOKED_PORKCHOP;
+                    case "熟羊肉" -> COOKED_MUTTON;
                     case "甜浆果" -> SWEET_BERRIES;
                     case "小麦" -> WHEAT;
                     case "木桶" -> BARREL;
