@@ -1,9 +1,7 @@
 package Dim_LJR.armsorPlus;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
-import Dim_LJR.armsorPlus.Boss.BossMenu;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +11,6 @@ import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -24,13 +21,11 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 
 import java.util.*;
 
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
-import static Dim_LJR.armsorPlus.food.FoodItems.*;
+import static Dim_LJR.armsorPlus.Food.FoodItems.*;
 import static org.bukkit.Material.*;
 
 /**

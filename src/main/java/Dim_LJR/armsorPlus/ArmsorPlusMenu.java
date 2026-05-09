@@ -16,10 +16,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
-import static Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant.addEnchantLore;
-
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
-import static Dim_LJR.armsorPlus.food.FoodItems.*;
+import static Dim_LJR.armsorPlus.Food.FoodItems.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.MagicBallKey;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world;

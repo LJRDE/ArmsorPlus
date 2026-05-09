@@ -6,7 +6,7 @@ import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
 import Dim_LJR.armsorPlus.Boss.BossMenu;
 import Dim_LJR.armsorPlus.Boss.BossWorld;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
-import Dim_LJR.armsorPlus.food.FoodListeners;
+import Dim_LJR.armsorPlus.Food.FoodListeners;
 import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaDig;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaEntity;
@@ -24,11 +24,10 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Objects;
 import java.util.Random;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
-import static Dim_LJR.armsorPlus.food.FoodItems.*;
+import static Dim_LJR.armsorPlus.Food.FoodItems.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.banner;
 import static org.bukkit.Material.*;
