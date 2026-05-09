@@ -91,6 +91,52 @@ public class NamespaceKey {
         public static NamespacedKey PorkJerkyKey;
         public static NamespacedKey BigAppleKey;
         public static NamespacedKey MuttonJerkyKey;
+        public static NamespacedKey PlumKey;
+        public static NamespacedKey HazelnutKey;
+        public static NamespacedKey CoconutKey;
+        public static NamespacedKey PineappleKey;
+        public static NamespacedKey StrawberryKey;
+        public static NamespacedKey BlueberryKey;
+        public static NamespacedKey OrangeKey;
+        public static NamespacedKey TangerineKey;
+        public static NamespacedKey IceCubeKey;
+        public static NamespacedKey FigKey;
+        public static NamespacedKey DateKey;
+        public static NamespacedKey PersimmonKey;
+        public static NamespacedKey MangosteenKey;
+        public static NamespacedKey CherryTomatoKey;
+        public static NamespacedKey TomatoKey;
+        public static NamespacedKey GrapeKey;
+        public static NamespacedKey PomegranateKey;
+        public static NamespacedKey ChestnutKey;
+        public static NamespacedKey KiwiKey;
+        public static NamespacedKey LonganKey;
+        public static NamespacedKey LycheeKey;
+        public static NamespacedKey CherryKey;
+        public static NamespacedKey PeachKey;
+        public static NamespacedKey FigSaplingKey;
+        public static NamespacedKey DateSaplingKey;
+        public static NamespacedKey PersimmonSaplingKey;
+        public static NamespacedKey MangosteenSaplingKey;
+        public static NamespacedKey CherryTomatoSaplingKey;
+        public static NamespacedKey TomatoSaplingKey;
+        public static NamespacedKey GrapeSaplingKey;
+        public static NamespacedKey PomegranateSaplingKey;
+        public static NamespacedKey ChestnutSaplingKey;
+        public static NamespacedKey KiwiSaplingKey;
+        public static NamespacedKey LonganSaplingKey;
+        public static NamespacedKey LycheeSaplingKey;
+        public static NamespacedKey CherrySaplingKey;
+        public static NamespacedKey PeachSaplingKey;
+        public static NamespacedKey PlumSaplingKey;
+        public static NamespacedKey HazelnutSaplingKey;
+        public static NamespacedKey CoconutSaplingKey;
+        public static NamespacedKey PineappleSaplingKey;
+        public static NamespacedKey StrawberrySaplingKey;
+        public static NamespacedKey BlueberrySaplingKey;
+        public static NamespacedKey OrangeSaplingKey;
+        public static NamespacedKey TangerineSaplingKey;
+        public static NamespacedKey BigAppleSaplingKey;
 
         // ---- 新武器键 (0.3H) ----
         public static NamespacedKey IceSwordKey;
@@ -117,6 +163,30 @@ public class NamespaceKey {
         // ---- 武器使用次数键 ----
         public static NamespacedKey WebBowUsesKey;
         public static NamespacedKey ExplosionBowUsesKey;
+
+        // ---- 新食物键 (0.3I+) ----
+        public static NamespacedKey BurgerKey;
+        public static NamespacedKey HotDogKey;
+        public static NamespacedKey PizzaKey;
+        public static NamespacedKey FrenchFriesKey;
+        public static NamespacedKey DonutKey;
+        public static NamespacedKey IceCreamKey;
+        public static NamespacedKey PopcornKey;
+        public static NamespacedKey CottonCandyKey;
+        public static NamespacedKey ChocolateKey;
+        public static NamespacedKey SushiKey;
+        public static NamespacedKey RamenKey;
+        public static NamespacedKey SandwichKey;
+        public static NamespacedKey DrumstickKey;
+        public static NamespacedKey CheeseKey;
+        public static NamespacedKey PancakeKey;
+
+        // ---- 新食材/物品键 ----
+        public static NamespacedKey ChiliKey;
+        public static NamespacedKey OnionKey;
+        public static NamespacedKey CabbageKey;
+        public static NamespacedKey ButterKey;
+        public static NamespacedKey PoopKey;
 
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
@@ -180,8 +250,77 @@ public class NamespaceKey {
             PorkJerkyKey = new NamespacedKey(plugin, "ArmsorPlus_PorkJerky");
             MuttonJerkyKey = new NamespacedKey(plugin, "ArmsorPlus_MuttonJerky");
             BigAppleKey = new NamespacedKey(plugin, "ArmsorPlus_BigApple");
+            PlumKey = new NamespacedKey(plugin, "ArmsorPlus_Plum");
+            HazelnutKey = new NamespacedKey(plugin, "ArmsorPlus_Hazelnut");
+            CoconutKey = new NamespacedKey(plugin, "ArmsorPlus_Coconut");
+            PineappleKey = new NamespacedKey(plugin, "ArmsorPlus_Pineapple");
+            StrawberryKey = new NamespacedKey(plugin, "ArmsorPlus_Strawberry");
+            BlueberryKey = new NamespacedKey(plugin, "ArmsorPlus_Blueberry");
+            OrangeKey = new NamespacedKey(plugin, "ArmsorPlus_Orange");
+            TangerineKey = new NamespacedKey(plugin, "ArmsorPlus_Tangerine");
+            IceCubeKey = new NamespacedKey(plugin, "ArmsorPlus_IceCube");
+            FigKey = new NamespacedKey(plugin, "ArmsorPlus_Fig");
+            DateKey = new NamespacedKey(plugin, "ArmsorPlus_Date");
+            PersimmonKey = new NamespacedKey(plugin, "ArmsorPlus_Persimmon");
+            MangosteenKey = new NamespacedKey(plugin, "ArmsorPlus_Mangosteen");
+            CherryTomatoKey = new NamespacedKey(plugin, "ArmsorPlus_CherryTomato");
+            TomatoKey = new NamespacedKey(plugin, "ArmsorPlus_Tomato");
+            GrapeKey = new NamespacedKey(plugin, "ArmsorPlus_Grape");
+            PomegranateKey = new NamespacedKey(plugin, "ArmsorPlus_Pomegranate");
+            ChestnutKey = new NamespacedKey(plugin, "ArmsorPlus_Chestnut");
+            KiwiKey = new NamespacedKey(plugin, "ArmsorPlus_Kiwi");
+            LonganKey = new NamespacedKey(plugin, "ArmsorPlus_Longan");
+            LycheeKey = new NamespacedKey(plugin, "ArmsorPlus_Lychee");
+            CherryKey = new NamespacedKey(plugin, "ArmsorPlus_Cherry");
+            PeachKey = new NamespacedKey(plugin, "ArmsorPlus_Peach");
+            FigSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_FigSapling");
+            DateSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_DateSapling");
+            PersimmonSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_PersimmonSapling");
+            MangosteenSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_MangosteenSapling");
+            CherryTomatoSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_CherryTomatoSapling");
+            TomatoSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_TomatoSapling");
+            GrapeSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_GrapeSapling");
+            PomegranateSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_PomegranateSapling");
+            ChestnutSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_ChestnutSapling");
+            KiwiSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_KiwiSapling");
+            LonganSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_LonganSapling");
+            LycheeSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_LycheeSapling");
+            CherrySaplingKey = new NamespacedKey(plugin, "ArmsorPlus_CherrySapling");
+            PeachSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_PeachSapling");
+            PlumSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_PlumSapling");
+            HazelnutSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_HazelnutSapling");
+            CoconutSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_CoconutSapling");
+            PineappleSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_PineappleSapling");
+            StrawberrySaplingKey = new NamespacedKey(plugin, "ArmsorPlus_StrawberrySapling");
+            BlueberrySaplingKey = new NamespacedKey(plugin, "ArmsorPlus_BlueberrySapling");
+            OrangeSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_OrangeSapling");
+            TangerineSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_TangerineSapling");
+            BigAppleSaplingKey = new NamespacedKey(plugin, "ArmsorPlus_BigAppleSapling");
 
             SaltKey = new NamespacedKey(plugin, "ArmsorPlus_Salt");
+
+            // 0.3I+ 新食物
+            BurgerKey = new NamespacedKey(plugin, "ArmsorPlus_Burger");
+            HotDogKey = new NamespacedKey(plugin, "ArmsorPlus_HotDog");
+            PizzaKey = new NamespacedKey(plugin, "ArmsorPlus_Pizza");
+            FrenchFriesKey = new NamespacedKey(plugin, "ArmsorPlus_FrenchFries");
+            DonutKey = new NamespacedKey(plugin, "ArmsorPlus_Donut");
+            IceCreamKey = new NamespacedKey(plugin, "ArmsorPlus_IceCream");
+            PopcornKey = new NamespacedKey(plugin, "ArmsorPlus_Popcorn");
+            CottonCandyKey = new NamespacedKey(plugin, "ArmsorPlus_CottonCandy");
+            ChocolateKey = new NamespacedKey(plugin, "ArmsorPlus_Chocolate");
+            SushiKey = new NamespacedKey(plugin, "ArmsorPlus_Sushi");
+            RamenKey = new NamespacedKey(plugin, "ArmsorPlus_Ramen");
+            SandwichKey = new NamespacedKey(plugin, "ArmsorPlus_Sandwich");
+            DrumstickKey = new NamespacedKey(plugin, "ArmsorPlus_Drumstick");
+            CheeseKey = new NamespacedKey(plugin, "ArmsorPlus_Cheese");
+            PancakeKey = new NamespacedKey(plugin, "ArmsorPlus_Pancake");
+
+            ChiliKey = new NamespacedKey(plugin, "ArmsorPlus_Chili");
+            OnionKey = new NamespacedKey(plugin, "ArmsorPlus_Onion");
+            CabbageKey = new NamespacedKey(plugin, "ArmsorPlus_Cabbage");
+            ButterKey = new NamespacedKey(plugin, "ArmsorPlus_Butter");
+            PoopKey = new NamespacedKey(plugin, "ArmsorPlus_Poop");
 
             DiamondDrillKey = new NamespacedKey(plugin, "ArmsorPlus_DiamondDrill");
             IndestructibleKey = new NamespacedKey(plugin, "ArmsorPlus_Indestructible");

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
+import static Dim_LJR.armsorPlus.food.FoodItems.*;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.reloadmap;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 

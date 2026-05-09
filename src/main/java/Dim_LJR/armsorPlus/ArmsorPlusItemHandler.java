@@ -24,11 +24,13 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 import java.util.*;
 
-import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
+import static Dim_LJR.armsorPlus.food.FoodItems.*;
 import static org.bukkit.Material.*;
 
 /**
@@ -470,87 +472,6 @@ public class ArmsorPlusItemHandler implements Listener {
     }
 
     // ========================================================================
-    // 食物/药品: 右键使用
-    // ========================================================================
-
-    @EventHandler
-    public void onRejuvenationUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, RejuvenationPowderKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        int tier = ArmsorEnchant.getEnchantLevel(item, RejuvenationPowderKey);
-
-        // 消耗物品
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0),
-                15, 0.5, 0.5, 0.5, 0.1);
-
-        switch (tier) {
-            case 4: // 仙品
-                for (PotionEffect effect : player.getActivePotionEffects()) {
-                    if (effect.getType().getEffectCategory() == PotionEffectType.Category.HARMFUL) {
-                        player.removePotionEffect(effect.getType());
-                    }
-                }
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 2400, 9)); // X = 9
-                player.sendMessage("§6✨ 仙品回春散！生命恢复 X 120秒！");
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
-                break;
-            case 3: // 极品
-                for (PotionEffect effect : player.getActivePotionEffects()) {
-                    if (effect.getType().getEffectCategory() == PotionEffectType.Category.HARMFUL) {
-                        player.removePotionEffect(effect.getType());
-                    }
-                }
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 800, 9));
-                player.sendMessage("§e✨ 极品回春散！生命恢复 X 40秒！");
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.8f);
-                break;
-            case 2: // 上品
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 120, 4));
-                player.sendMessage("§a上品回春散！生命恢复 V 6秒！");
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
-                break;
-            default: // 普通
-                player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 4));
-                player.sendMessage("§7回春散 生命恢复 V 3秒");
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 0.8f, 1.0f);
-                break;
-        }
-    }
-
-    @EventHandler
-    public void onBandageUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, HemostaticBandageKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-
-        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        double newHealth = Math.min(maxHealth, player.getHealth() + 6);
-        player.setHealth(newHealth);
-
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0),
-                10, 0.4, 0.4, 0.4, 0.1);
-        player.getWorld().playSound(player.getLocation(), Sound.ITEM_BUNDLE_REMOVE_ONE, 0.8f, 1.0f);
-        player.sendActionBar("§c❤ 已使用止血绷带");
-    }
-
-    // ========================================================================
     // 回春散合成时随机品质
     // ========================================================================
 
@@ -567,31 +488,7 @@ public class ArmsorPlusItemHandler implements Listener {
         else if (roll < 0.111)  tier = 1; // 10% 上品
         else                    tier = 0; // 普通
 
-        event.getInventory().setResult(ArmsorItem.RejuvenationPowder(result.getAmount(), tier));
-    }
-
-    @EventHandler
-    public void onBiscuitUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CompressedBiscuitKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-
-        // 瞬间恢复9块面包的饱食度
-        player.setFoodLevel(20);
-        player.setSaturation(20);
-
-        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0),
-                5, 0.3, 0.3, 0.3, 0.05);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.5f);
-        player.sendActionBar("§6压缩饼干 饱食度已恢复");
+        event.getInventory().setResult(RejuvenationPowder(result.getAmount(), tier));
     }
 
     // ========================================================================
@@ -793,223 +690,6 @@ public class ArmsorPlusItemHandler implements Listener {
                 if (remaining <= 0) cancel();
             }
         }.runTaskTimer(getplugin, 1L, 1L);
-    }
-
-    // ========================================================================
-    // 食物: 肉干
-    // ========================================================================
-
-    @EventHandler
-    public void onJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, JerkyKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
-        player.setSaturation(Math.min(20, player.getSaturation() + 7.2f));
-        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已食用肉干");
-    }
-
-    // ========================================================================
-    // 食物: 猪肉干
-    // ========================================================================
-
-    @EventHandler
-    public void onPorkJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PorkJerkyKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 7));
-        player.setSaturation(Math.min(20, player.getSaturation() + 8.0f));
-        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已食用猪肉干");
-    }
-
-    // ========================================================================
-    // 食物: 羊肉干
-    // ========================================================================
-
-    @EventHandler
-    public void onMuttonJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, MuttonJerkyKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
-        player.setSaturation(Math.min(20, player.getSaturation() + 6.0f));
-        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.6f, 0.8f);
-        player.sendActionBar("§6已食用羊肉干");
-    }
-
-    // ========================================================================
-    // 食物: 大苹果 (满饱食度+生命恢复III+伤害吸收IV)
-    // ========================================================================
-
-    @EventHandler
-    public void onBigAppleUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, BigAppleKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(20);
-        player.setSaturation(20f);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 600, 2, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 1200, 3, false, false));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0),
-                30, 0.8, 0.8, 0.8, 0.1);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
-        player.sendMessage("§6🍎 吃下了大苹果！");
-    }
-
-    // ========================================================================
-    // 食物: 甜浆果派
-    // ========================================================================
-
-    @EventHandler
-    public void onSweetBerryPieUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, SweetBerryPieKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 9));
-        player.setSaturation(Math.min(20, player.getSaturation() + 8f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 8, 0.3, 0.3, 0.3, 0.05);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.2f);
-        player.sendActionBar("§d已食用甜浆果派");
-    }
-
-    // ========================================================================
-    // 食物: 腐肉干
-    // ========================================================================
-
-    @EventHandler
-    public void onRottenJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, RottenJerkyKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
-        player.setSaturation(Math.min(20, player.getSaturation() + 3f));
-        player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.6f, 0.8f);
-        player.sendActionBar("§8已食用腐肉干");
-    }
-
-    // ========================================================================
-    // 酒桶: 放置到地上右键打开
-    // ========================================================================
-
-    @EventHandler
-    public void onWineBarrelUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, WineBarrelKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-
-        // 给玩家9瓶随机品质的酒
-        for (int i = 0; i < 9; i++) {
-            double roll = RANDOM.nextDouble();
-            int wineTier;
-            if (roll < 0.001)       wineTier = 3; // 0.1% 金樽清酒
-            else if (roll < 0.1)    wineTier = 2; // 9.9% 佳酿
-            else                    wineTier = 1; // 90% 酒
-
-            ItemStack wine = ArmsorItem.Wine(1, wineTier);
-            if (player.getInventory().firstEmpty() != -1) {
-                player.getInventory().addItem(wine);
-            } else {
-                player.getWorld().dropItemNaturally(player.getLocation(), wine);
-            }
-        }
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BARREL_OPEN, 1.0f, 1.0f);
-        player.sendMessage("§6桶盖打开，9瓶美酒已收入背包！");
-    }
-
-    // ========================================================================
-    // 酒: 饮用效果
-    // ========================================================================
-
-    @EventHandler
-    public void onWineDrink(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null) return;
-        int tier = ArmsorEnchant.getEnchantLevel(item, WineKey);
-        if (tier == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-
-        switch (tier) {
-            case 3: // 金樽清酒
-                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 2800, 4)); // V = amplifier 4
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
-                player.sendMessage("§6🍶 金樽清酒！力量 V 140秒！死亡可复活一次！");
-                player.setMetadata("WineRevive", new FixedMetadataValue(getplugin, true));
-                break;
-            case 2: // 佳酿
-                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 900, 2)); // III
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.5f);
-                player.sendMessage("§e佳酿 力量 III 45秒");
-                break;
-            default: // 酒
-                player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 600, 1)); // II
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 0.8f, 1.0f);
-                player.sendMessage("§7酒 力量 II 30秒");
-                break;
-        }
-        player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
     }
 
     /**

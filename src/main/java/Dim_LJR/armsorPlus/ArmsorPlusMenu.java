@@ -19,6 +19,7 @@ import java.util.*;
 import static Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant.addEnchantLore;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
+import static Dim_LJR.armsorPlus.food.FoodItems.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.MagicBallKey;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world;
@@ -36,6 +37,8 @@ public class ArmsorPlusMenu implements Listener {
     private static Inventory shop;
     private static Inventory enchantmentList;
     private static final Map<UUID, Integer> playerEnchantPage = new HashMap<>();
+    private static final Map<UUID, Integer> playerFoodPage = new HashMap<>();
+    private static final Map<UUID, Integer> playerSaplingPage = new HashMap<>();
     private static Inventory armsList;
     private static Inventory magicItemsList;
     private static Inventory foodMenu;
@@ -161,24 +164,133 @@ public class ArmsorPlusMenu implements Listener {
         return armsList;
     }
 
-    /** 食物/药品菜单 */
-    public Inventory createFoodMenu() {
-        foodMenu = Bukkit.createInventory(null, 45, ChatColor.GREEN + "食物/药品");
+
+    /** 获取食物页数 */
+    public static int getFoodPage(UUID uuid) { return playerFoodPage.getOrDefault(uuid, 0); }
+
+    // 第0页: 功能性食物 + 部分水果
+    private void fillFoodPage0(Inventory inv) {
+        inv.setItem(10, RejuvenationPowder(1));
+        inv.setItem(11, HemostaticBandage(1));
+        inv.setItem(12, CompressedBiscuit(1));
+        inv.setItem(13, Jerky(1));
+        inv.setItem(14, SweetBerryPie(1));
+        inv.setItem(15, RottenJerky(1));
+        inv.setItem(16, WineBarrel(1));
+        inv.setItem(19, Salt(1));
+        inv.setItem(20, PorkJerky(1));
+        inv.setItem(21, MuttonJerky(1));
+        inv.setItem(22, Plum(1));
+        inv.setItem(23, Hazelnut(1));
+        inv.setItem(24, Coconut(1));
+        inv.setItem(25, BigApple(1));
+        inv.setItem(28, Pineapple(1));
+        inv.setItem(29, Strawberry(1));
+        inv.setItem(30, Blueberry(1));
+        inv.setItem(31, Orange(1));
+        inv.setItem(32, Tangerine(1));
+        inv.setItem(33, IceCube(1));
+    }
+
+    // 第1页: 新水果
+    private void fillFoodPage1(Inventory inv) {
+        inv.setItem(10, Fig(1));
+        inv.setItem(11, Date(1));
+        inv.setItem(12, Persimmon(1));
+        inv.setItem(13, Mangosteen(1));
+        inv.setItem(14, CherryTomato(1));
+        inv.setItem(15, Tomato(1));
+        inv.setItem(16, Grape(1));
+        inv.setItem(19, Pomegranate(1));
+        inv.setItem(20, Chestnut(1));
+        inv.setItem(21, Kiwi(1));
+        inv.setItem(22, Longan(1));
+        inv.setItem(23, Lychee(1));
+        inv.setItem(24, Cherry(1));
+        inv.setItem(25, Peach(1));
+    }
+
+    // 第2页: 15种新食物 (0.3I+)
+    private void fillFoodPage2(Inventory inv) {
+        inv.setItem(10, Burger(1));
+        inv.setItem(11, HotDog(1));
+        inv.setItem(12, Pizza(1));
+        inv.setItem(13, FrenchFries(1));
+        inv.setItem(14, Donut(1));
+        inv.setItem(15, IceCream(1));
+        inv.setItem(16, Popcorn(1));
+        inv.setItem(19, CottonCandy(1));
+        inv.setItem(20, Chocolate(1));
+        inv.setItem(21, Sushi(1));
+        inv.setItem(22, Ramen(1));
+        inv.setItem(23, Sandwich(1));
+        inv.setItem(24, Drumstick(1));
+        inv.setItem(25, Cheese(1));
+        inv.setItem(28, Pancake(1));
+        inv.setItem(29, Chili(1));
+        inv.setItem(30, Onion(1));
+        inv.setItem(31, Cabbage(1));
+        inv.setItem(32, Butter(1));
+        inv.setItem(33, Poop(1));
+    }
+
+    /** 食物/药品菜单 (支持翻页) */
+    public Inventory createFoodMenu(Player player, int page) {
+        if (player != null) playerFoodPage.put(player.getUniqueId(), page);
+        String title = ChatColor.GREEN + "食物/药品 " + (page + 1) + "/3";
+        foodMenu = Bukkit.createInventory(null, 45, title);
         addBorder(foodMenu, GREEN_STAINED_GLASS_PANE);
-        foodMenu.setItem(10, RejuvenationPowder(1));
-        foodMenu.setItem(11, HemostaticBandage(1));
-        foodMenu.setItem(12, CompressedBiscuit(1));
-        foodMenu.setItem(13, Jerky(1));
-        foodMenu.setItem(14, SweetBerryPie(1));
-        foodMenu.setItem(15, RottenJerky(1));
-        foodMenu.setItem(16, WineBarrel(1));
-        foodMenu.setItem(19, Salt(1));
-        foodMenu.setItem(20, PorkJerky(1));
-        foodMenu.setItem(21, MuttonJerky(1));
-        foodMenu.setItem(25, BigApple(1));
+        if (page == 0) fillFoodPage0(foodMenu);
+        else if (page == 1) fillFoodPage1(foodMenu);
+        else fillFoodPage2(foodMenu);
+        if (page > 0) foodMenu.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
+        if (page < 2) foodMenu.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
         return foodMenu;
     }
 
+    public Inventory createFoodMenu(Player player) { return createFoodMenu(player, 0); }
+    public Inventory createFoodMenu() { return createFoodMenu(null, 0); }
+
+
+    /** 树苗商店 (支持翻页) */
+    public Inventory createSaplingMenu(Player player, int page) {
+        if (player != null) playerSaplingPage.put(player.getUniqueId(), page);
+        String title = ChatColor.GREEN + "树苗商店 " + (page + 1) + "/2";
+        Inventory saplingMenu = Bukkit.createInventory(null, 45, title);
+        addBorder(saplingMenu, GREEN_STAINED_GLASS_PANE);
+        if (page == 0) {
+            saplingMenu.setItem(10, FigSapling(1));
+            saplingMenu.setItem(11, DateSapling(1));
+            saplingMenu.setItem(12, PersimmonSapling(1));
+            saplingMenu.setItem(13, MangosteenSapling(1));
+            saplingMenu.setItem(14, CherryTomatoSapling(1));
+            saplingMenu.setItem(15, TomatoSapling(1));
+            saplingMenu.setItem(16, GrapeSapling(1));
+            saplingMenu.setItem(19, PomegranateSapling(1));
+            saplingMenu.setItem(20, ChestnutSapling(1));
+            saplingMenu.setItem(21, KiwiSapling(1));
+            saplingMenu.setItem(22, LonganSapling(1));
+            saplingMenu.setItem(23, LycheeSapling(1));
+            saplingMenu.setItem(24, CherrySapling(1));
+            saplingMenu.setItem(25, PeachSapling(1));
+        } else {
+            saplingMenu.setItem(10, PlumSapling(1));
+            saplingMenu.setItem(11, HazelnutSapling(1));
+            saplingMenu.setItem(12, CoconutSapling(1));
+            saplingMenu.setItem(13, PineappleSapling(1));
+            saplingMenu.setItem(14, StrawberrySapling(1));
+            saplingMenu.setItem(15, BlueberrySapling(1));
+            saplingMenu.setItem(16, OrangeSapling(1));
+            saplingMenu.setItem(19, TangerineSapling(1));
+            saplingMenu.setItem(20, BigAppleSapling(1));
+        }
+        if (page > 0) saplingMenu.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
+        if (page < 1) saplingMenu.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+        return saplingMenu;
+    }
+
+    public Inventory createSaplingMenu(Player player) { return createSaplingMenu(player, 0); }
+    public Inventory createSaplingMenu() { return createSaplingMenu(null, 0); }
     /** 魔法球兑换商店 */
     public Inventory createShopMenu() {
         shop = Bukkit.createInventory(null, 45, "§e魔法球兑换商店");
@@ -283,6 +395,8 @@ public class ArmsorPlusMenu implements Listener {
                 ChatColor.RED + "点击传送到BOSS世界"));
         menu.setItem(19, createInfoItem(BREAD, ChatColor.GREEN + "食物/药品",
                 ChatColor.GREEN + "点击查看食物与药品"));
+        menu.setItem(20, createInfoItem(OAK_SAPLING, ChatColor.GREEN + "树苗商店",
+                ChatColor.GREEN + "点击查看树苗"));
         menu.setItem(1, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
                 ChatColor.GRAY + "点击打开个人设置"));
         return menu;
@@ -358,6 +472,8 @@ public class ArmsorPlusMenu implements Listener {
                 player.openInventory(createArmsListMenu());
             } else if (name.equals(ChatColor.GREEN + "食物/药品")) {
                 player.openInventory(createFoodMenu());
+            } else if (name.equals(ChatColor.GREEN + "树苗商店")) {
+                player.openInventory(createSaplingMenu());
             } else if (name.equals(ChatColor.BLUE + "公海世界")) {
                 player.teleport(world.getSpawnLocation());
                 player.sendActionBar(Component.text("正在传送..."));
@@ -416,6 +532,8 @@ public class ArmsorPlusMenu implements Listener {
         boolean isBrowseMenu = event.getClickedInventory() == armsList
                 || event.getClickedInventory() == magicItemsList
                 || invTitle.startsWith("§e高级附魔书列表")
+                || invTitle.startsWith(ChatColor.GREEN + "食物/药品")
+                || invTitle.startsWith(ChatColor.GREEN + "树苗商店")
                 || event.getClickedInventory() == foodMenu;
 
         if (isBrowseMenu) {
@@ -433,6 +551,32 @@ public class ArmsorPlusMenu implements Listener {
                 }
                 if (event.getSlot() == 41) {
                     player.openInventory(createEnchantmentListMenu(player, page + 1));
+                    return;
+                }
+            }
+
+            // 食物菜单翻页导航
+            if (invTitle.startsWith(ChatColor.GREEN + "食物/药品")) {
+                int page = playerFoodPage.getOrDefault(uuid, 0);
+                if (event.getSlot() == 39 && page > 0) {
+                    player.openInventory(createFoodMenu(player, page - 1));
+                    return;
+                }
+                if (event.getSlot() == 41 && page < 2) {
+                    player.openInventory(createFoodMenu(player, page + 1));
+                    return;
+                }
+            }
+
+            // 树苗菜单翻页导航
+            if (invTitle.startsWith(ChatColor.GREEN + "树苗商店")) {
+                int page = playerSaplingPage.getOrDefault(uuid, 0);
+                if (event.getSlot() == 39 && page > 0) {
+                    player.openInventory(createSaplingMenu(player, page - 1));
+                    return;
+                }
+                if (event.getSlot() == 41 && page < 1) {
+                    player.openInventory(createSaplingMenu(player, page + 1));
                     return;
                 }
             }

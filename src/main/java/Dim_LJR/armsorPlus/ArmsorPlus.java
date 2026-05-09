@@ -6,6 +6,7 @@ import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
 import Dim_LJR.armsorPlus.Boss.BossMenu;
 import Dim_LJR.armsorPlus.Boss.BossWorld;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
+import Dim_LJR.armsorPlus.food.FoodListeners;
 import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaDig;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaEntity;
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
+import static Dim_LJR.armsorPlus.food.FoodItems.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.banner;
 import static org.bukkit.Material.*;
@@ -77,6 +79,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new EnhancementHandler(), this);
         getServer().getPluginManager().registerEvents(new BossMenu(), this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusItemHandler(), this);
+        getServer().getPluginManager().registerEvents(new FoodListeners(), this);
     }
 
     /** 注册指令执行器 */
@@ -304,6 +307,13 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         flashStepRecipe.setIngredient('N', ENDER_PEARL);
         flashStepRecipe.setIngredient('S', NETHERITE_SWORD);
         getServer().addRecipe(flashStepRecipe);
+        count++;
+
+        // 冰块: 1个冰 → 4个冰块
+        NamespacedKey iceCubeRecipeKey = new NamespacedKey(this, "ArmsorPlus_IceCubeRecipe");
+        ShapelessRecipe iceCubeRecipe = new ShapelessRecipe(iceCubeRecipeKey, IceCube(4));
+        iceCubeRecipe.addIngredient(1, ICE);
+        getServer().addRecipe(iceCubeRecipe);
         count++;
 
         getLogger().info("ArmsorPlus 配方注册完成 数量: " + count);
