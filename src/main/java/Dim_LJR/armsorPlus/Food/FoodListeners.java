@@ -17,8 +17,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.getplugin;
@@ -561,7 +563,19 @@ public class FoodListeners implements Listener {
     // ========================================================================
 
     private static final Map<NamespacedKey, SaplingData> SAPLING_MAP = new HashMap<>();
+    // 树苗: 种植为原版树苗，自然/骨粉生长后结果
+    // 草本植物: 直接种植为树叶灌木，右键采摘 (ExoticGarden风格)
+    private static final Set<String> HERBACEOUS_KEYS = new HashSet<>();
+
     static {
+        HERBACEOUS_KEYS.add(CherryTomatoSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(TomatoSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(GrapeSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(KiwiSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(PineappleSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(StrawberrySaplingKey.getKey());
+        HERBACEOUS_KEYS.add(BlueberrySaplingKey.getKey());
+
         SAPLING_MAP.put(FigSaplingKey,          new SaplingData(Material.OAK_SAPLING,    "无花果树苗"));
         SAPLING_MAP.put(DateSaplingKey,         new SaplingData(Material.BIRCH_SAPLING,   "枣树树苗"));
         SAPLING_MAP.put(PersimmonSaplingKey,    new SaplingData(Material.JUNGLE_SAPLING,  "柿子树树苗"));
@@ -589,6 +603,11 @@ public class FoodListeners implements Listener {
 
     private record SaplingData(Material saplingType, String displayName) {}
 
+    /** 判断是否为草本(直接种植为灌木，无需骨粉) */
+    static boolean isHerbaceous(NamespacedKey key) {
+        return HERBACEOUS_KEYS.contains(key.getKey());
+    }
+
     @EventHandler
     public void onCustomSaplingPlant(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -607,7 +626,15 @@ public class FoodListeners implements Listener {
             Player player = event.getPlayer();
             if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Block above = clicked.getRelative(BlockFace.UP);
-            if (above.isEmpty()) {
+            if (!above.isEmpty()) return;
+
+            if (isHerbaceous(entry.getKey())) {
+                // ExoticGarden风格: 草本植物直接种植为灌木（树叶），立即可采摘
+                above.setType(Material.OAK_LEAVES);
+                above.setMetadata(TreeListeners.SAPLING_METADATA, new FixedMetadataValue(getplugin, entry.getKey().getKey()));
+                above.setMetadata("ArmsorPlus_HerbLeaf", new FixedMetadataValue(getplugin, entry.getKey().getKey()));
+            } else {
+                // 木本果树: 种植为原版树苗，需要生长后结果
                 above.setType(entry.getValue().saplingType());
                 above.setMetadata(TreeListeners.SAPLING_METADATA, new FixedMetadataValue(getplugin, entry.getKey().getKey()));
             }

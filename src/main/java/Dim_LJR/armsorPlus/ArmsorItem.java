@@ -507,6 +507,8 @@ public class ArmsorItem {
     private static final String AUTO_PLANT_BOOK = ChatColor.GREEN + "自动种植";
     private static final String STRONG_BURST_BOOK = ChatColor.DARK_PURPLE + "强风暴";
     private static final String MULTI_SHOT_BOOK = ChatColor.LIGHT_PURPLE + "千重射击";
+    private static final String POISON_BOOK = ChatColor.DARK_GREEN + "剧毒";
+    private static final String SHARP_BLADE_BOOK = ChatColor.DARK_AQUA + "利刃";
 
     /** 保护PRO附魔书: 胸甲 - 每级额外减少6%伤害，满级V */
     public static ItemStack ProtectionPRO_EnchantedBook(int amount, int level) {
@@ -584,6 +586,18 @@ public class ArmsorItem {
     public static ItemStack MultiShot_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, MultiShotKey, MULTI_SHOT_BOOK,
                 "可用装备:弩", "射击时额外射出" + level + "支箭", "满级III");
+    }
+
+    /** 剧毒附魔书: 武器 - 造成中毒效果 */
+    public static ItemStack Poison_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, PoisonKey, POISON_BOOK,
+                "可用装备:武器", "攻击时给对方造成中毒效果", "等级越高时间越长，最高中毒III");
+    }
+
+    /** 利刃附魔书: 武器 - 目标护甲越低伤害越高 */
+    public static ItemStack SharpBlade_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, SharpBladeKey, SHARP_BLADE_BOOK,
+                "可用装备:武器", "目标护甲值越低伤害越高", "护甲超过18点时仅提升10%");
     }
 
     // ========================================================================

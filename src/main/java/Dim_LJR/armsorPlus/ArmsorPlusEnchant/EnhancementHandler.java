@@ -465,6 +465,12 @@ public class EnhancementHandler implements Listener {
         // [千重射击] 弩 (0.3I)
         if (tryApplyEnchant(event, consum, item, player, MultiShotKey, MultiShotKey,
                 item.getType() == CROSSBOW, ChatColor.LIGHT_PURPLE + "千重射击")) return;
+        // [剧毒] 武器
+        if (tryApplyEnchant(event, consum, item, player, PoisonKey, PoisonKey,
+                isSwordOrAxe(item), ChatColor.DARK_GREEN + "剧毒")) return;
+        // [利刃] 武器
+        if (tryApplyEnchant(event, consum, item, player, SharpBladeKey, SharpBladeKey,
+                isSwordOrAxe(item), ChatColor.DARK_AQUA + "利刃")) return;
     }
 
     /**

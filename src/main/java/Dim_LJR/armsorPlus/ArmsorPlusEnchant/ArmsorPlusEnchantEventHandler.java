@@ -221,6 +221,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
     @EventHandler
     public void WitheringHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
         Entity damager = event.getDamager();
         if (!(event.getEntity() instanceof LivingEntity target)) return;
 
@@ -1188,5 +1189,105 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             extraArrow.setShooter(player);
             extraArrow.setVelocity(dir.clone().add(offset).normalize().multiply(3.0));
         }
+    }
+
+    // ========================================================================
+    // 剧毒 —— 攻击造成中毒效果 (武器)
+    // ========================================================================
+
+    @EventHandler
+    public void PoisonHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(
+                damager.getEquipment().getItemInMainHand(), PoisonKey);
+        if (level <= 0) return;
+
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        int duration = (level + 1) * 3 * 20; // (level+1)*3 秒 (ticks)
+        int effectLevel = Math.min(level - 1, 2); // 最高中毒III
+        target.addPotionEffect(new PotionEffect(
+                PotionEffectType.POISON, duration, effectLevel, false, true));
+
+        PlayerSettings.notify(event.getDamager(), ChatColor.DARK_GREEN + "你对敌人施加了剧毒"
+                + romanNumeral(effectLevel + 1) + "（时长：" + ((level + 1) * 3) + "秒）");
+        PlayerSettings.notify(event.getEntity(), ChatColor.DARK_GREEN + "你被施加了剧毒"
+                + romanNumeral(effectLevel + 1));
+    }
+
+    // ========================================================================
+    // 利刃 —— 目标护甲值越低伤害越高 (武器)
+    // ========================================================================
+
+    @EventHandler
+    public void SharpBladeHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(
+                damager.getEquipment().getItemInMainHand(), SharpBladeKey);
+        if (level <= 0) return;
+
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        // 计算目标护甲值
+        double armor = 0;
+        if (target.getEquipment() != null) {
+            for (ItemStack armorPiece : target.getEquipment().getArmorContents()) {
+                if (armorPiece != null && armorPiece.getType() != Material.AIR) {
+                    armor += getArmorValue(armorPiece.getType());
+                }
+            }
+        }
+
+        double multiplier;
+        if (armor > 18) {
+            multiplier = 1.10; // 仅提升10%
+        } else {
+            // 护甲值越低伤害越高: (18 - armor) / 18 * level * 8% + 基础1.15
+            multiplier = 1.0 + (18.0 - armor) / 18.0 * level * 0.08;
+        }
+
+        event.setDamage(event.getDamage() * multiplier);
+
+        if (armor <= 18) {
+            PlayerSettings.notify(event.getDamager(), ChatColor.DARK_AQUA + "利刃: 伤害提升"
+                    + String.format("%.0f", (multiplier - 1) * 100) + "%");
+        }
+    }
+
+    /** 根据护甲材质估算基础护甲值 */
+    private static double getArmorValue(Material material) {
+        String name = material.name().toLowerCase();
+        if (name.contains("netherite")) {
+            if (name.contains("chestplate")) return 8;
+            if (name.contains("leggings")) return 6;
+            if (name.contains("helmet") || name.contains("boots")) return 3;
+        } else if (name.contains("diamond")) {
+            if (name.contains("chestplate")) return 8;
+            if (name.contains("leggings")) return 6;
+            if (name.contains("helmet") || name.contains("boots")) return 3;
+        } else if (name.contains("iron")) {
+            if (name.contains("chestplate")) return 6;
+            if (name.contains("leggings")) return 5;
+            if (name.contains("helmet") || name.contains("boots")) return 2;
+        } else if (name.contains("chainmail")) {
+            if (name.contains("chestplate")) return 5;
+            if (name.contains("leggings")) return 4;
+            if (name.contains("helmet") || name.contains("boots")) return 2;
+        } else if (name.contains("gold")) {
+            if (name.contains("chestplate")) return 5;
+            if (name.contains("leggings")) return 3;
+            if (name.contains("helmet") || name.contains("boots")) return 2;
+        } else if (name.contains("leather")) {
+            if (name.contains("chestplate")) return 3;
+            if (name.contains("leggings")) return 2;
+            if (name.contains("helmet") || name.contains("boots")) return 1;
+        } else if (name.contains("turtle")) {
+            return 2; // 海龟壳
+        }
+        return 0;
     }
 }

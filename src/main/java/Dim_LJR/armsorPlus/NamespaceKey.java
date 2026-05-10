@@ -188,6 +188,10 @@ public class NamespaceKey {
         public static NamespacedKey ButterKey;
         public static NamespacedKey PoopKey;
 
+        // ---- 新附魔键 ----
+        public static NamespacedKey PoisonKey;
+        public static NamespacedKey SharpBladeKey;
+
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
 
@@ -321,6 +325,9 @@ public class NamespaceKey {
             CabbageKey = new NamespacedKey(plugin, "ArmsorPlus_Cabbage");
             ButterKey = new NamespacedKey(plugin, "ArmsorPlus_Butter");
             PoopKey = new NamespacedKey(plugin, "ArmsorPlus_Poop");
+
+            PoisonKey = new NamespacedKey(plugin, "ArmsorPlus_Poison");
+            SharpBladeKey = new NamespacedKey(plugin, "ArmsorPlus_SharpBlade");
 
             DiamondDrillKey = new NamespacedKey(plugin, "ArmsorPlus_DiamondDrill");
             IndestructibleKey = new NamespacedKey(plugin, "ArmsorPlus_Indestructible");

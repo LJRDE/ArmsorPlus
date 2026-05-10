@@ -62,6 +62,9 @@ public class TreeListeners implements Listener {
         TREE_TYPE_MAP.put(Material.JUNGLE_SAPLING, TreeType.JUNGLE);
         TREE_TYPE_MAP.put(Material.ACACIA_SAPLING, TreeType.ACACIA);
         TREE_TYPE_MAP.put(Material.SPRUCE_SAPLING, TreeType.REDWOOD);
+        TREE_TYPE_MAP.put(Material.DARK_OAK_SAPLING, TreeType.DARK_OAK);
+        TREE_TYPE_MAP.put(Material.CHERRY_SAPLING, TreeType.CHERRY);
+        TREE_TYPE_MAP.put(Material.MANGROVE_PROPAGULE, TreeType.MANGROVE);
 
         HERBACEOUS_KEYS.add(CherryTomatoSaplingKey.getKey());
         HERBACEOUS_KEYS.add(TomatoSaplingKey.getKey());
@@ -106,9 +109,10 @@ public class TreeListeners implements Listener {
 
     private void markLeavesWithFruit(Location loc, String fruitKey) {
         World world = loc.getWorld();
-        for (int x = -2; x <= 2; x++) {
-            for (int y = 1; y <= 5; y++) {
-                for (int z = -2; z <= 2; z++) {
+        // 扩大扫描范围以覆盖大型树 (ExoticGarden参考)
+        for (int x = -4; x <= 4; x++) {
+            for (int y = 1; y <= 7; y++) {
+                for (int z = -4; z <= 4; z++) {
                     Block block = world.getBlockAt(loc.getBlockX() + x, loc.getBlockY() + y, loc.getBlockZ() + z);
                     if (isLeaf(block.getType()) && RANDOM.nextDouble() < 0.2) {
                         block.setMetadata(LEAF_FRUIT_METADATA, new FixedMetadataValue(getplugin, fruitKey));
@@ -166,6 +170,26 @@ public class TreeListeners implements Listener {
             block.removeMetadata(LEAF_FRUIT_METADATA, getplugin);
             player.getWorld().playSound(block.getLocation(), Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 1.0f, 1.0f);
             player.sendActionBar("§a已收获果实");
+        }
+    }
+
+    // 树叶自然消失时清理果实元数据，并概率掉落果实
+    @EventHandler
+    public void onLeafDecay(org.bukkit.event.block.LeavesDecayEvent event) {
+        Block block = event.getBlock();
+        if (block.hasMetadata(LEAF_FRUIT_METADATA)) {
+            String fruitKey = block.getMetadata(LEAF_FRUIT_METADATA).get(0).asString();
+            Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
+            block.removeMetadata(LEAF_FRUIT_METADATA, getplugin);
+            if (fruitSupplier != null && RANDOM.nextDouble() < 0.3) {
+                block.getWorld().dropItemNaturally(block.getLocation(), fruitSupplier.get());
+            }
+        }
+        if (block.hasMetadata(HERB_LEAF_METADATA)) {
+            block.removeMetadata(HERB_LEAF_METADATA, getplugin);
+        }
+        if (block.hasMetadata(SAPLING_METADATA)) {
+            block.removeMetadata(SAPLING_METADATA, getplugin);
         }
     }
 

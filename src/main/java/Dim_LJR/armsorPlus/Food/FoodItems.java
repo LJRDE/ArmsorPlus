@@ -802,7 +802,7 @@ public class FoodItems {
     // 纹理: 汉堡
     private static final String BURGER_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
     // 纹理: 热狗 (TODO: Replace with hotdog texture from minecraft-heads.com)
-    private static final String HOTDOG_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
+    private static final String HOTDOG_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDY2ZmJmY2NiYWVlZjgxZTY4NWU5NDEwNTBlYThmYmQyMzQxMWMzOGNlMDFkZjJkYWVlYzk0ZDQ1MjFlNzczZCJ9fX0=";
     // 纹理: 披萨 (TODO: Replace with pizza texture)
     private static final String PIZZA_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
     // 纹理: 薯条 (TODO: Replace with fries texture)

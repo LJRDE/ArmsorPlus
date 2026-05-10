@@ -147,6 +147,8 @@ public class ArmsorEnchant implements Listener {
         if (key.equals(AutoPlantKey))      return "自动种植";
         if (key.equals(StrongBurstKey))    return "强风暴";
         if (key.equals(MultiShotKey))      return "千重射击";
+        if (key.equals(PoisonKey))         return "剧毒";
+        if (key.equals(SharpBladeKey))     return "利刃";
         return null;
     }
 }
