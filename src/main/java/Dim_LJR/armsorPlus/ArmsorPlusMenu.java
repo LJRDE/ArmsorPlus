@@ -18,6 +18,7 @@ import java.util.*;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.Food.FoodItems.*;
+import static Dim_LJR.armsorPlus.Food.FoodItems.OrangeSapling;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.MagicBallKey;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world;
@@ -40,6 +41,7 @@ public class ArmsorPlusMenu implements Listener {
     private static Inventory armsList;
     private static Inventory magicItemsList;
     private static Inventory foodMenu;
+    private static Inventory saplingMenu;
 
     // 合成配方 Map (物品名 -> 配方材料)
     private static final Map<String, String[]> RECIPES = new LinkedHashMap<>();
@@ -166,7 +168,7 @@ public class ArmsorPlusMenu implements Listener {
     /** 获取食物页数 */
     public static int getFoodPage(UUID uuid) { return playerFoodPage.getOrDefault(uuid, 0); }
 
-    // 第0页: 功能性食物 + 部分水果
+    // 第0页: 功能性食物 + 部分水果 (21种)
     private void fillFoodPage0(Inventory inv) {
         inv.setItem(10, RejuvenationPowder(1));
         inv.setItem(11, HemostaticBandage(1));
@@ -188,48 +190,48 @@ public class ArmsorPlusMenu implements Listener {
         inv.setItem(31, Orange(1));
         inv.setItem(32, Tangerine(1));
         inv.setItem(33, IceCube(1));
+        inv.setItem(34, Fig(1));
     }
 
-    // 第1页: 新水果
+    // 第1页: 新水果 + 部分新食物 (21种)
     private void fillFoodPage1(Inventory inv) {
-        inv.setItem(10, Fig(1));
-        inv.setItem(11, Date(1));
-        inv.setItem(12, Persimmon(1));
-        inv.setItem(13, Mangosteen(1));
-        inv.setItem(14, CherryTomato(1));
-        inv.setItem(15, Tomato(1));
-        inv.setItem(16, Grape(1));
-        inv.setItem(19, Pomegranate(1));
-        inv.setItem(20, Chestnut(1));
-        inv.setItem(21, Kiwi(1));
-        inv.setItem(22, Longan(1));
-        inv.setItem(23, Lychee(1));
-        inv.setItem(24, Cherry(1));
-        inv.setItem(25, Peach(1));
+        inv.setItem(10, Date(1));
+        inv.setItem(11, Persimmon(1));
+        inv.setItem(12, Mangosteen(1));
+        inv.setItem(13, CherryTomato(1));
+        inv.setItem(14, Tomato(1));
+        inv.setItem(15, Grape(1));
+        inv.setItem(16, Pomegranate(1));
+        inv.setItem(19, Chestnut(1));
+        inv.setItem(20, Kiwi(1));
+        inv.setItem(21, Longan(1));
+        inv.setItem(22, Lychee(1));
+        inv.setItem(23, Cherry(1));
+        inv.setItem(24, Peach(1));
+        inv.setItem(25, Burger(1));
+        inv.setItem(28, HotDog(1));
+        inv.setItem(29, Pizza(1));
+        inv.setItem(30, FrenchFries(1));
+        inv.setItem(31, Donut(1));
+        inv.setItem(32, IceCream(1));
+        inv.setItem(33, Popcorn(1));
+        inv.setItem(34, CottonCandy(1));
     }
 
-    // 第2页: 15种新食物 (0.3I+)
+    // 第2页: 剩余12种新食物
     private void fillFoodPage2(Inventory inv) {
-        inv.setItem(10, Burger(1));
-        inv.setItem(11, HotDog(1));
-        inv.setItem(12, Pizza(1));
-        inv.setItem(13, FrenchFries(1));
-        inv.setItem(14, Donut(1));
-        inv.setItem(15, IceCream(1));
-        inv.setItem(16, Popcorn(1));
-        inv.setItem(19, CottonCandy(1));
-        inv.setItem(20, Chocolate(1));
-        inv.setItem(21, Sushi(1));
-        inv.setItem(22, Ramen(1));
-        inv.setItem(23, Sandwich(1));
-        inv.setItem(24, Drumstick(1));
-        inv.setItem(25, Cheese(1));
-        inv.setItem(28, Pancake(1));
-        inv.setItem(29, Chili(1));
-        inv.setItem(30, Onion(1));
-        inv.setItem(31, Cabbage(1));
-        inv.setItem(32, Butter(1));
-        inv.setItem(33, Poop(1));
+        inv.setItem(10, Chocolate(1));
+        inv.setItem(11, Sushi(1));
+        inv.setItem(12, Ramen(1));
+        inv.setItem(13, Sandwich(1));
+        inv.setItem(14, Drumstick(1));
+        inv.setItem(15, Cheese(1));
+        inv.setItem(16, Pancake(1));
+        inv.setItem(19, Chili(1));
+        inv.setItem(20, Onion(1));
+        inv.setItem(21, Cabbage(1));
+        inv.setItem(22, Butter(1));
+        inv.setItem(23, Poop(1));
     }
 
     /** 食物/药品菜单 (支持翻页) */
@@ -254,7 +256,7 @@ public class ArmsorPlusMenu implements Listener {
     public Inventory createSaplingMenu(Player player, int page) {
         if (player != null) playerSaplingPage.put(player.getUniqueId(), page);
         String title = ChatColor.GREEN + "树苗商店 " + (page + 1) + "/2";
-        Inventory saplingMenu = Bukkit.createInventory(null, 45, title);
+        saplingMenu = Bukkit.createInventory(null, 45, title);
         addBorder(saplingMenu, GREEN_STAINED_GLASS_PANE);
         if (page == 0) {
             saplingMenu.setItem(10, FigSapling(1));
@@ -270,7 +272,7 @@ public class ArmsorPlusMenu implements Listener {
             saplingMenu.setItem(22, LonganSapling(1));
             saplingMenu.setItem(23, LycheeSapling(1));
             saplingMenu.setItem(24, CherrySapling(1));
-            saplingMenu.setItem(25, PeachSapling(1));
+            saplingMenu.setItem(25, OrangeSapling(1));
         } else {
             saplingMenu.setItem(10, PlumSapling(1));
             saplingMenu.setItem(11, HazelnutSapling(1));
@@ -278,7 +280,7 @@ public class ArmsorPlusMenu implements Listener {
             saplingMenu.setItem(13, PineappleSapling(1));
             saplingMenu.setItem(14, StrawberrySapling(1));
             saplingMenu.setItem(15, BlueberrySapling(1));
-            saplingMenu.setItem(16, OrangeSapling(1));
+            saplingMenu.setItem(16, PeachSapling(1));
             saplingMenu.setItem(19, TangerineSapling(1));
             saplingMenu.setItem(20, BigAppleSapling(1));
         }
@@ -335,10 +337,6 @@ public class ArmsorPlusMenu implements Listener {
             enchantmentList.setItem(31, DiamondDrill_EnchantedBook(1, 5));
             enchantmentList.setItem(32, QuickThrust_EnchantedBook(1, 5));
             enchantmentList.setItem(33, Blindness_EnchantedBook(1, 5));
-            if (player != null && PlayerSettings.isAdminMode(player.getUniqueId())
-                    && player.hasPermission("ArmsorPlus.op")) {
-                enchantmentList.setItem(34, Indestructible_EnchantedBook(1, 1));
-            }
         } else {
             // 第2页: 0.3I 新附魔
             enchantmentList.setItem(10, ProtectionPRO_EnchantedBook(1, 5));
@@ -357,10 +355,8 @@ public class ArmsorPlusMenu implements Listener {
         }
 
         // 翻页导航按钮
-        if (page > 0) {
-            enchantmentList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
-        }
-        enchantmentList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+        if (page > 0) enchantmentList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
+        if (page < 1) enchantmentList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
 
         return enchantmentList;
     }
@@ -395,7 +391,7 @@ public class ArmsorPlusMenu implements Listener {
                 ChatColor.GREEN + "点击查看食物与药品"));
         menu.setItem(20, createInfoItem(OAK_SAPLING, ChatColor.GREEN + "树苗商店",
                 ChatColor.GREEN + "点击查看树苗"));
-        menu.setItem(1, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
+        menu.setItem(34, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
                 ChatColor.GRAY + "点击打开个人设置"));
         return menu;
     }
@@ -532,7 +528,8 @@ public class ArmsorPlusMenu implements Listener {
                 || invTitle.startsWith("§e高级附魔书列表")
                 || invTitle.startsWith(ChatColor.GREEN + "食物/药品")
                 || invTitle.startsWith(ChatColor.GREEN + "树苗商店")
-                || event.getClickedInventory() == foodMenu;
+                || event.getClickedInventory() == foodMenu
+                || event.getClickedInventory() == saplingMenu;
 
         if (isBrowseMenu) {
             event.setCancelled(true);
@@ -547,7 +544,7 @@ public class ArmsorPlusMenu implements Listener {
                     player.openInventory(createEnchantmentListMenu(player, page - 1));
                     return;
                 }
-                if (event.getSlot() == 41) {
+                if (event.getSlot() == 41 && page < 1) {
                     player.openInventory(createEnchantmentListMenu(player, page + 1));
                     return;
                 }
