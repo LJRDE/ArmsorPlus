@@ -51,14 +51,14 @@ public class ZombieGiantBoss {
         bossGiant.setRemoveWhenFarAway(false);
         bossGiant.setPersistent(true);
 
-        var maxHp = bossGiant.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        var maxHp = bossGiant.getAttribute(Attribute.MAX_HEALTH);
         if (maxHp != null) maxHp.setBaseValue(MAX_HEALTH);
         bossGiant.setHealth(MAX_HEALTH);
 
-        var atkDmg = bossGiant.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        var atkDmg = bossGiant.getAttribute(Attribute.ATTACK_DAMAGE);
         if (atkDmg != null) atkDmg.setBaseValue(ATTACK_DAMAGE);
 
-        var follow = bossGiant.getAttribute(Attribute.GENERIC_FOLLOW_RANGE);
+        var follow = bossGiant.getAttribute(Attribute.FOLLOW_RANGE);
         if (follow != null) follow.setBaseValue(FOLLOW_RANGE);
 
         bossBar = Bukkit.createBossBar("§c◆ 僵尸巨人", BarColor.RED, BarStyle.SOLID);

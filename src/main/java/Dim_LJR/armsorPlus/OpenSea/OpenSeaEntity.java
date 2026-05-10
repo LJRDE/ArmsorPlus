@@ -26,7 +26,7 @@ public class OpenSeaEntity implements Listener {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.WHITE + "守卫之剑");
         item.setAmount(Amount);
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(
                         new NamespacedKey(getplugin, "ArmsorPlus_SwordDamage"),
                         15,AttributeModifier.Operation.ADD_NUMBER,
@@ -41,12 +41,12 @@ public class OpenSeaEntity implements Listener {
         ItemStack item = new ItemStack(CARVED_PUMPKIN);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + "守卫者的头套");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_HelmetArmor")
                 , 8,//护甲值
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.HEAD));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_HelmetToughness"),
                 12,//护甲韧性
                 AttributeModifier.Operation.ADD_NUMBER,
@@ -62,12 +62,12 @@ public class OpenSeaEntity implements Listener {
         ItemStack item = new ItemStack(DIAMOND_CHESTPLATE);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_ChestplateArmor")
                 , 8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.CHEST));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_ChestplateToughness")
                 ,  8,
                 AttributeModifier.Operation.ADD_NUMBER,
@@ -83,12 +83,12 @@ public class OpenSeaEntity implements Listener {
         ItemStack item = new ItemStack(DIAMOND_LEGGINGS);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_LeggingsArmor"),
                 8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.LEGS));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_LeggingsToughness")
                 ,  8,
                 AttributeModifier.Operation.ADD_NUMBER,
@@ -104,12 +104,12 @@ public class OpenSeaEntity implements Listener {
         ItemStack item = new ItemStack(DIAMOND_BOOTS);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_BootsArmor")
                 , 8,
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.FEET));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,new AttributeModifier(
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,new AttributeModifier(
                 new NamespacedKey(getplugin, "ArmsorPlus_BootsToughness")
                 ,  8,
                 AttributeModifier.Operation.ADD_NUMBER,

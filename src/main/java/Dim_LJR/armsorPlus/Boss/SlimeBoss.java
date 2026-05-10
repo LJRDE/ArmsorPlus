@@ -67,7 +67,7 @@ public class SlimeBoss {
         bossSlime.setRemoveWhenFarAway(false);
         bossSlime.setPersistent(true);
 
-        var maxHpAttr = bossSlime.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        var maxHpAttr = bossSlime.getAttribute(Attribute.MAX_HEALTH);
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
         bossSlime.setHealth(MAX_HEALTH);
 
@@ -415,7 +415,7 @@ public class SlimeBoss {
             small.setCustomNameVisible(true);
             small.setRemoveWhenFarAway(true);
 
-            var hp = small.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            var hp = small.getAttribute(Attribute.MAX_HEALTH);
             if (hp != null) hp.setBaseValue(30);
             small.setHealth(30);
 

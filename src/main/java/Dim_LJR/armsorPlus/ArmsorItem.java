@@ -215,6 +215,7 @@ public class ArmsorItem {
         meta.setDisplayName(BLOOD_SWORD_NAME);
         meta.setLore(Collections.singletonList(
                 ChatColor.DARK_RED + "血祭V: 攻击时有100%概率消耗15点生命值造成2~6倍伤害"));
+        meta.setCustomModelData(20260510);
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, BloodSacrificekey, 5);
         item.setAmount(amount);
@@ -226,7 +227,7 @@ public class ArmsorItem {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.WHITE + "重剑");
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(
                         NamespacedKey.fromString("armsorplus:custom_damage"),
                         7.5,
@@ -386,7 +387,7 @@ public class ArmsorItem {
         meta.setLore(Arrays.asList(
                 ChatColor.GREEN + "每次攻击额外造成5点伤害",
                 ChatColor.GRAY + "轻盈而致命的短剑"));
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:dagger_damage"),
                         5.0, AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.MAINHAND));
@@ -618,7 +619,7 @@ public class ArmsorItem {
                 ChatColor.AQUA + "释放冰霜领域: 周围生物缓慢255+挖掘疲劳3秒",
                 ChatColor.DARK_AQUA + "冷却时间: 15秒",
                 ChatColor.GRAY + "冰霜之剑"));
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "rain_sword_damage"),
                         7.0, AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.MAINHAND));
@@ -638,7 +639,7 @@ public class ArmsorItem {
                 ChatColor.YELLOW + "飞行时脚下生成飞剑",
                 ChatColor.GRAY + "停下时飞剑消失",
                 ChatColor.RED + "御剑飞行之术"));
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "flying_sword_damage"),
                         8.0, AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.MAINHAND));
@@ -657,7 +658,7 @@ public class ArmsorItem {
                 ChatColor.DARK_PURPLE + "右键: 向前瞬移",
                 ChatColor.LIGHT_PURPLE + "指向目标时: 瞬移至目标身后并造成伤害",
                 ChatColor.GRAY + "暗影步法之刃"));
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "flash_step_damage"),
                         6.0, AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.MAINHAND));
@@ -703,7 +704,7 @@ public class ArmsorItem {
         meta.setLore(Arrays.asList(
                 ChatColor.AQUA + "攻击时对敌方造成缓慢II 3秒",
                 ChatColor.GRAY + "极寒之刃"));
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "ice_sword_damage"),
                         7.0, AttributeModifier.Operation.ADD_NUMBER,
                         EquipmentSlotGroup.MAINHAND));

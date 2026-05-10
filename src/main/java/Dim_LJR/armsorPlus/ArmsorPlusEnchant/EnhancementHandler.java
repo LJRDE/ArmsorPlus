@@ -229,15 +229,15 @@ public class EnhancementHandler implements Listener {
             event.setCancelled(true);
             if (!itemMeta.hasAttributeModifiers()) {
                 double base = getBaseValue(item);
-                itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                         new AttributeModifier(NamespacedKey.fromString("armsorplus:modifier"),
                                 base + 1, AttributeModifier.Operation.ADD_NUMBER,
                                 EquipmentSlotGroup.HAND));
             } else {
-                double current = itemMeta.getAttributeModifiers().get(Attribute.GENERIC_ATTACK_DAMAGE).stream()
+                double current = itemMeta.getAttributeModifiers().get(Attribute.ATTACK_DAMAGE).stream()
                         .mapToDouble(AttributeModifier::getAmount).sum();
-                itemMeta.removeAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE);
-                itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+                itemMeta.removeAttributeModifier(Attribute.ATTACK_DAMAGE);
+                itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                         new AttributeModifier(Objects.requireNonNull(NamespacedKey.fromString("armsorplus:modifier")),
                                 current + 1, AttributeModifier.Operation.ADD_NUMBER,
                                 EquipmentSlotGroup.HAND));
@@ -281,7 +281,7 @@ public class EnhancementHandler implements Listener {
                 upgradeCount = 0;
                 getplugin.getLogger().info("[ArmsorPlus] 首次强化, upgradeCount=0");
             } else {
-                double currentArmor = itemMeta.getAttributeModifiers().get(Attribute.GENERIC_ARMOR).stream()
+                double currentArmor = itemMeta.getAttributeModifiers().get(Attribute.ARMOR).stream()
                         .mapToDouble(AttributeModifier::getAmount).sum();
                 upgradeCount = (int) (currentArmor - defaults.armor());
                 getplugin.getLogger().info("[ArmsorPlus] 非首次强化, currentArmor=" + currentArmor
@@ -298,19 +298,19 @@ public class EnhancementHandler implements Listener {
                     + " 新击退=" + newKnockback);
 
             // 清除旧的属性修饰符
-            itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR);
-            itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS);
-            itemMeta.removeAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+            itemMeta.removeAttributeModifier(Attribute.ARMOR);
+            itemMeta.removeAttributeModifier(Attribute.ARMOR_TOUGHNESS);
+            itemMeta.removeAttributeModifier(Attribute.KNOCKBACK_RESISTANCE);
 
             // 添加强化后的属性修饰符
             EquipmentSlotGroup slot = getSlotByType(type);
-            itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+            itemMeta.addAttributeModifier(Attribute.ARMOR,
                     new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorUpgrade"),
                             newArmor, AttributeModifier.Operation.ADD_NUMBER, slot));
-            itemMeta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+            itemMeta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
                     new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ToughnessUpgrade"),
                             newToughness, AttributeModifier.Operation.ADD_NUMBER, slot));
-            itemMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE,
+            itemMeta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE,
                     new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_KnockbackUpgrade"),
                             newKnockback, AttributeModifier.Operation.ADD_NUMBER, slot));
 
@@ -520,11 +520,11 @@ public class EnhancementHandler implements Listener {
         ArmsorEnchant.addEnchant(item, HealthBoostKey, level);
 
         // 移除旧的 MaxHealth 修饰符
-        Collection<AttributeModifier> modifiers = itemMeta.getAttributeModifiers(Attribute.GENERIC_MAX_HEALTH);
+        Collection<AttributeModifier> modifiers = itemMeta.getAttributeModifiers(Attribute.MAX_HEALTH);
         if (modifiers != null) {
             for (AttributeModifier mod : modifiers) {
                 if (mod.getName().equals("HealthBoostEnchant")) {
-                    itemMeta.removeAttributeModifier(Attribute.GENERIC_MAX_HEALTH, mod);
+                    itemMeta.removeAttributeModifier(Attribute.MAX_HEALTH, mod);
                 }
             }
         }
@@ -534,7 +534,7 @@ public class EnhancementHandler implements Listener {
                 new NamespacedKey(getplugin, "ArmsorPlus_HealthBoost"),
                 level * 5.0, AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.CHEST);
-        itemMeta.addAttributeModifier(Attribute.GENERIC_MAX_HEALTH, healthMod);
+        itemMeta.addAttributeModifier(Attribute.MAX_HEALTH, healthMod);
         item.setItemMeta(itemMeta);
 
         player.sendMessage("附魔成功, 魔咒级别" + ArmsorEnchant.getEnchantLevel(item, HealthBoostKey));
@@ -562,10 +562,10 @@ public class EnhancementHandler implements Listener {
 
     /** 添加护甲+韧性属性修饰符 */
     private void addArmorModifier(ItemMeta meta, double value, EquipmentSlotGroup slot) {
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+        meta.addAttributeModifier(Attribute.ARMOR,
                 new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorAdd"),
                         value, AttributeModifier.Operation.ADD_NUMBER, slot));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
                 new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ToughnessAdd"),
                         value, AttributeModifier.Operation.ADD_NUMBER, slot));
     }

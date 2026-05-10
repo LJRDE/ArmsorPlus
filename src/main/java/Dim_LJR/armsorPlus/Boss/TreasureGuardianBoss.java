@@ -74,7 +74,7 @@ public class TreasureGuardianBoss {
             skel.setCustomNameVisible(true);
             skel.setRemoveWhenFarAway(false);
             skel.setPersistent(true);
-            var maxHpAttr = skel.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            var maxHpAttr = skel.getAttribute(Attribute.MAX_HEALTH);
             if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
             skel.setHealth(MAX_HEALTH);
             skel.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, -1, 2, false, false));
@@ -292,7 +292,7 @@ public class TreasureGuardianBoss {
         ItemStack item = new ItemStack(Material.DIAMOND_SWORD);
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.WHITE + "守卫之剑");
-        meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_SwordDamage"),
                         15, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
@@ -306,12 +306,12 @@ public class TreasureGuardianBoss {
         ItemStack item = new ItemStack(Material.CARVED_PUMPKIN);
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + "守卫者的头套");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+        meta.addAttributeModifier(Attribute.ARMOR,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_HelmetArmor"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
                         org.bukkit.inventory.EquipmentSlotGroup.HEAD));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_HelmetToughness"),
                         12, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
@@ -326,12 +326,12 @@ public class TreasureGuardianBoss {
         ItemStack item = new ItemStack(Material.DIAMOND_CHESTPLATE);
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+        meta.addAttributeModifier(Attribute.ARMOR,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_ChestplateArmor"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
                         org.bukkit.inventory.EquipmentSlotGroup.CHEST));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_ChestplateToughness"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
@@ -346,12 +346,12 @@ public class TreasureGuardianBoss {
         ItemStack item = new ItemStack(Material.DIAMOND_LEGGINGS);
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+        meta.addAttributeModifier(Attribute.ARMOR,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_LeggingsArmor"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
                         org.bukkit.inventory.EquipmentSlotGroup.LEGS));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_LeggingsToughness"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
@@ -366,12 +366,12 @@ public class TreasureGuardianBoss {
         ItemStack item = new ItemStack(Material.DIAMOND_BOOTS);
         org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.DARK_RED + " ");
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR,
+        meta.addAttributeModifier(Attribute.ARMOR,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_BootsArmor"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
                         org.bukkit.inventory.EquipmentSlotGroup.FEET));
-        meta.addAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS,
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
                 new org.bukkit.attribute.AttributeModifier(
                         new NamespacedKey(NamespaceKey.Keys.getplugin, "GuardianBoss_BootsToughness"),
                         8, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,

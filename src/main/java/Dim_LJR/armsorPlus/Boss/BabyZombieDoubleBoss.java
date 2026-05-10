@@ -55,14 +55,14 @@ public class BabyZombieDoubleBoss {
         mountZombie.setRemoveWhenFarAway(false);
         mountZombie.setPersistent(true);
 
-        var mountHp = mountZombie.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        var mountHp = mountZombie.getAttribute(Attribute.MAX_HEALTH);
         if (mountHp != null) mountHp.setBaseValue(MAX_HEALTH);
         mountZombie.setHealth(MAX_HEALTH);
 
-        var mountAtk = mountZombie.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        var mountAtk = mountZombie.getAttribute(Attribute.ATTACK_DAMAGE);
         if (mountAtk != null) mountAtk.setBaseValue(ATTACK_DAMAGE);
 
-        var mountFollow = mountZombie.getAttribute(Attribute.GENERIC_FOLLOW_RANGE);
+        var mountFollow = mountZombie.getAttribute(Attribute.FOLLOW_RANGE);
         if (mountFollow != null) mountFollow.setBaseValue(FOLLOW_RANGE);
 
         equipArmor(mountZombie, Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE,
@@ -79,14 +79,14 @@ public class BabyZombieDoubleBoss {
         riderZombie.setRemoveWhenFarAway(false);
         riderZombie.setPersistent(true);
 
-        var riderHp = riderZombie.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        var riderHp = riderZombie.getAttribute(Attribute.MAX_HEALTH);
         if (riderHp != null) riderHp.setBaseValue(MAX_HEALTH);
         riderZombie.setHealth(MAX_HEALTH);
 
-        var riderAtk = riderZombie.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        var riderAtk = riderZombie.getAttribute(Attribute.ATTACK_DAMAGE);
         if (riderAtk != null) riderAtk.setBaseValue(ATTACK_DAMAGE);
 
-        var riderFollow = riderZombie.getAttribute(Attribute.GENERIC_FOLLOW_RANGE);
+        var riderFollow = riderZombie.getAttribute(Attribute.FOLLOW_RANGE);
         if (riderFollow != null) riderFollow.setBaseValue(FOLLOW_RANGE);
 
         equipArmor(riderZombie, Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE,

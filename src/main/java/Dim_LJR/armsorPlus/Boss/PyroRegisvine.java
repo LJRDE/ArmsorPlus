@@ -70,7 +70,7 @@ public class PyroRegisvine {
         bossEntity.setSilent(true);
         bossEntity.getEquipment().clear();
 
-        var maxHpAttr = bossEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        var maxHpAttr = bossEntity.getAttribute(Attribute.MAX_HEALTH);
         if (maxHpAttr != null) maxHpAttr.setBaseValue(MAX_HEALTH);
         bossEntity.setHealth(MAX_HEALTH);
 

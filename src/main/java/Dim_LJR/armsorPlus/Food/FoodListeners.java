@@ -108,7 +108,7 @@ public class FoodListeners implements Listener {
             item.setAmount(item.getAmount() - 1);
         }
 
-        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
         double newHealth = Math.min(maxHealth, player.getHealth() + 6);
         player.setHealth(newHealth);
 
