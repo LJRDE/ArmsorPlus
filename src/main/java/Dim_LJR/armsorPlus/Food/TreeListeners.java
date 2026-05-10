@@ -1,19 +1,18 @@
 package Dim_LJR.armsorPlus.Food;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.TreeType;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static Dim_LJR.armsorPlus.Food.FoodItems.*;
@@ -23,9 +22,15 @@ import static Dim_LJR.armsorPlus.NamespaceKey.Keys.getplugin;
 public class TreeListeners implements Listener {
     private static final Random RANDOM = new Random();
     static final String SAPLING_METADATA = "ArmsorPlus_FruitType";
+    private static final String LEAF_FRUIT_METADATA = "ArmsorPlus_LeafFruit";
+    private static final String HERB_LEAF_METADATA = "ArmsorPlus_HerbLeaf";
 
     private static final Map<String, Supplier<ItemStack>> FRUIT_MAP = new HashMap<>();
     private static final Map<Material, TreeType> TREE_TYPE_MAP = new HashMap<>();
+    private static final Set<String> HERBACEOUS_KEYS = new HashSet<>();
+    private static final Map<String, HerbData> HERB_DATA_MAP = new HashMap<>();
+
+    private record HerbData(Material saplingType, NamespacedKey saplingKey) {}
 
     static {
         FRUIT_MAP.put(FigSaplingKey.getKey(), () -> Fig(1));
@@ -55,41 +60,112 @@ public class TreeListeners implements Listener {
         TREE_TYPE_MAP.put(Material.OAK_SAPLING, TreeType.TREE);
         TREE_TYPE_MAP.put(Material.BIRCH_SAPLING, TreeType.BIRCH);
         TREE_TYPE_MAP.put(Material.JUNGLE_SAPLING, TreeType.JUNGLE);
-        TREE_TYPE_MAP.put(Material.DARK_OAK_SAPLING, TreeType.DARK_OAK);
         TREE_TYPE_MAP.put(Material.ACACIA_SAPLING, TreeType.ACACIA);
         TREE_TYPE_MAP.put(Material.SPRUCE_SAPLING, TreeType.REDWOOD);
+
+        HERBACEOUS_KEYS.add(CherryTomatoSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(TomatoSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(GrapeSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(KiwiSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(PineappleSaplingKey.getKey());
+        HERBACEOUS_KEYS.add(StrawberrySaplingKey.getKey());
+        HERBACEOUS_KEYS.add(BlueberrySaplingKey.getKey());
+
+        HERB_DATA_MAP.put(CherryTomatoSaplingKey.getKey(), new HerbData(Material.ACACIA_SAPLING, CherryTomatoSaplingKey));
+        HERB_DATA_MAP.put(TomatoSaplingKey.getKey(), new HerbData(Material.SPRUCE_SAPLING, TomatoSaplingKey));
+        HERB_DATA_MAP.put(GrapeSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, GrapeSaplingKey));
+        HERB_DATA_MAP.put(KiwiSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, KiwiSaplingKey));
+        HERB_DATA_MAP.put(PineappleSaplingKey.getKey(), new HerbData(Material.SPRUCE_SAPLING, PineappleSaplingKey));
+        HERB_DATA_MAP.put(StrawberrySaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, StrawberrySaplingKey));
+        HERB_DATA_MAP.put(BlueberrySaplingKey.getKey(), new HerbData(Material.BIRCH_SAPLING, BlueberrySaplingKey));
     }
 
     @EventHandler
     public void onCustomTreeGrow(StructureGrowEvent event) {
         Block sapling = event.getLocation().getBlock();
-        if (!event.getLocation().getBlock().hasMetadata(SAPLING_METADATA)) return;
+        if (!sapling.hasMetadata(SAPLING_METADATA)) return;
 
-        String fruitKey = event.getLocation().getBlock().getMetadata(SAPLING_METADATA).get(0).asString();
+        String fruitKey = sapling.getMetadata(SAPLING_METADATA).get(0).asString();
         Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
         if (fruitSupplier == null) return;
 
         event.setCancelled(true);
         Material saplingType = sapling.getType();
-        sapling.setType(Material.AIR);
         sapling.removeMetadata(SAPLING_METADATA, getplugin);
 
-        TreeType treeType = TREE_TYPE_MAP.getOrDefault(saplingType, TreeType.TREE);
-        event.getWorld().generateTree(event.getLocation(), treeType);
+        if (HERBACEOUS_KEYS.contains(fruitKey)) {
+            sapling.setType(Material.OAK_LEAVES);
+            sapling.setMetadata(HERB_LEAF_METADATA, new FixedMetadataValue(getplugin, fruitKey));
+        } else {
+            sapling.setType(Material.AIR);
+            TreeType treeType = TREE_TYPE_MAP.getOrDefault(saplingType, TreeType.TREE);
+            event.getWorld().generateTree(event.getLocation(), treeType);
+            markLeavesWithFruit(event.getLocation(), fruitKey);
+        }
+    }
 
-        Location loc = event.getLocation();
+    private void markLeavesWithFruit(Location loc, String fruitKey) {
         World world = loc.getWorld();
-        ItemStack fruit = fruitSupplier.get();
-
         for (int x = -2; x <= 2; x++) {
             for (int y = 1; y <= 5; y++) {
                 for (int z = -2; z <= 2; z++) {
                     Block block = world.getBlockAt(loc.getBlockX() + x, loc.getBlockY() + y, loc.getBlockZ() + z);
                     if (isLeaf(block.getType()) && RANDOM.nextDouble() < 0.2) {
-                        world.dropItemNaturally(block.getLocation().add(0.5, -0.5, 0.5), fruit.clone());
+                        block.setMetadata(LEAF_FRUIT_METADATA, new FixedMetadataValue(getplugin, fruitKey));
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onLeafHarvest(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        Block block = event.getClickedBlock();
+        if (block == null || !isLeaf(block.getType())) return;
+
+        if (block.hasMetadata(HERB_LEAF_METADATA)) {
+            String fruitKey = block.getMetadata(HERB_LEAF_METADATA).get(0).asString();
+            Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
+            HerbData herbData = HERB_DATA_MAP.get(fruitKey);
+            if (fruitSupplier == null || herbData == null) return;
+
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+            ItemStack fruit = fruitSupplier.get();
+            if (player.getInventory().firstEmpty() != -1) {
+                player.getInventory().addItem(fruit);
+            } else {
+                player.getWorld().dropItemNaturally(player.getLocation(), fruit);
+            }
+
+            block.removeMetadata(HERB_LEAF_METADATA, getplugin);
+            block.setType(herbData.saplingType());
+            block.setMetadata(SAPLING_METADATA, new FixedMetadataValue(getplugin, herbData.saplingKey().getKey()));
+
+            player.getWorld().playSound(block.getLocation(), Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 1.0f, 1.0f);
+            player.sendActionBar("§a已收获果实");
+            return;
+        }
+
+        if (block.hasMetadata(LEAF_FRUIT_METADATA)) {
+            String fruitKey = block.getMetadata(LEAF_FRUIT_METADATA).get(0).asString();
+            Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
+            if (fruitSupplier == null) return;
+
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+            ItemStack fruit = fruitSupplier.get();
+            if (player.getInventory().firstEmpty() != -1) {
+                player.getInventory().addItem(fruit);
+            } else {
+                player.getWorld().dropItemNaturally(player.getLocation(), fruit);
+            }
+
+            block.removeMetadata(LEAF_FRUIT_METADATA, getplugin);
+            player.getWorld().playSound(block.getLocation(), Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, 1.0f, 1.0f);
+            player.sendActionBar("§a已收获果实");
         }
     }
 
