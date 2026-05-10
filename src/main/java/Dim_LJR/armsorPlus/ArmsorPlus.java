@@ -7,6 +7,7 @@ import Dim_LJR.armsorPlus.Boss.BossMenu;
 import Dim_LJR.armsorPlus.Boss.BossWorld;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
 import Dim_LJR.armsorPlus.Food.FoodListeners;
+import Dim_LJR.armsorPlus.Food.TreeListeners;
 import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaDig;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaEntity;
@@ -62,7 +63,9 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getLogger().info("服务端类型: " + Bukkit.getServer().getName());
         getLogger().info("Bukkit API 版本: " + Bukkit.getBukkitVersion());
     }
-
+    public JavaPlugin GetJavaPlugin() {
+        return this;
+    }
     @Override
     public void onDisable() {
         PlayerSettings.save(this); // 保存玩家设置
@@ -79,6 +82,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new BossMenu(), this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusItemHandler(), this);
         getServer().getPluginManager().registerEvents(new FoodListeners(), this);
+        getServer().getPluginManager().registerEvents(new TreeListeners(),this);
     }
 
     /** 注册指令执行器 */

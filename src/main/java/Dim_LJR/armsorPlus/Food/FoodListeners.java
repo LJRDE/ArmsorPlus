@@ -16,11 +16,13 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.getplugin;
-
+import Dim_LJR.armsorPlus.ArmsorPlus.*;
 /**
  * 所有食物/药品/树苗的事件监听器。
  */
@@ -555,444 +557,64 @@ public class FoodListeners implements Listener {
     }
 
     // ========================================================================
-    // 树苗种植处理器 (23种)
+    // 树苗种植处理器 (统一处理23种，带元数据标记)
     // ========================================================================
 
-    @EventHandler
-    public void onFigSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, FigSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了无花果树苗");
+    private static final Map<NamespacedKey, SaplingData> SAPLING_MAP = new HashMap<>();
+    static {
+        SAPLING_MAP.put(FigSaplingKey,          new SaplingData(Material.OAK_SAPLING,    "无花果树苗"));
+        SAPLING_MAP.put(DateSaplingKey,         new SaplingData(Material.BIRCH_SAPLING,   "枣树树苗"));
+        SAPLING_MAP.put(PersimmonSaplingKey,    new SaplingData(Material.JUNGLE_SAPLING,  "柿子树树苗"));
+        SAPLING_MAP.put(MangosteenSaplingKey,   new SaplingData(Material.DARK_OAK_SAPLING,"山竹树苗"));
+        SAPLING_MAP.put(CherryTomatoSaplingKey, new SaplingData(Material.ACACIA_SAPLING,  "圣女果种子"));
+        SAPLING_MAP.put(TomatoSaplingKey,       new SaplingData(Material.SPRUCE_SAPLING,  "西红柿种子"));
+        SAPLING_MAP.put(GrapeSaplingKey,        new SaplingData(Material.OAK_SAPLING,    "葡萄藤苗"));
+        SAPLING_MAP.put(PomegranateSaplingKey,  new SaplingData(Material.BIRCH_SAPLING,   "石榴树树苗"));
+        SAPLING_MAP.put(ChestnutSaplingKey,     new SaplingData(Material.JUNGLE_SAPLING,  "栗子树树苗"));
+        SAPLING_MAP.put(KiwiSaplingKey,         new SaplingData(Material.DARK_OAK_SAPLING,"猕猴桃藤苗"));
+        SAPLING_MAP.put(LonganSaplingKey,       new SaplingData(Material.ACACIA_SAPLING,  "龙眼树树苗"));
+        SAPLING_MAP.put(LycheeSaplingKey,       new SaplingData(Material.SPRUCE_SAPLING,  "荔枝树树苗"));
+        SAPLING_MAP.put(CherrySaplingKey,       new SaplingData(Material.OAK_SAPLING,    "樱桃树树苗"));
+        SAPLING_MAP.put(PeachSaplingKey,        new SaplingData(Material.BIRCH_SAPLING,   "桃树树苗"));
+        SAPLING_MAP.put(PlumSaplingKey,         new SaplingData(Material.JUNGLE_SAPLING,  "李子树树苗"));
+        SAPLING_MAP.put(HazelnutSaplingKey,     new SaplingData(Material.DARK_OAK_SAPLING,"榛子树树苗"));
+        SAPLING_MAP.put(CoconutSaplingKey,      new SaplingData(Material.ACACIA_SAPLING,  "椰子树树苗"));
+        SAPLING_MAP.put(PineappleSaplingKey,    new SaplingData(Material.SPRUCE_SAPLING,  "菠萝树苗"));
+        SAPLING_MAP.put(StrawberrySaplingKey,   new SaplingData(Material.OAK_SAPLING,    "草莓种子"));
+        SAPLING_MAP.put(BlueberrySaplingKey,    new SaplingData(Material.BIRCH_SAPLING,   "蓝莓种子"));
+        SAPLING_MAP.put(OrangeSaplingKey,       new SaplingData(Material.JUNGLE_SAPLING,  "橙子树树苗"));
+        SAPLING_MAP.put(TangerineSaplingKey,    new SaplingData(Material.DARK_OAK_SAPLING,"橘子树树苗"));
+        SAPLING_MAP.put(BigAppleSaplingKey,     new SaplingData(Material.OAK_SAPLING,    "苹果树苗"));
     }
 
-    @EventHandler
-    public void onDateSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, DateSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.BIRCH_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了枣树树苗");
-    }
+    private record SaplingData(Material saplingType, String displayName) {}
 
     @EventHandler
-    public void onPersimmonSaplingPlant(PlayerInteractEvent event) {
+    public void onCustomSaplingPlant(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PersimmonSaplingKey) == 0) return;
+        if (item == null) return;
         Block clicked = event.getClickedBlock();
         if (clicked == null) return;
         Material type = clicked.getType();
         if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.JUNGLE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了柿子树树苗");
-    }
 
-    @EventHandler
-    public void onMangosteenSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, MangosteenSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.DARK_OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了山竹树苗");
-    }
+        for (Map.Entry<NamespacedKey, SaplingData> entry : SAPLING_MAP.entrySet()) {
+            if (ArmsorEnchant.getEnchantLevel(item, entry.getKey()) == 0) continue;
 
-    @EventHandler
-    public void onCherryTomatoPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CherryTomatoSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.ACACIA_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了圣女果种子");
-    }
-
-    @EventHandler
-    public void onTomatoPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, TomatoSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.SPRUCE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了西红柿种子");
-    }
-
-    @EventHandler
-    public void onGrapeSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, GrapeSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了葡萄藤苗");
-    }
-
-    @EventHandler
-    public void onPomegranateSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PomegranateSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.BIRCH_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了石榴树树苗");
-    }
-
-    @EventHandler
-    public void onChestnutSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, ChestnutSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.JUNGLE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了栗子树树苗");
-    }
-
-    @EventHandler
-    public void onKiwiSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, KiwiSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.DARK_OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了猕猴桃藤苗");
-    }
-
-    @EventHandler
-    public void onLonganSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, LonganSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.ACACIA_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了龙眼树树苗");
-    }
-
-    @EventHandler
-    public void onLycheeSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, LycheeSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.SPRUCE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了荔枝树树苗");
-    }
-
-    @EventHandler
-    public void onCherrySaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CherrySaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了樱桃树树苗");
-    }
-
-    @EventHandler
-    public void onPeachSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PeachSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.BIRCH_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了桃树树苗");
-    }
-
-    @EventHandler
-    public void onPlumSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PlumSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.JUNGLE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了李子树树苗");
-    }
-
-    @EventHandler
-    public void onHazelnutSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, HazelnutSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.DARK_OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了榛子树树苗");
-    }
-
-    @EventHandler
-    public void onCoconutSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CoconutSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.ACACIA_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了椰子树树苗");
-    }
-
-    @EventHandler
-    public void onPineappleSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PineappleSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.SPRUCE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了菠萝树苗");
-    }
-
-    @EventHandler
-    public void onStrawberrySaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, StrawberrySaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了草莓种子");
-    }
-
-    @EventHandler
-    public void onBlueberrySaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, BlueberrySaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.BIRCH_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了蓝莓种子");
-    }
-
-    @EventHandler
-    public void onOrangeSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, OrangeSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.JUNGLE_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了橙子树树苗");
-    }
-
-    @EventHandler
-    public void onTangerineSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, TangerineSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.DARK_OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了橘子树树苗");
-    }
-
-    @EventHandler
-    public void onBigAppleSaplingPlant(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, BigAppleSaplingKey) == 0) return;
-        Block clicked = event.getClickedBlock();
-        if (clicked == null) return;
-        Material type = clicked.getType();
-        if (type != Material.DIRT && type != Material.GRASS_BLOCK && type != Material.PODZOL && type != Material.FARMLAND) return;
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-        Block above = clicked.getRelative(BlockFace.UP);
-        if (above.isEmpty()) above.setType(Material.OAK_SAPLING);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
-        player.sendActionBar("§a种下了苹果树苗");
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+            Block above = clicked.getRelative(BlockFace.UP);
+            if (above.isEmpty()) {
+                above.setType(entry.getValue().saplingType());
+                above.setMetadata(TreeListeners.SAPLING_METADATA, new FixedMetadataValue(getplugin, entry.getKey().getKey()));
+            }
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GRASS_PLACE, 1.0f, 1.0f);
+            player.sendActionBar("§a种下了" + entry.getValue().displayName());
+            return;
+        }
     }
 
     // ========================================================================
