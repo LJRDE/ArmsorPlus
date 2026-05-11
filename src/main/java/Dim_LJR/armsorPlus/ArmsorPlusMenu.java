@@ -352,6 +352,8 @@ public class ArmsorPlusMenu implements Listener {
             enchantmentList.setItem(22, AutoPlant_EnchantedBook(1, 1));
             enchantmentList.setItem(23, StrongBurst_EnchantedBook(1, 1));
             enchantmentList.setItem(24, MultiShot_EnchantedBook(1, 3));
+            enchantmentList.setItem(25, Poison_EnchantedBook(1, 5));
+            enchantmentList.setItem(28, SharpBlade_EnchantedBook(1, 3));
         }
 
         // 翻页导航按钮

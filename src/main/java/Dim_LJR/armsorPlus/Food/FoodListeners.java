@@ -576,29 +576,31 @@ public class FoodListeners implements Listener {
         HERBACEOUS_KEYS.add(StrawberrySaplingKey.getKey());
         HERBACEOUS_KEYS.add(BlueberrySaplingKey.getKey());
 
+        // 木本果树: 统一使用橡树树苗
         SAPLING_MAP.put(FigSaplingKey,          new SaplingData(Material.OAK_SAPLING,    "无花果树苗"));
-        SAPLING_MAP.put(DateSaplingKey,         new SaplingData(Material.BIRCH_SAPLING,   "枣树树苗"));
-        SAPLING_MAP.put(PersimmonSaplingKey,    new SaplingData(Material.JUNGLE_SAPLING,  "柿子树树苗"));
+        SAPLING_MAP.put(DateSaplingKey,         new SaplingData(Material.OAK_SAPLING,    "枣树树苗"));
+        SAPLING_MAP.put(PersimmonSaplingKey,    new SaplingData(Material.OAK_SAPLING,    "柿子树树苗"));
         SAPLING_MAP.put(MangosteenSaplingKey,   new SaplingData(Material.OAK_SAPLING,    "山竹树苗"));
-        SAPLING_MAP.put(CherryTomatoSaplingKey, new SaplingData(Material.ACACIA_SAPLING,  "圣女果种子"));
-        SAPLING_MAP.put(TomatoSaplingKey,       new SaplingData(Material.SPRUCE_SAPLING,  "西红柿种子"));
-        SAPLING_MAP.put(GrapeSaplingKey,        new SaplingData(Material.OAK_SAPLING,    "葡萄藤苗"));
-        SAPLING_MAP.put(PomegranateSaplingKey,  new SaplingData(Material.BIRCH_SAPLING,   "石榴树树苗"));
-        SAPLING_MAP.put(ChestnutSaplingKey,     new SaplingData(Material.JUNGLE_SAPLING,  "栗子树树苗"));
-        SAPLING_MAP.put(KiwiSaplingKey,         new SaplingData(Material.OAK_SAPLING,    "猕猴桃藤苗"));
-        SAPLING_MAP.put(LonganSaplingKey,       new SaplingData(Material.ACACIA_SAPLING,  "龙眼树树苗"));
-        SAPLING_MAP.put(LycheeSaplingKey,       new SaplingData(Material.SPRUCE_SAPLING,  "荔枝树树苗"));
+        SAPLING_MAP.put(PomegranateSaplingKey,  new SaplingData(Material.OAK_SAPLING,    "石榴树树苗"));
+        SAPLING_MAP.put(ChestnutSaplingKey,     new SaplingData(Material.OAK_SAPLING,    "栗子树树苗"));
+        SAPLING_MAP.put(LonganSaplingKey,       new SaplingData(Material.OAK_SAPLING,    "龙眼树树苗"));
+        SAPLING_MAP.put(LycheeSaplingKey,       new SaplingData(Material.OAK_SAPLING,    "荔枝树树苗"));
         SAPLING_MAP.put(CherrySaplingKey,       new SaplingData(Material.OAK_SAPLING,    "樱桃树树苗"));
-        SAPLING_MAP.put(PeachSaplingKey,        new SaplingData(Material.BIRCH_SAPLING,   "桃树树苗"));
-        SAPLING_MAP.put(PlumSaplingKey,         new SaplingData(Material.JUNGLE_SAPLING,  "李子树树苗"));
+        SAPLING_MAP.put(PeachSaplingKey,        new SaplingData(Material.OAK_SAPLING,    "桃树树苗"));
+        SAPLING_MAP.put(PlumSaplingKey,         new SaplingData(Material.OAK_SAPLING,    "李子树树苗"));
         SAPLING_MAP.put(HazelnutSaplingKey,     new SaplingData(Material.OAK_SAPLING,    "榛子树树苗"));
-        SAPLING_MAP.put(CoconutSaplingKey,      new SaplingData(Material.ACACIA_SAPLING,  "椰子树树苗"));
-        SAPLING_MAP.put(PineappleSaplingKey,    new SaplingData(Material.SPRUCE_SAPLING,  "菠萝树苗"));
-        SAPLING_MAP.put(StrawberrySaplingKey,   new SaplingData(Material.OAK_SAPLING,    "草莓种子"));
-        SAPLING_MAP.put(BlueberrySaplingKey,    new SaplingData(Material.BIRCH_SAPLING,   "蓝莓种子"));
-        SAPLING_MAP.put(OrangeSaplingKey,       new SaplingData(Material.JUNGLE_SAPLING,  "橙子树树苗"));
+        SAPLING_MAP.put(CoconutSaplingKey,      new SaplingData(Material.OAK_SAPLING,    "椰子树树苗"));
+        SAPLING_MAP.put(OrangeSaplingKey,       new SaplingData(Material.OAK_SAPLING,    "橙子树树苗"));
         SAPLING_MAP.put(TangerineSaplingKey,    new SaplingData(Material.OAK_SAPLING,    "橘子树树苗"));
         SAPLING_MAP.put(BigAppleSaplingKey,     new SaplingData(Material.OAK_SAPLING,    "苹果树苗"));
+        // 草本植物: 保留各自类型用于采摘后重植
+        SAPLING_MAP.put(CherryTomatoSaplingKey, new SaplingData(Material.OAK_SAPLING,    "圣女果种子"));
+        SAPLING_MAP.put(TomatoSaplingKey,       new SaplingData(Material.OAK_SAPLING,    "西红柿种子"));
+        SAPLING_MAP.put(GrapeSaplingKey,        new SaplingData(Material.OAK_SAPLING,    "葡萄藤苗"));
+        SAPLING_MAP.put(KiwiSaplingKey,         new SaplingData(Material.OAK_SAPLING,    "猕猴桃藤苗"));
+        SAPLING_MAP.put(PineappleSaplingKey,    new SaplingData(Material.OAK_SAPLING,    "菠萝树苗"));
+        SAPLING_MAP.put(StrawberrySaplingKey,   new SaplingData(Material.OAK_SAPLING,    "草莓种子"));
+        SAPLING_MAP.put(BlueberrySaplingKey,    new SaplingData(Material.OAK_SAPLING,    "蓝莓种子"));
     }
 
     private record SaplingData(Material saplingType, String displayName) {}

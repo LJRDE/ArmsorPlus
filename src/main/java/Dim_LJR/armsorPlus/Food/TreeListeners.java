@@ -1,15 +1,20 @@
 package Dim_LJR.armsorPlus.Food;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.Skull;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.*;
@@ -24,6 +29,7 @@ public class TreeListeners implements Listener {
     static final String SAPLING_METADATA = "ArmsorPlus_FruitType";
     private static final String LEAF_FRUIT_METADATA = "ArmsorPlus_LeafFruit";
     private static final String HERB_LEAF_METADATA = "ArmsorPlus_HerbLeaf";
+    private static final String FRUIT_SKULL_METADATA = "ArmsorPlus_FruitSkull";
 
     private static final Map<String, Supplier<ItemStack>> FRUIT_MAP = new HashMap<>();
     private static final Map<Material, TreeType> TREE_TYPE_MAP = new HashMap<>();
@@ -74,13 +80,13 @@ public class TreeListeners implements Listener {
         HERBACEOUS_KEYS.add(StrawberrySaplingKey.getKey());
         HERBACEOUS_KEYS.add(BlueberrySaplingKey.getKey());
 
-        HERB_DATA_MAP.put(CherryTomatoSaplingKey.getKey(), new HerbData(Material.ACACIA_SAPLING, CherryTomatoSaplingKey));
-        HERB_DATA_MAP.put(TomatoSaplingKey.getKey(), new HerbData(Material.SPRUCE_SAPLING, TomatoSaplingKey));
+        HERB_DATA_MAP.put(CherryTomatoSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, CherryTomatoSaplingKey));
+        HERB_DATA_MAP.put(TomatoSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, TomatoSaplingKey));
         HERB_DATA_MAP.put(GrapeSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, GrapeSaplingKey));
         HERB_DATA_MAP.put(KiwiSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, KiwiSaplingKey));
-        HERB_DATA_MAP.put(PineappleSaplingKey.getKey(), new HerbData(Material.SPRUCE_SAPLING, PineappleSaplingKey));
+        HERB_DATA_MAP.put(PineappleSaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, PineappleSaplingKey));
         HERB_DATA_MAP.put(StrawberrySaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, StrawberrySaplingKey));
-        HERB_DATA_MAP.put(BlueberrySaplingKey.getKey(), new HerbData(Material.BIRCH_SAPLING, BlueberrySaplingKey));
+        HERB_DATA_MAP.put(BlueberrySaplingKey.getKey(), new HerbData(Material.OAK_SAPLING, BlueberrySaplingKey));
     }
 
     @EventHandler
@@ -104,6 +110,7 @@ public class TreeListeners implements Listener {
             TreeType treeType = TREE_TYPE_MAP.getOrDefault(saplingType, TreeType.TREE);
             event.getWorld().generateTree(event.getLocation(), treeType);
             markLeavesWithFruit(event.getLocation(), fruitKey);
+            placeFruitSkulls(event.getLocation(), fruitKey);
         }
     }
 
@@ -119,6 +126,60 @@ public class TreeListeners implements Listener {
                     }
                 }
             }
+        }
+    }
+
+    /** 在树叶下方生成果实头颅 (概率25%)，状态设为上方悬挂 */
+    private void placeFruitSkulls(Location loc, String fruitKey) {
+        Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
+        if (fruitSupplier == null) return;
+
+        // 获取果实物品的PlayerProfile用于头颅
+        ItemStack sample = fruitSupplier.get();
+        PlayerProfile fruitProfile = null;
+        if (sample.getItemMeta() instanceof SkullMeta skullMeta) {
+            fruitProfile = skullMeta.getPlayerProfile();
+        }
+
+        World world = loc.getWorld();
+        for (int x = -4; x <= 4; x++) {
+            for (int y = 1; y <= 7; y++) {
+                for (int z = -4; z <= 4; z++) {
+                    Block leaf = world.getBlockAt(loc.getBlockX() + x, loc.getBlockY() + y, loc.getBlockZ() + z);
+                    if (!isLeaf(leaf.getType())) continue;
+
+                    Block below = leaf.getRelative(0, -1, 0);
+                    if (below.getType() != Material.AIR) continue;
+
+                    if (RANDOM.nextDouble() >= 0.25) continue;
+
+                    // 使用PLAYER_HEAD放置在树叶下方
+                    below.setType(Material.PLAYER_HEAD);
+                    below.setMetadata(FRUIT_SKULL_METADATA, new FixedMetadataValue(getplugin, fruitKey));
+
+                    if (fruitProfile != null && below.getState() instanceof Skull skull) {
+                        skull.setPlayerProfile(fruitProfile);
+                        skull.update(true);
+                    }
+                }
+            }
+        }
+    }
+
+    /** 破坏果实头颅时掉落对应果实 */
+    @EventHandler
+    public void onFruitSkullBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (block.getType() != Material.PLAYER_HEAD) return;
+        if (!block.hasMetadata(FRUIT_SKULL_METADATA)) return;
+
+        String fruitKey = block.getMetadata(FRUIT_SKULL_METADATA).get(0).asString();
+        Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
+        block.removeMetadata(FRUIT_SKULL_METADATA, getplugin);
+
+        event.setDropItems(false);
+        if (fruitSupplier != null) {
+            block.getWorld().dropItemNaturally(block.getLocation(), fruitSupplier.get());
         }
     }
 

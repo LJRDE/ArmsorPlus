@@ -52,6 +52,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "Tracking_EnchantedBook", "Harvest_EnchantedBook",
             "AutoPlant_EnchantedBook", "StrongBurst_EnchantedBook",
             "MultiShot_EnchantedBook",
+            "Poison_EnchantedBook", "SharpBlade_EnchantedBook",
             "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
@@ -63,7 +64,8 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "DiamondDrill", "Blindness", "Indestructible",
             "ProtectionPRO", "Stun", "GolemGuardian", "CriticalStrike",
             "Piercing", "LavaWalker", "LightningCall", "Holographic",
-            "Tracking", "Harvest", "AutoPlant", "StrongBurst", "MultiShot"
+            "Tracking", "Harvest", "AutoPlant", "StrongBurst", "MultiShot",
+            "Poison", "SharpBlade"
     );
 
     @Override
@@ -522,6 +524,18 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(MultiShot_EnchantedBook(amount, level));
                 sender.sendMessage("已给予 " + amount + " 本" + ChatColor.LIGHT_PURPLE + "千重射击" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
+            case "Poison_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Poison_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_GREEN + "剧毒" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "SharpBlade_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(SharpBlade_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_AQUA + "利刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }
     }
@@ -571,6 +585,8 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "DiamondDrill" -> ArmsorEnchant.getEnchantLevel(item, DiamondDrillKey);
             case "Blindness" -> ArmsorEnchant.getEnchantLevel(item, BlindnessKey);
             case "Indestructible" -> ArmsorEnchant.getEnchantLevel(item, IndestructibleKey);
+            case "Poison" -> ArmsorEnchant.getEnchantLevel(item, PoisonKey);
+            case "SharpBlade" -> ArmsorEnchant.getEnchantLevel(item, SharpBladeKey);
             default -> -1;
         };
         if (level < 0) {
@@ -599,6 +615,8 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         case "DiamondDrill" -> DiamondDrillKey;
                         case "Blindness" -> BlindnessKey;
                         case "Indestructible" -> IndestructibleKey;
+                        case "Poison" -> PoisonKey;
+                        case "SharpBlade" -> SharpBladeKey;
                         default -> null;
                     }
             );
@@ -632,7 +650,11 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         FreezeKey, ShadowDodge, BlockingKey, WitheringKey, SurvivorKey,
                         HealthBoostKey, RevengeKey, ExplosiveArrowKey, Sniping, ArrowSpeed,
                         DoubleHitkey, Feedingkey, QuickThrustKey, DiamondDrillKey, BlindnessKey,
-                        IndestructibleKey, Armskey, Armorkey, Bowkey, DiamondPluskey,
+                        IndestructibleKey, ProtectionPROKey, StunKey, GolemGuardianKey,
+                        CriticalStrikeKey, PiercingKey, LavaWalkerKey, LightningCallKey,
+                        HolographicKey, TrackingKey, HarvestKey, AutoPlantKey, StrongBurstKey,
+                        MultiShotKey, PoisonKey, SharpBladeKey,
+                        Armskey, Armorkey, Bowkey, DiamondPluskey,
                         BasicStone, GuideBookKey, MagicBallKey, MenuMark
                 )) {
                     meta.getPersistentDataContainer().remove(key);
@@ -679,6 +701,8 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "DiamondDrill" -> DiamondDrillKey;
             case "Blindness" -> BlindnessKey;
             case "Indestructible" -> IndestructibleKey;
+            case "Poison" -> PoisonKey;
+            case "SharpBlade" -> SharpBladeKey;
             default -> null;
         };
         if (key == null) {

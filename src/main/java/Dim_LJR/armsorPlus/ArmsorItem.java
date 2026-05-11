@@ -14,6 +14,7 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -215,7 +216,9 @@ public class ArmsorItem {
         meta.setDisplayName(BLOOD_SWORD_NAME);
         meta.setLore(Collections.singletonList(
                 ChatColor.DARK_RED + "血祭V: 攻击时有100%概率消耗15点生命值造成2~6倍伤害"));
-        meta.setCustomModelData(20260510);
+        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+        customModelData.setFloats(List.of(20260511f));
+        meta.setCustomModelDataComponent(customModelData);
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, BloodSacrificekey, 5);
         item.setAmount(amount);

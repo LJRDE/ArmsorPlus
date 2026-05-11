@@ -2,11 +2,9 @@
   "model": {
     "type": "minecraft:select",
     "property": "minecraft:custom_model_data",
-    "index": 0,
     "cases": [
-      { "when": 20260510,
-        "model": { "type": "minecraft:model", "model": "item/ruby" } }
+      { "when": 20260511, "model": { "type": "minecraft:model", "model": "item/blood_sword" } }
     ],
-    "fallback": { "type": "minecraft:model", "model": "item/golden_sword" }
+    "fallback": { "type": "minecraft:model", "model": "minecraft:item/golden_sword" }
   }
 }
