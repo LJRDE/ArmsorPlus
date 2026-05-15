@@ -14,7 +14,7 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -216,9 +216,7 @@ public class ArmsorItem {
         meta.setDisplayName(BLOOD_SWORD_NAME);
         meta.setLore(Collections.singletonList(
                 ChatColor.DARK_RED + "血祭V: 攻击时有100%概率消耗15点生命值造成2~6倍伤害"));
-        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
-        customModelData.setFloats(List.of(20260511f));
-        meta.setCustomModelDataComponent(customModelData);
+        meta.setCustomModelData(20260511);
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, BloodSacrificekey, 5);
         item.setAmount(amount);
@@ -241,6 +239,31 @@ public class ArmsorItem {
         return item;
     }
 
+    /** 噬生: 造成伤害时随机扣除对方或者自生血量提升伤害*/
+    public static ItemStack DevourLifeSword(int amount) {
+        ItemStack item = new ItemStack(NETHERITE_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.DARK_PURPLE + "噬生");
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(
+                        NamespacedKey.fromString("armsorplus:custom_damage"),
+                        4,
+                        AttributeModifier.Operation.ADD_NUMBER,
+                        EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(
+                ChatColor.DARK_RED + "血裂数: 0/20"));
+        meta.getPersistentDataContainer().set(ScoreKey,
+                PersistentDataType.DOUBLE,
+                0.0);
+        meta.getPersistentDataContainer().set(DevourLifeBloodTimestamps,
+                PersistentDataType.STRING,
+                "");
+        meta.setCustomModelData(20260514);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, DevourLifeSwordKey, 5);
+        item.setAmount(amount);
+        return item;
+    }
     // ========================================================================
     // 附魔书 —— 拖动到对应装备上使用
     // ========================================================================
@@ -348,6 +371,8 @@ public class ArmsorItem {
         return createEnchantedBook(amount, level, Feedingkey, FEEDING_BOOK,
                 "可用装备:武器", "有" + level * 20 + "%概率吸取0.5点生命值");
     }
+
+
 
     // ========================================================================
     // 其他物品
@@ -513,6 +538,7 @@ public class ArmsorItem {
     private static final String MULTI_SHOT_BOOK = ChatColor.LIGHT_PURPLE + "千重射击";
     private static final String POISON_BOOK = ChatColor.DARK_GREEN + "剧毒";
     private static final String SHARP_BLADE_BOOK = ChatColor.DARK_AQUA + "利刃";
+    private static final String THUNDERCLAP_ARROW_BOOK = ChatColor.YELLOW + "惊雷";
 
     /** 保护PRO附魔书: 胸甲 - 每级额外减少6%伤害，满级V */
     public static ItemStack ProtectionPRO_EnchantedBook(int amount, int level) {
@@ -602,6 +628,12 @@ public class ArmsorItem {
     public static ItemStack SharpBlade_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, SharpBladeKey, SHARP_BLADE_BOOK,
                 "可用装备:武器", "目标护甲值越低伤害越高", "护甲超过18点时仅提升10%");
+    }
+
+    /** 惊雷附魔书: 弓 - 命中召唤level道雷，未命中召唤1道雷，满级III */
+    public static ItemStack ThunderclapArrow_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, ThunderclapArrowKey, THUNDERCLAP_ARROW_BOOK,
+                "可用装备:弓", "命中目标时召唤" + level + "道雷", "未命中(击中方块)召唤1道雷", "满级III");
     }
 
     // ========================================================================

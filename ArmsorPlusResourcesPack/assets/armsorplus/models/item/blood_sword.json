@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "minecraft:item/BloodSword"
+    "layer0": "armsorplus:item/blood_sword"
   }
 }

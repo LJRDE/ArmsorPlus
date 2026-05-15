@@ -64,6 +64,8 @@ public class NamespaceKey {
         public static NamespacedKey SkeletonScepterKey;
         public static NamespacedKey FrostBowKey;
         public static NamespacedKey FlameHalberdKey;
+        public static NamespacedKey DevourLifeSwordKey;//噬生
+        public static NamespacedKey DevourLifeBloodTimestamps;//血裂时间戳
 
         // ---- 新附魔键 ----
         public static NamespacedKey QuickThrustKey;
@@ -142,6 +144,7 @@ public class NamespaceKey {
         public static NamespacedKey IceSwordKey;
         public static NamespacedKey WebBowKey;
         public static NamespacedKey ExplosionBowKey;
+        public static NamespacedKey ScoreKey;
 
         // ---- 新附魔键 (0.3H) ----
         public static NamespacedKey ProtectionPROKey;
@@ -153,6 +156,7 @@ public class NamespaceKey {
         public static NamespacedKey LightningCallKey;
         public static NamespacedKey HolographicKey;
         public static NamespacedKey TrackingKey;
+
 
         // ---- 新附魔键 (0.3I) ----
         public static NamespacedKey HarvestKey;
@@ -191,6 +195,7 @@ public class NamespaceKey {
         // ---- 新附魔键 ----
         public static NamespacedKey PoisonKey;
         public static NamespacedKey SharpBladeKey;
+        public static NamespacedKey ThunderclapArrowKey;
 
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
@@ -198,7 +203,7 @@ public class NamespaceKey {
         /** 初始化所有键 — 必须在插件 onEnable 中调用 */
         public static void regkey(JavaPlugin plugin) {
             getplugin = plugin;
-
+            ScoreKey = new NamespacedKey(plugin,"ArmsorPlus_Score");
             MagicStickKey = new NamespacedKey(plugin,"ArmsorPlus_MagicStick");
             MenuMark = new NamespacedKey(plugin, "ArmsorPlus_MenuMark");
 
@@ -328,6 +333,7 @@ public class NamespaceKey {
 
             PoisonKey = new NamespacedKey(plugin, "ArmsorPlus_Poison");
             SharpBladeKey = new NamespacedKey(plugin, "ArmsorPlus_SharpBlade");
+            ThunderclapArrowKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderclapArrow");
 
             DiamondDrillKey = new NamespacedKey(plugin, "ArmsorPlus_DiamondDrill");
             IndestructibleKey = new NamespacedKey(plugin, "ArmsorPlus_Indestructible");
@@ -341,6 +347,8 @@ public class NamespaceKey {
             IceSwordKey = new NamespacedKey(plugin, "ArmsorPlus_IceSword");
             WebBowKey = new NamespacedKey(plugin, "ArmsorPlus_WebBow");
             ExplosionBowKey = new NamespacedKey(plugin, "ArmsorPlus_ExplosionBow");
+            DevourLifeSwordKey = new NamespacedKey(plugin, "ArmsorPlus_DevourLifeSwordKey");
+            DevourLifeBloodTimestamps = new NamespacedKey(plugin, "ArmsorPlus_DevourLifeBloodTimestamps");
 
             // 0.3H 新附魔
             ProtectionPROKey = new NamespacedKey(plugin, "ArmsorPlus_ProtectionPRO");

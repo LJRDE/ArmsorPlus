@@ -5,16 +5,16 @@
     "component": "minecraft:custom_model_data",
     "cases": [
       {
-        "when": {"floats":[20260511]},
+        "when": {"floats":[20260514]},
         "model": {
           "type": "model",
-          "model": "armsorplus:item/blood_sword"
+          "model": "armsorplus:item/devour_life_sword"
         }
       }
     ],
     "fallback": {
       "type": "model",
-      "model": "item/golden_sword"
+      "model": "item/netherite_sword"
     }
   }
 }

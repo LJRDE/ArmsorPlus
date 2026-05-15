@@ -18,6 +18,8 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -68,6 +70,122 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     private String getEntityName(Entity entity) {
         if (entity instanceof Player) return ((Player) entity).getName();
         return entity.getCustomName() != null ? entity.getCustomName() : entity.getName();
+    }
+
+    //血裂
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void DevourLifeSwordHander(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof LivingEntity damger)) return;
+        if (damger.getEquipment() == null) return;
+        ItemStack item = damger.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        int level = ArmsorEnchant.getEnchantLevel(item, DevourLifeSwordKey);
+        if (level == 0) return;
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+
+        // 读取累计伤害
+        Double score = pdc.get(ScoreKey, PersistentDataType.DOUBLE);
+        if (score == null) score = 0.0;
+
+        // 读取血裂时间戳
+        String tsStr = pdc.get(DevourLifeBloodTimestamps, PersistentDataType.STRING);
+        List<Long> timestamps = parseTimestamps(tsStr);
+
+        // 清理过期时间戳 (>30秒)
+        long now = System.currentTimeMillis();
+        timestamps.removeIf(ts -> now - ts >= 30000);
+
+        // 血裂数 = 有效时间戳数 (上限20)
+        int bloodCount = Math.min(timestamps.size(), 20);
+
+        // 同步累计伤害: 过期血裂对应的伤害进度应移除
+        score = Math.min(score, bloodCount * 4.0 + 3.99);
+
+        Double EndDamage = event.getFinalDamage();
+        int oldThresholds = (int) (score / 4.0);
+        score += EndDamage;
+        int newThresholds = (int) (score / 4.0);
+
+        // 每跨过一个4点伤害阈值产生一点血裂
+        int gained = newThresholds - oldThresholds;
+        for (int i = 0; i < gained && bloodCount < 20; i++) {
+            timestamps.add(now);
+            bloodCount++;
+        }
+        if (bloodCount >= 20) {
+            score = Math.min(score, 20 * 4.0 + 3.99);
+        }
+
+        if (gained > 0 && event.getDamager() instanceof Player) {
+            PlayerSettings.notify(event.getDamager(),
+                    ChatColor.DARK_PURPLE + "产生了一点血裂! 当前血裂数: " + bloodCount);
+        }
+
+        // 伤害加成 = 当前血裂数
+        event.setDamage(event.getDamage() + bloodCount);
+
+        // 保存累计伤害和时间戳
+        pdc.set(ScoreKey, PersistentDataType.DOUBLE, score);
+        pdc.set(DevourLifeBloodTimestamps, PersistentDataType.STRING,
+                timestamps.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse(""));
+
+        // 更新Lore显示血裂数
+        updateDevourLifeLore(meta, bloodCount);
+
+        item.setItemMeta(meta);
+
+        // 调度衰减Lore刷新
+        if (damger instanceof Player player) {
+            scheduleBloodDecayLoreRefresh(player);
+        }
+    }
+
+    /** 解析时间戳字符串为List */
+    private List<Long> parseTimestamps(String tsStr) {
+        List<Long> list = new ArrayList<>();
+        if (tsStr == null || tsStr.isEmpty()) return list;
+        for (String s : tsStr.split(",")) {
+            try { list.add(Long.parseLong(s)); } catch (NumberFormatException ignored) {}
+        }
+        return list;
+    }
+
+    /** 更新噬生剑的lore显示血裂数 */
+    private void updateDevourLifeLore(ItemMeta meta, int bloodCount) {
+        List<String> lore = meta.getLore();
+        if (lore == null) lore = new ArrayList<>();
+        // 移除旧的血裂行
+        lore.removeIf(line -> ChatColor.stripColor(line).contains("血裂数"));
+        // 添加新的血裂行到最前面
+        lore.add(0, ChatColor.DARK_RED + "血裂数: " + bloodCount + "/20");
+        meta.setLore(lore);
+    }
+
+    /** 血裂衰减Lore刷新: 定时在31秒后刷新Lore (稍晚于30秒衰减) */
+    private final Set<UUID> pendingBloodDecayRefresh = new HashSet<>();
+
+    private void scheduleBloodDecayLoreRefresh(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (pendingBloodDecayRefresh.contains(uuid)) return;
+        pendingBloodDecayRefresh.add(uuid);
+        Bukkit.getScheduler().runTaskLater(getplugin, () -> {
+            pendingBloodDecayRefresh.remove(uuid);
+            ItemStack item = player.getEquipment().getItemInMainHand();
+            if (item.getType().isAir() || ArmsorEnchant.getEnchantLevel(item, DevourLifeSwordKey) == 0) return;
+            ItemMeta meta = item.getItemMeta();
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            String tsStr = pdc.get(DevourLifeBloodTimestamps, PersistentDataType.STRING);
+            List<Long> timestamps = parseTimestamps(tsStr);
+            long now = System.currentTimeMillis();
+            timestamps.removeIf(ts -> now - ts >= 30000);
+            int bloodCount = Math.min(timestamps.size(), 20);
+            // 保存清理后的时间戳
+            pdc.set(DevourLifeBloodTimestamps, PersistentDataType.STRING,
+                    timestamps.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse(""));
+            updateDevourLifeLore(meta, bloodCount);
+            item.setItemMeta(meta);
+        }, 31 * 20L); // 31秒 = 620 ticks
     }
 
     // ========================================================================
@@ -694,6 +812,11 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 PlayerSettings.notify(player,ChatColor.LIGHT_PURPLE + "获得千重射击附魔书");
                 count++;
             }
+            if (percent(10)) {
+                player.getInventory().addItem(ThunderclapArrow_EnchantedBook(1, r.nextInt(3) + 1));
+                PlayerSettings.notify(player,ChatColor.YELLOW + "获得惊雷附魔书");
+                count++;
+            }
         }
 
         PlayerSettings.notify(player,"获得数量: " + count);
@@ -1256,6 +1379,45 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             PlayerSettings.notify(event.getDamager(), ChatColor.DARK_AQUA + "利刃: 伤害提升"
                     + String.format("%.0f", (multiplier - 1) * 100) + "%");
         }
+    }
+
+    // ========================================================================
+    // 惊雷 —— 命中召唤level道雷，未命中(击中方块)召唤1道雷 (弓, 满级III)
+    // ========================================================================
+
+    @EventHandler
+    public void ThunderclapArrowHandler(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Arrow arrow)) return;
+        if (!(arrow.getShooter() instanceof Player player)) return;
+
+        int level = getThunderclapBowLevel(player);
+        if (level <= 0) return;
+
+        Location hitLoc = arrow.getLocation();
+        World world = hitLoc.getWorld();
+
+        if (event.getHitEntity() != null) {
+            for (int i = 0; i < level; i++) {
+                world.strikeLightning(hitLoc);
+            }
+        } else if (event.getHitBlock() != null) {
+            world.strikeLightning(hitLoc);
+        }
+    }
+
+    private int getThunderclapBowLevel(Player player) {
+        int level = 0;
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        if (mainHand.getType() == BOW) {
+            level = ArmsorEnchant.getEnchantLevel(mainHand, ThunderclapArrowKey);
+        }
+        if (level == 0) {
+            ItemStack offHand = player.getInventory().getItemInOffHand();
+            if (offHand.getType() == BOW) {
+                level = ArmsorEnchant.getEnchantLevel(offHand, ThunderclapArrowKey);
+            }
+        }
+        return level;
     }
 
     /** 根据护甲材质估算基础护甲值 */
