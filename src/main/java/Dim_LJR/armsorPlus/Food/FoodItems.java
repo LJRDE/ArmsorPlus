@@ -839,6 +839,12 @@ public class FoodItems {
     private static final String BUTTER_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
     // 纹理: 大便 (TODO: Replace with poop texture)
     private static final String POOP_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
+    // 纹理: 金盾丹 (TODO: Replace with gold shield elixir texture)
+    private static final String GOLD_SHIELD_ELIXIR_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
+    // 纹理: 极寒冰核 (TODO: Replace)
+    private static final String ICE_CORE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
+    // 纹理: 烈焰原核 (TODO: Replace)
+    private static final String FIRE_CORE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
 
     /** 汉堡: 恢复8饥饿值 + 6饱和度 */
     public static ItemStack Burger(int amount) {
@@ -1216,6 +1222,58 @@ public class FoodItems {
                 ChatColor.GRAY + "……你真的要吃这个？"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, PoopKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 金盾丹: 右击食用, 获得12s伤害吸收X */
+    public static ItemStack GoldShieldElixir(int amount) {
+        ItemStack item = new ItemStack(PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_GoldShieldElixir".getBytes()), null);
+        profile.setProperty(new ProfileProperty("textures", GOLD_SHIELD_ELIXIR_TEXTURE));
+        meta.setPlayerProfile(profile);
+        meta.setDisplayName(ChatColor.GOLD + "金盾丹");
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "右键食用",
+                ChatColor.GOLD + "获得12秒伤害吸收X",
+                ChatColor.GRAY + "金色护盾之力"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, GoldShieldElixirKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 极寒冰核: 急冻树掉落物，用于合成寒冰弓 */
+    public static ItemStack IceCore(int amount) {
+        ItemStack item = new ItemStack(PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_IceCore".getBytes()), null);
+        profile.setProperty(new ProfileProperty("textures", ICE_CORE_TEXTURE));
+        meta.setPlayerProfile(profile);
+        meta.setDisplayName(ChatColor.AQUA + "极寒冰核");
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "急冻树的核心",
+                ChatColor.GRAY + "蕴含极寒之力，可用于合成寒冰弓"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, IceCoreKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 烈焰原核: 爆炎树掉落物，用于合成烈焰戟 */
+    public static ItemStack FireCore(int amount) {
+        ItemStack item = new ItemStack(PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_FireCore".getBytes()), null);
+        profile.setProperty(new ProfileProperty("textures", FIRE_CORE_TEXTURE));
+        meta.setPlayerProfile(profile);
+        meta.setDisplayName(ChatColor.RED + "烈焰原核");
+        meta.setLore(Arrays.asList(
+                ChatColor.RED + "爆炎树的核心",
+                ChatColor.GRAY + "蕴含烈焰之力，可用于合成烈焰戟"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FireCoreKey, 1);
         item.setAmount(amount);
         return item;
     }

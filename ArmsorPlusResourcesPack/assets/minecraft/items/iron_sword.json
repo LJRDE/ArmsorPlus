@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "minecraft:custom_model_data",
+    "cases": [
+      {
+        "when": {"floats":[20260515]},
+        "model": {
+          "type": "model",
+          "model": "armsorplus:item/star_trace_sword"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "model",
+      "model": "item/iron_sword"
+    }
+  }
+}

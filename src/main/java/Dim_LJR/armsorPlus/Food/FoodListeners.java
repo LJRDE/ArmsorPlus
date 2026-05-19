@@ -1139,4 +1139,23 @@ public class FoodListeners implements Listener {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
         player.sendActionBar("§c你为什么要吃这个？！");
     }
+
+    @EventHandler
+    public void onGoldShieldElixirUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, GoldShieldElixirKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.ABSORPTION, 12 * 20, 9, false, true));
+        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+        player.getWorld().playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.8f, 1.0f);
+        player.sendActionBar("§6已食用金盾丹 §e伤害吸收X 12秒");
+    }
 }

@@ -474,6 +474,42 @@ public class EnhancementHandler implements Listener {
         // [惊雷] 弓
         if (tryApplyEnchant(event, consum, item, player, ThunderclapArrowKey, ThunderclapArrowKey,
                 item.getType() == BOW, ChatColor.YELLOW + "惊雷")) return;
+        // [卸力] 胸甲
+        if (tryApplyEnchant(event, consum, item, player, DamageDispersalKey, DamageDispersalKey,
+                isChestplate(item), ChatColor.DARK_GREEN + "卸力")) return;
+        // [百草] 胸甲
+        if (tryApplyEnchant(event, consum, item, player, HerbGuardKey, HerbGuardKey,
+                isChestplate(item), ChatColor.GREEN + "百草")) return;
+        // [火刃] 武器
+        if (tryApplyEnchant(event, consum, item, player, FireBladeKey, FireBladeKey,
+                isSwordOrAxe(item), ChatColor.RED + "火刃")) return;
+        // [霜刃] 武器
+        if (tryApplyEnchant(event, consum, item, player, FrostBladeKey, FrostBladeKey,
+                isSwordOrAxe(item), ChatColor.AQUA + "霜刃")) return;
+        // [雷刃] 武器
+        if (tryApplyEnchant(event, consum, item, player, ThunderBladeKey, ThunderBladeKey,
+                isSwordOrAxe(item), ChatColor.YELLOW + "雷刃")) return;
+        // [魔刃] 武器
+        if (tryApplyEnchant(event, consum, item, player, MagicBladeKey, MagicBladeKey,
+                isSwordOrAxe(item), ChatColor.DARK_PURPLE + "魔刃")) return;
+        // [冰刺] 武器
+        if (tryApplyEnchant(event, consum, item, player, IceSpikeKey, IceSpikeKey,
+                isSwordOrAxe(item), ChatColor.AQUA + "冰刺")) return;
+        // [烈焰] 武器
+        if (tryApplyEnchant(event, consum, item, player, InfernoKey, InfernoKey,
+                isSwordOrAxe(item), ChatColor.RED + "烈焰")) return;
+        // [重甲] 胸甲
+        if (tryApplyEnchant(event, consum, item, player, HeavyArmorKey, HeavyArmorKey,
+                isChestplate(item), ChatColor.DARK_GRAY + "重甲")) return;
+        // [地之眷顾] 铲子
+        if (tryApplyEnchant(event, consum, item, player, EarthFavorKey, EarthFavorKey,
+                (item.getType() == WOODEN_SHOVEL || item.getType() == STONE_SHOVEL
+                        || item.getType() == IRON_SHOVEL || item.getType() == GOLDEN_SHOVEL
+                        || item.getType() == DIAMOND_SHOVEL || item.getType() == NETHERITE_SHOVEL),
+                ChatColor.DARK_GREEN + "地之眷顾")) return;
+        // [伏击] 盾牌
+        if (tryApplyEnchant(event, consum, item, player, AmbushKey, AmbushKey,
+                item.getType() == Material.SHIELD, ChatColor.DARK_RED + "伏击")) return;
     }
 
     /**

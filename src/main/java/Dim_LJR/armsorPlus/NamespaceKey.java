@@ -66,6 +66,9 @@ public class NamespaceKey {
         public static NamespacedKey FlameHalberdKey;
         public static NamespacedKey DevourLifeSwordKey;//噬生
         public static NamespacedKey DevourLifeBloodTimestamps;//血裂时间戳
+        public static NamespacedKey StarTraceSwordKey;//星痕
+        public static NamespacedKey BlackTortoiseSwordKey;//玄武
+        public static NamespacedKey TortoiseAccumulatedKey;//玄武累计伤害
 
         // ---- 新附魔键 ----
         public static NamespacedKey QuickThrustKey;
@@ -191,11 +194,33 @@ public class NamespaceKey {
         public static NamespacedKey CabbageKey;
         public static NamespacedKey ButterKey;
         public static NamespacedKey PoopKey;
+        public static NamespacedKey GoldShieldElixirKey;
 
         // ---- 新附魔键 ----
         public static NamespacedKey PoisonKey;
         public static NamespacedKey SharpBladeKey;
         public static NamespacedKey ThunderclapArrowKey;
+        public static NamespacedKey DamageDispersalKey;
+        public static NamespacedKey HerbGuardKey;
+        public static NamespacedKey FireBladeKey;
+        public static NamespacedKey FrostBladeKey;
+        public static NamespacedKey ThunderBladeKey;
+        public static NamespacedKey MagicBladeKey;
+        public static NamespacedKey IceSpikeKey;
+        public static NamespacedKey InfernoKey;
+        public static NamespacedKey HeavyArmorKey;
+        public static NamespacedKey EarthFavorKey;
+        public static NamespacedKey ThunderGlowKey;
+        public static NamespacedKey BlazingSunKey;
+        public static NamespacedKey PeachWoodSwordKey;
+        public static NamespacedKey IceCoreKey;
+        public static NamespacedKey FireCoreKey;
+        public static NamespacedKey CorpseKingKey;
+        public static NamespacedKey AmbushKey;
+        public static NamespacedKey FireMarkKey;
+        public static NamespacedKey FrostMarkKey;
+        public static NamespacedKey ThunderMarkKey;
+        public static NamespacedKey MagicMarkKey;
 
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
@@ -330,10 +355,32 @@ public class NamespaceKey {
             CabbageKey = new NamespacedKey(plugin, "ArmsorPlus_Cabbage");
             ButterKey = new NamespacedKey(plugin, "ArmsorPlus_Butter");
             PoopKey = new NamespacedKey(plugin, "ArmsorPlus_Poop");
+            GoldShieldElixirKey = new NamespacedKey(plugin, "ArmsorPlus_GoldShieldElixir");
 
             PoisonKey = new NamespacedKey(plugin, "ArmsorPlus_Poison");
             SharpBladeKey = new NamespacedKey(plugin, "ArmsorPlus_SharpBlade");
             ThunderclapArrowKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderclapArrow");
+            DamageDispersalKey = new NamespacedKey(plugin, "ArmsorPlus_DamageDispersal");
+            HerbGuardKey = new NamespacedKey(plugin, "ArmsorPlus_HerbGuard");
+            FireBladeKey = new NamespacedKey(plugin, "ArmsorPlus_FireBlade");
+            FrostBladeKey = new NamespacedKey(plugin, "ArmsorPlus_FrostBlade");
+            ThunderBladeKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderBlade");
+            MagicBladeKey = new NamespacedKey(plugin, "ArmsorPlus_MagicBlade");
+            IceSpikeKey = new NamespacedKey(plugin, "ArmsorPlus_IceSpike");
+            InfernoKey = new NamespacedKey(plugin, "ArmsorPlus_Inferno");
+            HeavyArmorKey = new NamespacedKey(plugin, "ArmsorPlus_HeavyArmor");
+            EarthFavorKey = new NamespacedKey(plugin, "ArmsorPlus_EarthFavor");
+            ThunderGlowKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderGlow");
+            BlazingSunKey = new NamespacedKey(plugin, "ArmsorPlus_BlazingSun");
+            PeachWoodSwordKey = new NamespacedKey(plugin, "ArmsorPlus_PeachWoodSword");
+            IceCoreKey = new NamespacedKey(plugin, "ArmsorPlus_IceCore");
+            FireCoreKey = new NamespacedKey(plugin, "ArmsorPlus_FireCore");
+            CorpseKingKey = new NamespacedKey(plugin, "ArmsorPlus_CorpseKing");
+            AmbushKey = new NamespacedKey(plugin, "ArmsorPlus_Ambush");
+            FireMarkKey = new NamespacedKey(plugin, "ArmsorPlus_FireMark");
+            FrostMarkKey = new NamespacedKey(plugin, "ArmsorPlus_FrostMark");
+            ThunderMarkKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderMark");
+            MagicMarkKey = new NamespacedKey(plugin, "ArmsorPlus_MagicMark");
 
             DiamondDrillKey = new NamespacedKey(plugin, "ArmsorPlus_DiamondDrill");
             IndestructibleKey = new NamespacedKey(plugin, "ArmsorPlus_Indestructible");
@@ -349,6 +396,9 @@ public class NamespaceKey {
             ExplosionBowKey = new NamespacedKey(plugin, "ArmsorPlus_ExplosionBow");
             DevourLifeSwordKey = new NamespacedKey(plugin, "ArmsorPlus_DevourLifeSwordKey");
             DevourLifeBloodTimestamps = new NamespacedKey(plugin, "ArmsorPlus_DevourLifeBloodTimestamps");
+            StarTraceSwordKey = new NamespacedKey(plugin, "ArmsorPlus_StarTraceSword");
+            BlackTortoiseSwordKey = new NamespacedKey(plugin, "ArmsorPlus_BlackTortoiseSword");
+            TortoiseAccumulatedKey = new NamespacedKey(plugin, "ArmsorPlus_TortoiseAccumulated");
 
             // 0.3H 新附魔
             ProtectionPROKey = new NamespacedKey(plugin, "ArmsorPlus_ProtectionPRO");

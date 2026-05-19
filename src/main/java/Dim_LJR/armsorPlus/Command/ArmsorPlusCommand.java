@@ -29,7 +29,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
     private final List<String> args1_give = List.of(
             "Arms_I", "Arms_II", "Armor_I", "Armor_II", "Bow_I",
             "DiamondPlus", "MagicBal_I", "MagicBal_II", "MagicBal_III", "MagicBal_IV",
-            "Blood_Sword", "Iron_Epee",
+            "Blood_Sword", "Iron_Epee", "StarTraceSword", "BlackTortoiseSword", "BlazingSun", "PeachWoodSword",
             "BasicStone", "GuideBook",
             "Dodge_EnchantedBook", "Famine_EnchantedBook",
             "Ripples_EnchantedBook", "BloodSacrifice_EnchantedBook",
@@ -54,6 +54,15 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "MultiShot_EnchantedBook",
             "Poison_EnchantedBook", "SharpBlade_EnchantedBook",
             "ThunderclapArrow_EnchantedBook",
+            "DamageDispersal_EnchantedBook",
+            "HerbGuard_EnchantedBook",
+            "FireBlade_EnchantedBook", "FrostBlade_EnchantedBook",
+            "ThunderBlade_EnchantedBook", "MagicBlade_EnchantedBook",
+            "IceSpike_EnchantedBook", "Inferno_EnchantedBook",
+            "HeavyArmor_EnchantedBook", "EarthFavor_EnchantedBook",
+            "Ambush_EnchantedBook",
+            "ThunderGlow", "BlazingSun",
+            "GoldShieldElixir",
             "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
@@ -66,7 +75,9 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "ProtectionPRO", "Stun", "GolemGuardian", "CriticalStrike",
             "Piercing", "LavaWalker", "LightningCall", "Holographic",
             "Tracking", "Harvest", "AutoPlant", "StrongBurst", "MultiShot",
-            "Poison", "SharpBlade", "ThunderclapArrow"
+            "Poison", "SharpBlade", "ThunderclapArrow", "DamageDispersal",
+            "HerbGuard", "FireBlade", "FrostBlade", "ThunderBlade", "MagicBlade",
+            "IceSpike", "Inferno", "HeavyArmor", "EarthFavor", "Ambush"
     );
 
     @Override
@@ -195,6 +206,16 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(Iron_Epee(amount));
                 sender.sendMessage("已获得 " + amount + " 把重剑");
+            }
+            case "StarTraceSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(StarTraceSword(amount));
+                sender.sendMessage(ChatColor.DARK_AQUA + "已获得 " + amount + " 把星痕剑");
+            }
+            case "BlackTortoiseSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(BlackTortoiseSword(amount));
+                sender.sendMessage(ChatColor.DARK_GREEN + "已获得 " + amount + " 把玄武剑");
             }
             // ===== 附魔书（需要数量 + 等级）=====
             case "Sniping_EnchantedBook" -> {
@@ -543,6 +564,92 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(ThunderclapArrow_EnchantedBook(amount, level));
                 sender.sendMessage("已给予 " + amount + " 本" + ChatColor.YELLOW + "惊雷" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
+            case "DamageDispersal_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(DamageDispersal_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_GREEN + "卸力" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "HerbGuard_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(HerbGuard_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GREEN + "百草" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "FireBlade_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(FireBlade_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.RED + "火刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "FrostBlade_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(FrostBlade_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.AQUA + "霜刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "ThunderBlade_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(ThunderBlade_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.YELLOW + "雷刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "MagicBlade_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(MagicBlade_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_PURPLE + "魔刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "IceSpike_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(IceSpike_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.AQUA + "冰刺" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "Inferno_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Inferno_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.RED + "烈焰" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "HeavyArmor_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(HeavyArmor_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_GRAY + "重甲" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "EarthFavor_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(EarthFavor_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_GREEN + "地之眷顾" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "ThunderGlow" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(ThunderGlow(amount));
+                sender.sendMessage(ChatColor.YELLOW + "已获得 " + amount + " 把雷光");
+            }
+            case "BlazingSun" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(BlazingSun(amount));
+                sender.sendMessage(ChatColor.GOLD + "已获得 " + amount + " 把烈阳");
+            }
+            case "PeachWoodSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(PeachWoodSword(amount));
+                sender.sendMessage(ChatColor.GREEN + "已获得 " + amount + " 把桃木剑");
+            }
+            case "Ambush_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Ambush_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_RED + "伏击" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
+            case "GoldShieldElixir" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(GoldShieldElixir(amount));
+                sender.sendMessage(ChatColor.GOLD + "已获得 " + amount + " 个金盾丹");
+            }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }
     }
@@ -595,6 +702,17 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "Poison" -> ArmsorEnchant.getEnchantLevel(item, PoisonKey);
             case "SharpBlade" -> ArmsorEnchant.getEnchantLevel(item, SharpBladeKey);
             case "ThunderclapArrow" -> ArmsorEnchant.getEnchantLevel(item, ThunderclapArrowKey);
+            case "DamageDispersal" -> ArmsorEnchant.getEnchantLevel(item, DamageDispersalKey);
+            case "HerbGuard" -> ArmsorEnchant.getEnchantLevel(item, HerbGuardKey);
+            case "FireBlade" -> ArmsorEnchant.getEnchantLevel(item, FireBladeKey);
+            case "FrostBlade" -> ArmsorEnchant.getEnchantLevel(item, FrostBladeKey);
+            case "ThunderBlade" -> ArmsorEnchant.getEnchantLevel(item, ThunderBladeKey);
+            case "MagicBlade" -> ArmsorEnchant.getEnchantLevel(item, MagicBladeKey);
+            case "IceSpike" -> ArmsorEnchant.getEnchantLevel(item, IceSpikeKey);
+            case "Inferno" -> ArmsorEnchant.getEnchantLevel(item, InfernoKey);
+            case "HeavyArmor" -> ArmsorEnchant.getEnchantLevel(item, HeavyArmorKey);
+            case "EarthFavor" -> ArmsorEnchant.getEnchantLevel(item, EarthFavorKey);
+            case "Ambush" -> ArmsorEnchant.getEnchantLevel(item, AmbushKey);
             default -> -1;
         };
         if (level < 0) {
@@ -626,6 +744,17 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         case "Poison" -> PoisonKey;
                         case "SharpBlade" -> SharpBladeKey;
                         case "ThunderclapArrow" -> ThunderclapArrowKey;
+                        case "DamageDispersal" -> DamageDispersalKey;
+                        case "HerbGuard" -> HerbGuardKey;
+                        case "FireBlade" -> FireBladeKey;
+                        case "FrostBlade" -> FrostBladeKey;
+                        case "ThunderBlade" -> ThunderBladeKey;
+                        case "MagicBlade" -> MagicBladeKey;
+                        case "IceSpike" -> IceSpikeKey;
+                        case "Inferno" -> InfernoKey;
+                        case "HeavyArmor" -> HeavyArmorKey;
+                        case "EarthFavor" -> EarthFavorKey;
+                        case "Ambush" -> AmbushKey;
                         default -> null;
                     }
             );
@@ -714,6 +843,17 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "Poison" -> PoisonKey;
             case "SharpBlade" -> SharpBladeKey;
             case "ThunderclapArrow" -> ThunderclapArrowKey;
+            case "DamageDispersal" -> DamageDispersalKey;
+            case "HerbGuard" -> HerbGuardKey;
+            case "FireBlade" -> FireBladeKey;
+            case "FrostBlade" -> FrostBladeKey;
+            case "ThunderBlade" -> ThunderBladeKey;
+            case "MagicBlade" -> MagicBladeKey;
+            case "IceSpike" -> IceSpikeKey;
+            case "Inferno" -> InfernoKey;
+            case "HeavyArmor" -> HeavyArmorKey;
+            case "EarthFavor" -> EarthFavorKey;
+            case "Ambush" -> AmbushKey;
             default -> null;
         };
         if (key == null) {

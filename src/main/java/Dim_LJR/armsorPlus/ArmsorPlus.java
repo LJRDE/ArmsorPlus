@@ -157,21 +157,20 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(scepterRecipe);
         count++;
 
-        // 寒冰弓: 蓝冰 + 木棍
+        // 寒冰弓: 极寒冰核x4 + 弓
         NamespacedKey frostBowKey = new NamespacedKey(this, "ArmsorPlus_FrostBow");
         ShapedRecipe frostBowRecipe = new ShapedRecipe(frostBowKey, FrostBow(1));
-        frostBowRecipe.shape(" IB", "I B", " IB");
-        frostBowRecipe.setIngredient('I', BLUE_ICE);
-        frostBowRecipe.setIngredient('B', STICK);
+        frostBowRecipe.shape(" I ", "IBI", " I ");
+        frostBowRecipe.setIngredient('I', new RecipeChoice.ExactChoice(IceCore(1)));
+        frostBowRecipe.setIngredient('B', BOW);
         getServer().addRecipe(frostBowRecipe);
         count++;
 
-        // 火焰戟: 下界合金锭 + 火焰弹 + 烈焰棒
+        // 火焰戟: 烈焰原核x3 + 烈焰棒x2
         NamespacedKey halberdKey = new NamespacedKey(this, "ArmsorPlus_FlameHalberd");
         ShapedRecipe halberdRecipe = new ShapedRecipe(halberdKey, FlameHalberd(1));
-        halberdRecipe.shape(" NF", " BN", "B  ");
-        halberdRecipe.setIngredient('N', NETHERITE_INGOT);
-        halberdRecipe.setIngredient('F', FIRE_CHARGE);
+        halberdRecipe.shape("F F", "BFB", " B ");
+        halberdRecipe.setIngredient('F', new RecipeChoice.ExactChoice(FireCore(1)));
         halberdRecipe.setIngredient('B', BLAZE_ROD);
         getServer().addRecipe(halberdRecipe);
         count++;
@@ -310,6 +309,42 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         flashStepRecipe.setIngredient('N', ENDER_PEARL);
         flashStepRecipe.setIngredient('S', NETHERITE_SWORD);
         getServer().addRecipe(flashStepRecipe);
+        count++;
+
+        // 星痕剑: 紫水晶碎片x4 + 铁剑x1
+        NamespacedKey starTraceKey = new NamespacedKey(this, "ArmsorPlus_StarTraceSword");
+        ShapedRecipe starTraceRecipe = new ShapedRecipe(starTraceKey, StarTraceSword(1));
+        starTraceRecipe.shape(" N ", "NSN", " N ");
+        starTraceRecipe.setIngredient('N', AMETHYST_SHARD);
+        starTraceRecipe.setIngredient('S', IRON_SWORD);
+        getServer().addRecipe(starTraceRecipe);
+        count++;
+
+        // 尸王: 僵尸头颅x2 + 骨头x1
+        NamespacedKey corpseKey = new NamespacedKey(this, "ArmsorPlus_CorpseKing");
+        ShapedRecipe corpseRecipe = new ShapedRecipe(corpseKey, CorpseKing(1));
+        corpseRecipe.shape(" Z ", "ZBZ", " Z ");
+        corpseRecipe.setIngredient('Z', ZOMBIE_HEAD);
+        corpseRecipe.setIngredient('B', BONE);
+        getServer().addRecipe(corpseRecipe);
+        count++;
+
+        // 玄武剑: 玄武岩x2 + 烈焰棒x1
+        NamespacedKey tortoiseKey = new NamespacedKey(this, "ArmsorPlus_BlackTortoiseSword");
+        ShapedRecipe tortoiseRecipe = new ShapedRecipe(tortoiseKey, BlackTortoiseSword(1));
+        tortoiseRecipe.shape(" B ", "BSB", " B ");
+        tortoiseRecipe.setIngredient('B', BASALT);
+        tortoiseRecipe.setIngredient('S', BLAZE_ROD);
+        getServer().addRecipe(tortoiseRecipe);
+        count++;
+
+        // 金盾丹: 8金块 + 1地狱疣 → 1个
+        NamespacedKey goldShieldKey = new NamespacedKey(this, "ArmsorPlus_GoldShieldElixir");
+        ShapedRecipe goldShieldRecipe = new ShapedRecipe(goldShieldKey, GoldShieldElixir(1));
+        goldShieldRecipe.shape("GGG", "GNG", "GGG");
+        goldShieldRecipe.setIngredient('G', GOLD_BLOCK);
+        goldShieldRecipe.setIngredient('N', NETHER_WART);
+        getServer().addRecipe(goldShieldRecipe);
         count++;
 
         // 冰块: 1个冰 → 4个冰块

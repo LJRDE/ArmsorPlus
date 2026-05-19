@@ -72,6 +72,136 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         return entity.getCustomName() != null ? entity.getCustomName() : entity.getName();
     }
 
+    //星痕: 夜晚伤害提升100%
+    @EventHandler
+    public void StarTraceSwordHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (damager.getEquipment() == null) return;
+        ItemStack item = damager.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        int level = ArmsorEnchant.getEnchantLevel(item, StarTraceSwordKey);
+        if (level == 0) return;
+
+        // 检查是否夜晚 (13000-23000 ticks)
+        long time = event.getEntity().getWorld().getTime();
+        if (time >= 13000 && time <= 23000) {
+            event.setDamage(event.getDamage() * 2.0);
+            PlayerSettings.notify(damager, ChatColor.DARK_AQUA + "星痕 · 星光之力: 伤害提升100%");
+        }
+    }
+
+    //玄武: 每造成200伤害+1, 上限+8
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void BlackTortoiseSwordHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (damager.getEquipment() == null) return;
+        ItemStack item = damager.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        if (ArmsorEnchant.getEnchantLevel(item, BlackTortoiseSwordKey) == 0) return;
+
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        Double accumulated = pdc.get(TortoiseAccumulatedKey, PersistentDataType.DOUBLE);
+        if (accumulated == null) accumulated = 0.0;
+
+        accumulated += event.getDamage();
+        int bonusLevel = Math.min((int) (accumulated / 200.0), 8);
+
+        pdc.set(TortoiseAccumulatedKey, PersistentDataType.DOUBLE, accumulated);
+
+        List<String> lore = meta.getLore();
+        if (lore != null && lore.size() >= 3) {
+            lore.set(1, ChatColor.DARK_GREEN + "当前加成: " + bonusLevel + "/8");
+            lore.set(2, ChatColor.GRAY + "累计伤害: " + (int)(accumulated % 200) + "/200");
+            meta.setLore(lore);
+        }
+        item.setItemMeta(meta);
+
+        if (bonusLevel > 0) {
+            event.setDamage(event.getDamage() + bonusLevel);
+        }
+    }
+
+    //冰刺: 额外冰冻伤害 level*5, 满级III
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void IceSpikeHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (damager.getEquipment() == null) return;
+        ItemStack item = damager.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        int level = ArmsorEnchant.getEnchantLevel(item, IceSpikeKey);
+        if (level <= 0) return;
+        event.setDamage(event.getDamage() + level * 5.0);
+    }
+
+    //烈焰: 额外火焰伤害 level*5, 满级III
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void InfernoHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (damager.getEquipment() == null) return;
+        ItemStack item = damager.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        int level = ArmsorEnchant.getEnchantLevel(item, InfernoKey);
+        if (level <= 0) return;
+        event.setDamage(event.getDamage() + level * 5.0);
+        event.getEntity().setFireTicks(20); // 1秒点燃
+    }
+
+    //烈阳: 白天额外+4伤害
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void BlazingSunHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (damager.getEquipment() == null) return;
+        ItemStack item = damager.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        if (ArmsorEnchant.getEnchantLevel(item, BlazingSunKey) <= 0) return;
+
+        long time = event.getEntity().getWorld().getTime();
+        if (time >= 0 && time < 13000) {
+            event.setDamage(event.getDamage() + 4.0);
+        }
+    }
+
+    //伏击: 使用盾牌后获得力量效果 (盾牌, 满级III)
+    @EventHandler
+    public void AmbushHandler(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player player)) return;
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        int level = ArmsorEnchant.getEnchantLevel(offhand, AmbushKey);
+        if (level <= 0) return;
+        if (player.isBlocking()) return;
+        if (player.hasMetadata("ArmsorPlus_AmbushCD")) return;
+
+        int duration = level * 4; // 0.2*level秒 = level*4 ticks
+        player.setMetadata("ArmsorPlus_AmbushCD", new FixedMetadataValue(getplugin, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, duration, level - 1, false, true));
+
+        Bukkit.getScheduler().runTaskLater(getplugin,
+                () -> player.removeMetadata("ArmsorPlus_AmbushCD", getplugin),
+                duration);
+    }
+
+    //雷光: 雷雨天伤害提升25%
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void ThunderGlowHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (damager.getEquipment() == null) return;
+        ItemStack item = damager.getEquipment().getItemInMainHand();
+        if (item.getType().isAir()) return;
+        if (ArmsorEnchant.getEnchantLevel(item, ThunderGlowKey) <= 0) return;
+
+        if (event.getEntity().getWorld().isThundering()) {
+            event.setDamage(event.getDamage() * 1.25);
+            PlayerSettings.notify(damager, ChatColor.YELLOW + "雷光 · 雷霆之力: 伤害提升25%");
+        }
+    }
+
     //血裂
     @EventHandler(priority = EventPriority.HIGHEST)
     public void DevourLifeSwordHander(EntityDamageByEntityEvent event) {
@@ -224,7 +354,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         int level = ArmsorEnchant.getEnchantLevel(equipment.getBoots(), ShadowDodge);
         if (level == 0) return;
-        if (!percent(6 * level)) return;
+        if (!percent(8 * level)) return;
 
         event.setCancelled(true);
         Particle.PORTAL.builder()
@@ -380,17 +510,13 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (level <= 0) return;
 
         double original = event.getDamage();
-        double rate;
-        if (original > 120) rate = 0.25;   // 超高伤害格挡75%
-        else if (original > 80) rate = 0.4; // 高伤害格挡60%
-        else rate = 0.6;                      // 普通伤害格挡40%
-
-        event.setDamage(original * rate);
+        double reduction = level * 0.10; // 每级10%
+        event.setDamage(original * (1.0 - reduction));
 
         if (entity instanceof Player player) {
             double blocked = original - event.getDamage();
-            PlayerSettings.notifyActionBar(player, ChatColor.BLUE + "格挡效果减免了"
-                    + String.format("%.1f", blocked) + "点伤害");
+            PlayerSettings.notifyActionBar(player, ChatColor.BLUE + "格挡: 减免了"
+                    + String.format("%.1f", blocked) + "点伤害 (" + (level * 10) + "%)");
         }
     }
 
@@ -419,7 +545,51 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     }
 
     // ========================================================================
-    // 涤魂 —— 周期性免疫魔法伤害 (胸甲)
+    // 涤魂 —— 每(9-level)秒解除一个负面效果 (胸甲)
+    // ========================================================================
+
+    private static final Set<PotionEffectType> NEGATIVE_EFFECTS = new HashSet<>(Arrays.asList(
+            PotionEffectType.POISON, PotionEffectType.WITHER, PotionEffectType.SLOWNESS,
+            PotionEffectType.WEAKNESS, PotionEffectType.BLINDNESS, PotionEffectType.NAUSEA,
+            PotionEffectType.HUNGER, PotionEffectType.MINING_FATIGUE, PotionEffectType.INSTANT_DAMAGE,
+            PotionEffectType.LEVITATION, PotionEffectType.UNLUCK, PotionEffectType.DARKNESS,
+            PotionEffectType.WIND_CHARGED, PotionEffectType.WEAVING, PotionEffectType.OOZING,
+            PotionEffectType.INFESTED
+    ));
+
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
+
+    @EventHandler
+    public void onEffectClear(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+
+        ItemStack chestplate = player.getInventory().getChestplate();
+        int level = ArmsorEnchant.getEnchantLevel(chestplate, EffectClear);
+        if (level <= 0) return;
+
+        UUID pid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        Long last = cooldowns.get(pid);
+        long cd = (9L - level) * 1000;
+
+        if (last != null && (now - last) < cd) return;
+        cooldowns.put(pid, now);
+
+        // 找到一个负面效果并移除
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            if (NEGATIVE_EFFECTS.contains(effect.getType())) {
+                player.removePotionEffect(effect.getType());
+                player.playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 0.8f, 1.2f);
+                player.spawnParticle(Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
+                PlayerSettings.notifyActionBar(player, "§b[涤魂]已解除负面效果 §7(" + (9 - level) + "秒冷却)");
+                return;
+            }
+        }
+        // 没有负面效果时静默冷却
+    }
+
+    // ========================================================================
+    // 百草 —— 减少魔法伤害 20%*level (胸甲, 满级IV)
     // ========================================================================
 
     private static final EntityDamageEvent.DamageCause[] MAGIC_DAMAGE_TYPES = {
@@ -429,8 +599,6 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             EntityDamageEvent.DamageCause.DRAGON_BREATH
     };
 
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
-
     private boolean isMagicDamage(EntityDamageEvent.DamageCause cause) {
         for (var type : MAGIC_DAMAGE_TYPES) {
             if (cause == type) return true;
@@ -439,29 +607,19 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     }
 
     @EventHandler
-    public void onMagicDamage(EntityDamageEvent event) {
+    public void HerbGuardHandler(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
         ItemStack chestplate = player.getInventory().getChestplate();
-        int level = ArmsorEnchant.getEnchantLevel(chestplate, EffectClear);
+        int level = ArmsorEnchant.getEnchantLevel(chestplate, HerbGuardKey);
         if (level <= 0) return;
         if (!isMagicDamage(event.getCause())) return;
 
-        UUID pid = player.getUniqueId();
-        long now = System.currentTimeMillis();
-        Long last = cooldowns.get(pid);
-        long cd = (6L - level) * 1000; // 冷却时间 (秒)
+        double reduction = 0.20 * level; // 每级20%
+        double newDamage = event.getDamage() * (1.0 - reduction);
+        event.setDamage(newDamage);
 
-        if (last == null || (now - last) >= cd) {
-            event.setCancelled(true);
-            cooldowns.put(pid, now);
-            player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.5f);
-            player.spawnParticle(Particle.ENCHANT, player.getLocation(), 20, 0.5, 0.5, 0.5);
-            PlayerSettings.notifyActionBar(player, "§b[涤魂]魔法伤害免疫 §7(冷却中)");
-        } else {
-            long remain = cd - (now - last);
-            PlayerSettings.notifyActionBar(player, "§c[涤魂]魔法免疫冷却中 §7(" + (remain / 1000) + "秒)");
-        }
+        PlayerSettings.notifyActionBar(player, "§a[百草]魔法伤害减免 §7(" + (level * 20) + "%)");
     }
 
     // ========================================================================
@@ -474,7 +632,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (event.getEntity() instanceof Player player && event.getDamager() instanceof Player damager) {
             ItemStack boots = player.getInventory().getBoots();
             int level = ArmsorEnchant.getEnchantLevel(boots, Dodgekey);
-            if (level == 0 || !percent(15 * level)) return;
+            if (level == 0 || !percent(8 * level)) return;
 
             event.setCancelled(true);
             Particle.ENCHANTED_HIT.builder().location(player.getLocation())
@@ -488,7 +646,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (event.getEntity() instanceof Player player && event.getDamager() instanceof LivingEntity) {
             ItemStack boots = player.getInventory().getBoots();
             int level = ArmsorEnchant.getEnchantLevel(boots, Dodgekey);
-            if (level == 0 || !percent(20 * level)) return;
+            if (level == 0 || !percent(8 * level)) return;
 
             event.setCancelled(true);
             Particle.PORTAL.builder().location(player.getLocation())
@@ -1451,5 +1609,212 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             return 2; // 海龟壳
         }
         return 0;
+    }
+
+    // ========================================================================
+    // 卸力 —— 减少单次伤害 level*5 (胸甲, 满级V, 最高优先级)
+    // ========================================================================
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void DamageDispersalHandler(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof org.bukkit.entity.Player player)) return;
+
+        org.bukkit.inventory.EntityEquipment equip = player.getEquipment();
+        if (equip == null) return;
+
+        org.bukkit.inventory.ItemStack chestplate = equip.getChestplate();
+        if (chestplate == null) return;
+
+        int level = ArmsorEnchant.getEnchantLevel(chestplate, DamageDispersalKey);
+        if (level <= 0) return;
+
+        double reduction = level * 5.0;
+        double newDamage = Math.max(0, event.getDamage() - reduction);
+        event.setDamage(newDamage);
+
+        if (newDamage < event.getDamage()) {
+            PlayerSettings.notify(player, ChatColor.DARK_GREEN + "卸力: 减免了 "
+                    + String.format("%.1f", reduction) + " 点伤害");
+        }
+    }
+
+    // ========================================================================
+    // 元素之刃 —— 将攻击伤害转化为对应属性 (最高优先级最后执行)
+    // ========================================================================
+
+    private static final String ELEMENTAL_BLADE_FLAG = "ArmsorPlus_ElementalBlade";
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void ElementalBladeHandler(EntityDamageByEntityEvent event) {
+        if (event.getEntity().equals(event.getDamager())) return;
+        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+        if (target.hasMetadata(ELEMENTAL_BLADE_FLAG)) return;
+
+        org.bukkit.inventory.ItemStack weapon = damager.getEquipment().getItemInMainHand();
+        if (weapon.getType().isAir()) return;
+
+        double damage = event.getDamage();
+        event.setDamage(0);
+        event.setCancelled(true);
+
+        target.setMetadata(ELEMENTAL_BLADE_FLAG, new org.bukkit.metadata.FixedMetadataValue(getplugin, true));
+
+        if (ArmsorEnchant.getEnchantLevel(weapon, FireBladeKey) > 0) {
+            target.setFireTicks(60);
+            PlayerSettings.notify(damager, ChatColor.RED + "火刃: 火焰伤害");
+        } else if (ArmsorEnchant.getEnchantLevel(weapon, FrostBladeKey) > 0) {
+            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1));
+            PlayerSettings.notify(damager, ChatColor.AQUA + "霜刃: 冰冻伤害");
+        } else if (ArmsorEnchant.getEnchantLevel(weapon, ThunderBladeKey) > 0) {
+            target.getWorld().strikeLightningEffect(target.getLocation());
+            PlayerSettings.notify(damager, ChatColor.YELLOW + "雷刃: 雷电伤害");
+        } else if (ArmsorEnchant.getEnchantLevel(weapon, MagicBladeKey) > 0) {
+            target.getWorld().spawnParticle(Particle.ENCHANT, target.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0);
+            PlayerSettings.notify(damager, ChatColor.DARK_PURPLE + "魔刃: 魔法伤害");
+        } else {
+            target.removeMetadata(ELEMENTAL_BLADE_FLAG, getplugin);
+            event.setDamage(damage);
+            event.setCancelled(false);
+            return;
+        }
+
+        int fireLvl = ArmsorEnchant.getEnchantLevel(weapon, FireBladeKey);
+        int frostLvl = ArmsorEnchant.getEnchantLevel(weapon, FrostBladeKey);
+        int thunderLvl = ArmsorEnchant.getEnchantLevel(weapon, ThunderBladeKey);
+        int magicLvl = ArmsorEnchant.getEnchantLevel(weapon, MagicBladeKey);
+        double extra = 0;
+        String msg = "";
+
+        if (fireLvl > 0) {
+            if (target.hasMetadata("ArmsorPlus_FrostMark")) {
+                target.removeMetadata("ArmsorPlus_FrostMark", getplugin);
+                damage *= 2.25; msg = ChatColor.RED + "火刃·融霜: +125%";
+            } else if (target.hasMetadata("ArmsorPlus_ThunderMark")) {
+                target.removeMetadata("ArmsorPlus_ThunderMark", getplugin);
+                damage *= 2.25; msg = ChatColor.RED + "火刃·爆雷: +125%";
+            } else {
+                target.setMetadata("ArmsorPlus_FireMark", new FixedMetadataValue(getplugin, true));
+                target.setFireTicks(40 * fireLvl); msg = ChatColor.RED + "火刃·火印(" + fireLvl + ")";
+                int f = fireLvl;
+                Bukkit.getScheduler().runTaskLater(getplugin,
+                        () -> target.removeMetadata("ArmsorPlus_FireMark", getplugin), 60L * f);
+            }
+        } else if (frostLvl > 0) {
+            if (target.hasMetadata("ArmsorPlus_FireMark")) {
+                target.removeMetadata("ArmsorPlus_FireMark", getplugin);
+                damage *= 2.0; msg = ChatColor.AQUA + "霜刃·灭焰: +100%";
+            } else if (target.hasMetadata("ArmsorPlus_ThunderMark")) {
+                target.removeMetadata("ArmsorPlus_ThunderMark", getplugin);
+                damage *= 1.6; extra = damage * 0.6; msg = ChatColor.AQUA + "霜刃·导雷: +60%+雷伤";
+            } else {
+                target.setMetadata("ArmsorPlus_FrostMark", new FixedMetadataValue(getplugin, true));
+                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20 * frostLvl, 1));
+                msg = ChatColor.AQUA + "霜刃·霜印(" + frostLvl + ")";
+                int f = frostLvl;
+                Bukkit.getScheduler().runTaskLater(getplugin,
+                        () -> target.removeMetadata("ArmsorPlus_FrostMark", getplugin), 60L * f);
+            }
+        } else if (thunderLvl > 0) {
+            if (target.hasMetadata("ArmsorPlus_FireMark")) {
+                target.removeMetadata("ArmsorPlus_FireMark", getplugin);
+                damage *= 2.0; msg = ChatColor.YELLOW + "雷刃·引火: +100%";
+            } else if (target.hasMetadata("ArmsorPlus_FrostMark")) {
+                target.removeMetadata("ArmsorPlus_FrostMark", getplugin);
+                damage *= 1.75; msg = ChatColor.YELLOW + "雷刃·碎霜: +75%";
+            } else {
+                target.setMetadata("ArmsorPlus_ThunderMark", new FixedMetadataValue(getplugin, true));
+                target.getWorld().strikeLightningEffect(target.getLocation());
+                msg = ChatColor.YELLOW + "雷刃·雷印(" + thunderLvl + ")";
+                int t = thunderLvl;
+                Bukkit.getScheduler().runTaskLater(getplugin,
+                        () -> target.removeMetadata("ArmsorPlus_ThunderMark", getplugin), 60L * t);
+            }
+        } else if (magicLvl > 0) {
+            if (target.hasMetadata("ArmsorPlus_MagicMark")) {
+                damage *= 2.0;
+            }
+            target.setMetadata("ArmsorPlus_MagicMark", new FixedMetadataValue(getplugin, true));
+            target.getWorld().spawnParticle(Particle.ENCHANT, target.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0);
+            msg = ChatColor.DARK_PURPLE + "魔刃·魔印: 魔法伤害2x";
+            int m = magicLvl;
+            Bukkit.getScheduler().runTaskLater(getplugin,
+                    () -> target.removeMetadata("ArmsorPlus_MagicMark", getplugin), 60L * m);
+        }
+
+        PlayerSettings.notify(damager, msg);
+        target.damage(damage + extra, damager);
+        Bukkit.getScheduler().runTaskLater(getplugin,
+                () -> target.removeMetadata(ELEMENTAL_BLADE_FLAG, getplugin), 1L);
+    }
+
+    // ========================================================================
+    // 重甲 —— 穿戴时持续给予缓慢II+抗性提升II (胸甲)
+    // ========================================================================
+
+    private final Map<UUID, Long> heavyArmorTimers = new HashMap<>();
+
+    @EventHandler
+    public void HeavyArmorHandler(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        ItemStack chestplate = player.getInventory().getChestplate();
+        int level = ArmsorEnchant.getEnchantLevel(chestplate, HeavyArmorKey);
+
+        UUID pid = player.getUniqueId();
+        Long last = heavyArmorTimers.get(pid);
+        long now = System.currentTimeMillis();
+
+        if (level <= 0) {
+            if (last != null) {
+                player.removePotionEffect(PotionEffectType.SLOWNESS);
+                player.removePotionEffect(PotionEffectType.RESISTANCE);
+                heavyArmorTimers.remove(pid);
+            }
+            return;
+        }
+
+        // 每5秒刷新一次效果
+        if (last != null && (now - last) < 5000) return;
+        heavyArmorTimers.put(pid, now);
+
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 8 * 20, 1, false, true));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 8 * 20, 1, false, true));
+    }
+
+    // ========================================================================
+    // 地之眷顾 —— 挖泥土概率掉落金粒/铁粒 (铲子)
+    // ========================================================================
+
+    private static final Material[] DIRT_TYPES = {
+            Material.DIRT, Material.GRASS_BLOCK, Material.PODZOL, Material.MYCELIUM,
+            Material.DIRT_PATH, Material.ROOTED_DIRT, Material.COARSE_DIRT,
+            Material.FARMLAND, Material.MUD
+    };
+
+    private boolean isDirt(Material m) {
+        for (Material dirt : DIRT_TYPES) {
+            if (m == dirt) return true;
+        }
+        return false;
+    }
+
+    @EventHandler
+    public void EarthFavorHandler(BlockBreakEvent event) {
+        if (!isDirt(event.getBlock().getType())) return;
+
+        Player player = event.getPlayer();
+        ItemStack shovel = player.getInventory().getItemInMainHand();
+        int level = ArmsorEnchant.getEnchantLevel(shovel, EarthFavorKey);
+        if (level <= 0) return;
+
+        if (!percent(10 * level)) return;
+
+        Location loc = event.getBlock().getLocation().add(0.5, 0.5, 0.5);
+        World world = event.getBlock().getWorld();
+        if (percent(50)) {
+            world.dropItemNaturally(loc, new ItemStack(Material.GOLD_NUGGET, 1));
+        } else {
+            world.dropItemNaturally(loc, new ItemStack(Material.IRON_NUGGET, 1));
+        }
     }
 }

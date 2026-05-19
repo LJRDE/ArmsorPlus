@@ -150,6 +150,17 @@ public class ArmsorEnchant implements Listener {
         if (key.equals(PoisonKey))         return "剧毒";
         if (key.equals(SharpBladeKey))     return "利刃";
         if (key.equals(ThunderclapArrowKey)) return "惊雷";
+        if (key.equals(DamageDispersalKey))  return "卸力";
+        if (key.equals(HerbGuardKey))        return "百草";
+        if (key.equals(FireBladeKey))        return "火刃";
+        if (key.equals(FrostBladeKey))       return "霜刃";
+        if (key.equals(ThunderBladeKey))     return "雷刃";
+        if (key.equals(MagicBladeKey))       return "魔刃";
+        if (key.equals(IceSpikeKey))         return "冰刺";
+        if (key.equals(InfernoKey))          return "烈焰";
+        if (key.equals(HeavyArmorKey))       return "重甲";
+        if (key.equals(EarthFavorKey))       return "地之眷顾";
+        if (key.equals(AmbushKey))           return "伏击";
         return null;
     }
 }

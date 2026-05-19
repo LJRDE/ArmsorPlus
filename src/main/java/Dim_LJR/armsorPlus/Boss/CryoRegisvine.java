@@ -2,6 +2,8 @@ package Dim_LJR.armsorPlus.Boss;
 
 import Dim_LJR.armsorPlus.ArmsorItem;
 import Dim_LJR.armsorPlus.NamespaceKey;
+import static Dim_LJR.armsorPlus.Food.FoodItems.IceCore;
+import static Dim_LJR.armsorPlus.Food.FoodItems.FireCore;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
@@ -20,7 +22,7 @@ import java.util.*;
 import static org.bukkit.Material.*;
 
 /**
- * 急冻树 —— 冰元素BOSS (原神: 急冻树)
+ * 雪人王 —— 冰元素BOSS (原神: 雪人王)
  * <p>
  * 核心为雪人，树状结构由盔甲架佩戴方块构成。
  * 对盔甲架的伤害转移至核心，元素反应造成双倍伤害。
@@ -47,7 +49,7 @@ public class CryoRegisvine {
 
     public static void spawnBoss(Player summoner) {
         if (bossAlive) {
-            summoner.sendMessage("§c已有一只急冻树，请先击败或等待其消失");
+            summoner.sendMessage("§c已有一只雪人王，请先击败或等待其消失");
             return;
         }
 
@@ -61,7 +63,7 @@ public class CryoRegisvine {
 
         // ---- 雪人核心 (存血量/位置) ----
         bossEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.SNOW_GOLEM);
-        bossEntity.setCustomName("§b■ 急冻树 §7Lv.90");
+        bossEntity.setCustomName("§b■ 雪人王 §7Lv.90");
         bossEntity.setCustomNameVisible(true);
         bossEntity.setRemoveWhenFarAway(false);
         bossEntity.setPersistent(true);
@@ -78,7 +80,7 @@ public class CryoRegisvine {
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
 
         // ---- BossBar ----
-        bossBar = Bukkit.createBossBar("§b■ 急冻树", BarColor.BLUE, BarStyle.SOLID);
+        bossBar = Bukkit.createBossBar("§b■ 雪人王", BarColor.BLUE, BarStyle.SOLID);
         bossBar.setVisible(true);
         bossBar.setProgress(1.0);
 
@@ -93,7 +95,7 @@ public class CryoRegisvine {
         bossLoc.getWorld().spawnParticle(Particle.SNOWFLAKE, bossLoc, 100, 2, 2, 2, 0.5);
         bossLoc.getWorld().playSound(bossLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
 
-        String msg = "§b◆ 急冻树在 " + bossLoc.getBlockX() + " " + bossLoc.getBlockY() + " " + bossLoc.getBlockZ() + " 处降临了！";
+        String msg = "§b◆ 雪人王在 " + bossLoc.getBlockX() + " " + bossLoc.getBlockY() + " " + bossLoc.getBlockZ() + " 处降临了！";
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.sendMessage(msg);
         }
@@ -376,7 +378,7 @@ public class CryoRegisvine {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getWorld().equals(bossEntity.getWorld())
                     && online.getLocation().distance(bossEntity.getLocation()) <= 150) {
-                online.sendMessage("§e✦ 急冻树的核心暴露了！攻击核心造成伤害！");
+                online.sendMessage("§e✦ 雪人王的核心暴露了！攻击核心造成伤害！");
             }
         }
 
@@ -593,6 +595,7 @@ public class CryoRegisvine {
         world.spawnParticle(Particle.CLOUD, loc, 60, 2, 2, 2, 0.3);
         world.playSound(loc, Sound.ENTITY_WITHER_DEATH, 1.0f, 0.5f);
 
+        world.dropItemNaturally(loc, IceCore(1 + RANDOM.nextInt(2)));
         world.dropItemNaturally(loc, new ItemStack(Material.PACKED_ICE, 16));
         world.dropItemNaturally(loc, new ItemStack(Material.BLUE_ICE, 4));
         world.dropItemNaturally(loc, ArmsorItem.MagicBallCreateI(RANDOM.nextInt(2) + 1));
@@ -607,7 +610,7 @@ public class CryoRegisvine {
         world.dropItemNaturally(loc, new ItemStack(Material.EXPERIENCE_BOTTLE, 12));
 
         for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§b◆ 急冻树已被击败！");
+            online.sendMessage("§b◆ 雪人王已被击败！");
         }
 
         cleanup();
@@ -618,7 +621,7 @@ public class CryoRegisvine {
         Location loc = bossEntity.getLocation();
         loc.getWorld().spawnParticle(Particle.SMOKE, loc, 40, 2, 2, 2, 0.1);
         for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§e急冻树因失去目标而消失了");
+            online.sendMessage("§e雪人王因失去目标而消失了");
         }
         cleanup();
     }

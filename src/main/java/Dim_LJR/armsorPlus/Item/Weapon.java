@@ -67,6 +67,115 @@ public class Weapon {
         return item;
     }
 
+    /** 尸王: 基础+9伤害, 饥荒II+剧毒II */
+    public static ItemStack CorpseKing(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.DARK_GREEN + "尸王");
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:corpse_king_damage"),
+                        3.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_GREEN + "饥荒 II · 剧毒 II",
+                ChatColor.GRAY + "尸王之力，腐蚀生灵"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, CorpseKingKey, 1);
+        ArmsorEnchant.addEnchant(item, Faminekey, 2);
+        ArmsorEnchant.addEnchant(item, PoisonKey, 2);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 桃木剑: 亡灵杀手V */
+    public static ItemStack PeachWoodSword(int amount) {
+        ItemStack item = new ItemStack(WOODEN_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.addEnchant(Enchantment.SMITE, 5, true);
+        meta.setDisplayName(ChatColor.GREEN + "桃木剑");
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:peach_wood_damage"),
+                        5.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(
+                ChatColor.DARK_GREEN + "桃木镇邪，亡灵克星"));
+        meta.setCustomModelData(20260519);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, PeachWoodSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 烈阳: 基础+8, 白天额外+4, 火焰附加V */
+    public static ItemStack BlazingSun(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.addEnchant(Enchantment.FIRE_ASPECT, 5, true);
+        meta.setDisplayName(ChatColor.GOLD + "烈阳");
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:blazing_sun_damage"),
+                        2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "白天时额外造成4点伤害",
+                ChatColor.RED + "火焰附加 V",
+                ChatColor.GRAY + "骄阳烈焰"));
+        meta.setCustomModelData(20260518);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, BlazingSunKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 雷光: 基础伤害8点, 雷雨天伤害提升25% */
+    public static ItemStack ThunderGlow(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "雷光");
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:thunder_glow_damage"),
+                        2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.YELLOW + "雷雨天时伤害提升25%",
+                ChatColor.GRAY + "闪耀雷电之力"));
+        meta.setCustomModelData(20260517);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, ThunderGlowKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 玄武剑: 每造成200点伤害伤害+1，上限+8 */
+    public static ItemStack BlackTortoiseSword(int amount) {
+        ItemStack item = new ItemStack(STONE_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.addEnchant(Enchantment.SHARPNESS, 2, true);
+        meta.setDisplayName(ChatColor.DARK_GREEN + "玄武剑");
+        meta.setLore(Arrays.asList(
+                ChatColor.GREEN + "每造成200点伤害 → 伤害+1",
+                ChatColor.DARK_GREEN + "当前加成: 0/8",
+                ChatColor.GRAY + "累计伤害: 0/200"));
+        meta.getPersistentDataContainer().set(TortoiseAccumulatedKey, PersistentDataType.DOUBLE, 0.0);
+        meta.setCustomModelData(20260516);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, BlackTortoiseSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 星痕剑: 夜晚造成伤害时伤害提升100% */
+    public static ItemStack StarTraceSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.addEnchant(Enchantment.SHARPNESS, 3, true);
+        meta.setDisplayName(ChatColor.DARK_AQUA + "星痕剑");
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "夜晚时伤害提升100%",
+                ChatColor.DARK_AQUA + "由七颗珍珠点缀而成，对应北斗七星"));
+        meta.setCustomModelData(20260515);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, StarTraceSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
     /** 噬生: 造成伤害时随机扣除对方或者自生血量提升伤害*/
     public static ItemStack DevourLifeSword(int amount) {
         ItemStack item = new ItemStack(NETHERITE_SWORD);

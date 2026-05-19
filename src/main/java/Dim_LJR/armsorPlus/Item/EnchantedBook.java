@@ -56,11 +56,22 @@ public class EnchantedBook {
     private static final String POISON_BOOK = ChatColor.DARK_GREEN + "剧毒";
     private static final String SHARP_BLADE_BOOK = ChatColor.DARK_AQUA + "利刃";
     private static final String THUNDERCLAP_ARROW_BOOK = ChatColor.YELLOW + "惊雷";
+    private static final String DAMAGE_DISPERSAL_BOOK = ChatColor.DARK_GREEN + "卸力";
+    private static final String HERB_GUARD_BOOK = ChatColor.GREEN + "百草";
+    private static final String FIRE_BLADE_BOOK = ChatColor.RED + "火刃";
+    private static final String FROST_BLADE_BOOK = ChatColor.AQUA + "霜刃";
+    private static final String THUNDER_BLADE_BOOK = ChatColor.YELLOW + "雷刃";
+    private static final String MAGIC_BLADE_BOOK = ChatColor.DARK_PURPLE + "魔刃";
+    private static final String ICE_SPIKE_BOOK = ChatColor.AQUA + "冰刺";
+    private static final String INFERNO_BOOK = ChatColor.RED + "烈焰";
+    private static final String HEAVY_ARMOR_BOOK = ChatColor.DARK_GRAY + "重甲";
+    private static final String EARTH_FAVOR_BOOK = ChatColor.DARK_GREEN + "地之眷顾";
+    private static final String AMBUSH_BOOK = ChatColor.DARK_RED + "伏击";
 
-    /** 闪避附魔书: 靴子 - 概率闪避伤害 */
+    /** 闪避附魔书: 靴子 - 概率闪避伤害, 满级V */
     public static ItemStack Dodge_EnchantdeBook(int amount, int level) {
         return createEnchantedBook(amount, level, Dodgekey, DODGE_BOOK,
-                "可用装备:靴子", "概率闪避对方的伤害");
+                "可用装备:靴子", "有" + (level * 8) + "%概率闪避对方的伤害", "满级V (40%)");
     }
 
     /** 饥荒附魔书: 武器 - 造成饥饿效果 */
@@ -94,10 +105,10 @@ public class EnchantedBook {
                 "可用装备:武器", "有概率给对方造成寒冻效果", "使对方移动速度下降");
     }
 
-    /** 格挡附魔书: 头盔 - 按比例格挡伤害 */
+    /** 格挡附魔书: 头盔 - 固定比例格挡伤害, 满级V */
     public static ItemStack Blocking_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, BlockingKey, BLOCKING_BOOK,
-                "可用装备:头盔", "格挡一定伤害,受到伤害越高格挡比例越高");
+                "可用装备:头盔", "格挡" + (level * 10) + "%伤害", "满级V (50%)");
     }
 
     /** 凋零附魔书: 武器 - 造成凋零效果 */
@@ -130,10 +141,10 @@ public class EnchantedBook {
                 "可用装备:弓和弩", "有概率发射一枚火箭弹");
     }
 
-    /** 影避附魔书: 靴子 - 概率闪避所有伤害 */
+    /** 影避附魔书: 靴子 - 概率闪避所有伤害, 满级V */
     public static ItemStack ShadowDodge_EnchantdeBook(int amount, int level) {
         return createEnchantedBook(amount, level, ShadowDodge, SHADOWDODGE_BOOK,
-                "可用装备:靴子", "概率闪避所有的伤害");
+                "可用装备:靴子", "有" + (level * 8) + "%概率闪避所有伤害", "满级V (40%)");
     }
 
     /** 弹道附魔书: 弓/弩 - 提升箭速和伤害 */
@@ -279,6 +290,72 @@ public class EnchantedBook {
     public static ItemStack ThunderclapArrow_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, ThunderclapArrowKey, THUNDERCLAP_ARROW_BOOK,
                 "可用装备:弓", "命中目标时召唤" + level + "道雷", "未命中(击中方块)召唤1道雷", "满级III");
+    }
+
+    /** 卸力附魔书: 胸甲 - 减少单次伤害，满级V */
+    public static ItemStack DamageDispersal_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, DamageDispersalKey, DAMAGE_DISPERSAL_BOOK,
+                "可用装备:胸甲", "每级减少5点受到的伤害", "满级V (最高减免25点)");
+    }
+
+    /** 百草附魔书: 胸甲 - 减少魔法伤害，满级IV */
+    public static ItemStack HerbGuard_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, HerbGuardKey, HERB_GUARD_BOOK,
+                "可用装备:胸甲", "减少" + (level * 20) + "%魔法伤害", "满级IV (最高80%)");
+    }
+
+    /** 火刃附魔书: 武器 - 攻击转为火焰伤害 */
+    public static ItemStack FireBlade_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, FireBladeKey, FIRE_BLADE_BOOK,
+                "可用装备:武器", "攻击时将伤害转化为火焰伤害并点燃目标");
+    }
+
+    /** 霜刃附魔书: 武器 - 攻击转为冰冻伤害 */
+    public static ItemStack FrostBlade_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, FrostBladeKey, FROST_BLADE_BOOK,
+                "可用装备:武器", "攻击时将伤害转化为冰冻伤害并减速目标");
+    }
+
+    /** 雷刃附魔书: 武器 - 攻击转为雷电伤害 */
+    public static ItemStack ThunderBlade_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, ThunderBladeKey, THUNDER_BLADE_BOOK,
+                "可用装备:武器", "攻击时将伤害转化为雷电伤害");
+    }
+
+    /** 魔刃附魔书: 武器 - 攻击转为魔法伤害 */
+    public static ItemStack MagicBlade_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, MagicBladeKey, MAGIC_BLADE_BOOK,
+                "可用装备:武器", "攻击时将伤害转化为魔法伤害");
+    }
+
+    /** 冰刺附魔书: 武器 - 额外冰冻伤害, 满级III */
+    public static ItemStack IceSpike_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, IceSpikeKey, ICE_SPIKE_BOOK,
+                "可用装备:武器", "造成伤害时额外造成" + (level * 5) + "点冰冻伤害", "满级III (15点)");
+    }
+
+    /** 烈焰附魔书: 武器 - 额外火焰伤害, 满级III */
+    public static ItemStack Inferno_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, InfernoKey, INFERNO_BOOK,
+                "可用装备:武器", "造成伤害时额外造成" + (level * 5) + "点火焰伤害", "满级III (15点)");
+    }
+
+    /** 重甲附魔书: 胸甲 - 给予缓慢II和抗性提升II */
+    public static ItemStack HeavyArmor_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, HeavyArmorKey, HEAVY_ARMOR_BOOK,
+                "可用装备:胸甲", "穿戴时给予缓慢II和抗性提升II", "以速度为代价换取防御");
+    }
+
+    /** 地之眷顾附魔书: 铲子 - 挖泥土概率掉落金粒/铁粒 */
+    public static ItemStack EarthFavor_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, EarthFavorKey, EARTH_FAVOR_BOOK,
+                "可用装备:铲子", "挖掘泥土时获得" + (level * 10) + "%概率掉落矿物粒");
+    }
+
+    /** 伏击附魔书: 盾牌 - 放下盾牌后短时间增伤, 满级III */
+    public static ItemStack Ambush_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, AmbushKey, AMBUSH_BOOK,
+                "可用装备:盾牌", "收起盾牌后" + String.format("%.1f", 0.2 * level) + "秒内提升" + (level * 15) + "%伤害", "满级III");
     }
 
     // ========================================================================

@@ -32,6 +32,7 @@ public class LoadOpenSea {
      * @param worldName   世界文件夹名
      * @param zipFileName 压缩包文件名
      */
+    @SuppressWarnings("removal")
     public static void loadMap(Path folderPath, InputStream zip, boolean autoReset,
                                 String worldName, String zipFileName) {
         Path worldPath = folderPath.resolve(worldName);

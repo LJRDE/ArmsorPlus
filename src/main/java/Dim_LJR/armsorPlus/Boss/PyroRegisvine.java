@@ -2,6 +2,8 @@ package Dim_LJR.armsorPlus.Boss;
 
 import Dim_LJR.armsorPlus.ArmsorItem;
 import Dim_LJR.armsorPlus.NamespaceKey;
+import static Dim_LJR.armsorPlus.Food.FoodItems.IceCore;
+import static Dim_LJR.armsorPlus.Food.FoodItems.FireCore;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
@@ -20,7 +22,7 @@ import java.util.*;
 import static org.bukkit.Material.*;
 
 /**
- * 爆炎树 —— 火元素BOSS (原神: 爆炎树)
+ * 烈焰领主 —— 火元素BOSS (原神: 烈焰领主)
  * <p>
  * 核心为烈焰人，树状结构由盔甲架佩戴方块构成。
  * 对盔甲架的伤害转移至核心，元素反应造成双倍伤害。
@@ -47,7 +49,7 @@ public class PyroRegisvine {
 
     public static void spawnBoss(Player summoner) {
         if (bossAlive) {
-            summoner.sendMessage("§c已有一只爆炎树，请先击败或等待其消失");
+            summoner.sendMessage("§c已有一只烈焰领主，请先击败或等待其消失");
             return;
         }
 
@@ -61,7 +63,7 @@ public class PyroRegisvine {
 
         // ---- 烈焰人核心 (存血量/位置) ----
         bossEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.BLAZE);
-        bossEntity.setCustomName("§c■ 爆炎树 §7Lv.90");
+        bossEntity.setCustomName("§c■ 烈焰领主 §7Lv.90");
         bossEntity.setCustomNameVisible(true);
         bossEntity.setRemoveWhenFarAway(false);
         bossEntity.setPersistent(true);
@@ -78,7 +80,7 @@ public class PyroRegisvine {
         bossEntity.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, -1, 4, false, false));
 
         // ---- BossBar ----
-        bossBar = Bukkit.createBossBar("§c■ 爆炎树", BarColor.RED, BarStyle.SOLID);
+        bossBar = Bukkit.createBossBar("§c■ 烈焰领主", BarColor.RED, BarStyle.SOLID);
         bossBar.setVisible(true);
         bossBar.setProgress(1.0);
 
@@ -94,7 +96,7 @@ public class PyroRegisvine {
         bossLoc.getWorld().spawnParticle(Particle.FLAME, bossLoc, 80, 2, 2, 2, 0.3);
         bossLoc.getWorld().playSound(bossLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
 
-        String msg = "§c◆ 爆炎树在 " + bossLoc.getBlockX() + " " + bossLoc.getBlockY() + " " + bossLoc.getBlockZ() + " 处降临了！";
+        String msg = "§c◆ 烈焰领主在 " + bossLoc.getBlockX() + " " + bossLoc.getBlockY() + " " + bossLoc.getBlockZ() + " 处降临了！";
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.sendMessage(msg);
         }
@@ -376,7 +378,7 @@ public class PyroRegisvine {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getWorld().equals(bossEntity.getWorld())
                     && online.getLocation().distance(bossEntity.getLocation()) <= 150) {
-                online.sendMessage("§e✦ 爆炎树的核心暴露了！攻击核心造成伤害！");
+                online.sendMessage("§e✦ 烈焰领主的核心暴露了！攻击核心造成伤害！");
             }
         }
 
@@ -596,6 +598,7 @@ public class PyroRegisvine {
         world.spawnParticle(Particle.LARGE_SMOKE, loc, 40, 2, 2, 2, 0.1);
         world.playSound(loc, Sound.ENTITY_WITHER_DEATH, 1.0f, 0.5f);
 
+        world.dropItemNaturally(loc, FireCore(1 + RANDOM.nextInt(2)));
         world.dropItemNaturally(loc, new ItemStack(Material.MAGMA_BLOCK, 16));
         world.dropItemNaturally(loc, new ItemStack(Material.FIRE_CHARGE, 8));
         world.dropItemNaturally(loc, ArmsorItem.MagicBallCreateI(RANDOM.nextInt(2) + 1));
@@ -610,7 +613,7 @@ public class PyroRegisvine {
         world.dropItemNaturally(loc, new ItemStack(Material.EXPERIENCE_BOTTLE, 12));
 
         for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§c◆ 爆炎树已被击败！");
+            online.sendMessage("§c◆ 烈焰领主已被击败！");
         }
 
         cleanup();
@@ -621,7 +624,7 @@ public class PyroRegisvine {
         Location loc = bossEntity.getLocation();
         loc.getWorld().spawnParticle(Particle.SMOKE, loc, 40, 2, 2, 2, 0.1);
         for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§e爆炎树因失去目标而消失了");
+            online.sendMessage("§e烈焰领主因失去目标而消失了");
         }
         cleanup();
     }

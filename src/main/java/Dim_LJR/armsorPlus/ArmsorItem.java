@@ -97,6 +97,14 @@ public final class ArmsorItem {
         return Weapon.DevourLifeSword(amount);
     }
 
+    public static ItemStack StarTraceSword(int amount) {
+        return Weapon.StarTraceSword(amount);
+    }
+
+    public static ItemStack BlackTortoiseSword(int amount) {
+        return Weapon.BlackTortoiseSword(amount);
+    }
+
     public static ItemStack Dagger(int amount) {
         return Weapon.Dagger(amount);
     }
@@ -295,6 +303,66 @@ public final class ArmsorItem {
 
     public static ItemStack ThunderclapArrow_EnchantedBook(int amount, int level) {
         return EnchantedBook.ThunderclapArrow_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack DamageDispersal_EnchantedBook(int amount, int level) {
+        return EnchantedBook.DamageDispersal_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack HerbGuard_EnchantedBook(int amount, int level) {
+        return EnchantedBook.HerbGuard_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack FireBlade_EnchantedBook(int amount, int level) {
+        return EnchantedBook.FireBlade_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack FrostBlade_EnchantedBook(int amount, int level) {
+        return EnchantedBook.FrostBlade_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack ThunderBlade_EnchantedBook(int amount, int level) {
+        return EnchantedBook.ThunderBlade_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack MagicBlade_EnchantedBook(int amount, int level) {
+        return EnchantedBook.MagicBlade_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack IceSpike_EnchantedBook(int amount, int level) {
+        return EnchantedBook.IceSpike_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack Inferno_EnchantedBook(int amount, int level) {
+        return EnchantedBook.Inferno_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack HeavyArmor_EnchantedBook(int amount, int level) {
+        return EnchantedBook.HeavyArmor_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack EarthFavor_EnchantedBook(int amount, int level) {
+        return EnchantedBook.EarthFavor_EnchantedBook(amount, level);
+    }
+
+    public static ItemStack ThunderGlow(int amount) {
+        return Weapon.ThunderGlow(amount);
+    }
+
+    public static ItemStack BlazingSun(int amount) {
+        return Weapon.BlazingSun(amount);
+    }
+
+    public static ItemStack PeachWoodSword(int amount) {
+        return Weapon.PeachWoodSword(amount);
+    }
+
+    public static ItemStack CorpseKing(int amount) {
+        return Weapon.CorpseKing(amount);
+    }
+
+    public static ItemStack Ambush_EnchantedBook(int amount, int level) {
+        return EnchantedBook.Ambush_EnchantedBook(amount, level);
     }
 
     // ========================================================================

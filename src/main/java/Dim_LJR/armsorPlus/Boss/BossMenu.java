@@ -234,8 +234,8 @@ public class BossMenu implements Listener {
                         40, 1.5, 1.0, 1.5, 0.3);
                 boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.5f);
                 String msg = type == BossType.CRYO
-                        ? "§e⚡ 元素反应！对急冻树造成双倍伤害！"
-                        : "§e⚡ 元素反应！对爆炎树造成双倍伤害！";
+                        ? "§e⚡ 元素反应！对雪人王造成双倍伤害！"
+                        : "§e⚡ 元素反应！对烈焰领主造成双倍伤害！";
                 player.sendMessage(msg);
             }
 
@@ -294,8 +294,8 @@ public class BossMenu implements Listener {
                         40, 1.5, 1.0, 1.5, 0.3);
                 boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.5f);
                 String msg = type == BossType.CRYO
-                        ? "§e⚡ 元素反应！对急冻树造成双倍伤害！"
-                        : "§e⚡ 元素反应！对爆炎树造成双倍伤害！";
+                        ? "§e⚡ 元素反应！对雪人王造成双倍伤害！"
+                        : "§e⚡ 元素反应！对烈焰领主造成双倍伤害！";
                 player.sendMessage(msg);
             }
 
@@ -338,7 +338,7 @@ public class BossMenu implements Listener {
 
         ItemStack cryo = new ItemStack(Material.PACKED_ICE);
         ItemMeta cryoMeta = cryo.getItemMeta();
-        cryoMeta.setDisplayName("§b■ 急冻树");
+        cryoMeta.setDisplayName("§b■ 雪人王");
         cryoMeta.setLore(Arrays.asList(
                 "§7来自龙脊雪山的远古植物，",
                 "§7拥有操控冰元素的力量。",
@@ -374,7 +374,7 @@ public class BossMenu implements Listener {
 
         ItemStack pyro = new ItemStack(Material.MAGMA_BLOCK);
         ItemMeta pyroMeta = pyro.getItemMeta();
-        pyroMeta.setDisplayName("§c■ 爆炎树");
+        pyroMeta.setDisplayName("§c■ 烈焰领主");
         pyroMeta.setLore(Arrays.asList(
                 "§7来自层岩巨渊的远古植物，",
                 "§7拥有操控火元素的力量。",
@@ -464,31 +464,31 @@ public class BossMenu implements Listener {
             return;
         }
 
-        if (name.contains("急冻树")) {
+        if (name.contains("雪人王")) {
             if (CryoRegisvine.isAlive()) {
                 Location loc = CryoRegisvine.getBossLocation();
                 if (loc != null) {
                     player.teleport(loc);
-                    player.sendMessage("§e急冻树尚未被击败，已传送至BOSS位置");
+                    player.sendMessage("§e雪人王尚未被击败，已传送至BOSS位置");
                 }
                 player.closeInventory();
                 return;
             }
             player.closeInventory();
-            player.sendMessage("§b◆ 急冻树已降临！");
+            player.sendMessage("§b◆ 雪人王已降临！");
             CryoRegisvine.spawnBoss(player);
-        } else if (name.contains("爆炎树")) {
+        } else if (name.contains("烈焰领主")) {
             if (PyroRegisvine.isAlive()) {
                 Location loc = PyroRegisvine.getBossLocation();
                 if (loc != null) {
                     player.teleport(loc);
-                    player.sendMessage("§e爆炎树尚未被击败，已传送至BOSS位置");
+                    player.sendMessage("§e烈焰领主尚未被击败，已传送至BOSS位置");
                 }
                 player.closeInventory();
                 return;
             }
             player.closeInventory();
-            player.sendMessage("§c◆ 爆炎树已降临！");
+            player.sendMessage("§c◆ 烈焰领主已降临！");
             PyroRegisvine.spawnBoss(player);
         } else if (name.contains("史莱姆王")) {
             if (SlimeBoss.isAlive()) {
