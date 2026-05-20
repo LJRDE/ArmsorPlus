@@ -845,7 +845,6 @@ public class FoodItems {
     private static final String ICE_CORE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
     // 纹理: 烈焰原核 (TODO: Replace)
     private static final String FIRE_CORE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-
     /** 汉堡: 恢复8饥饿值 + 6饱和度 */
     public static ItemStack Burger(int amount) {
         ItemStack item = new ItemStack(PLAYER_HEAD);
@@ -1277,4 +1276,5 @@ public class FoodItems {
         item.setAmount(amount);
         return item;
     }
+
 }

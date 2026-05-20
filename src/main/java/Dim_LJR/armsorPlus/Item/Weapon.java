@@ -2,6 +2,7 @@ package Dim_LJR.armsorPlus.Item;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -74,7 +75,7 @@ public class Weapon {
         meta.setDisplayName(ChatColor.DARK_GREEN + "尸王");
         meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:corpse_king_damage"),
-                        3.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+                        9.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
                 ChatColor.DARK_GREEN + "饥荒 II · 剧毒 II",
                 ChatColor.GRAY + "尸王之力，腐蚀生灵"));
@@ -84,6 +85,61 @@ public class Weapon {
         ArmsorEnchant.addEnchant(item, PoisonKey, 2);
         item.setAmount(amount);
         return item;
+    }
+
+    /** 钢剑: 攻击力7 */
+    public static ItemStack SteelSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GRAY + "钢剑");
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:steel_sword_damage"),
+                        7.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "精钢锻造的利剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SteelSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 钢头盔: 2护甲 1韧性 */
+    public static ItemStack SteelHelmet(int amount) {
+        return createSteelArmor(IRON_HELMET, ChatColor.GRAY + "钢头盔", 2.0, 1.0, SteelHelmetKey, "armsorplus:steel_helmet", amount);
+    }
+    /** 钢胸甲: 7护甲 2韧性 */
+    public static ItemStack SteelChestplate(int amount) {
+        return createSteelArmor(IRON_CHESTPLATE, ChatColor.GRAY + "钢胸甲", 7.0, 2.0, SteelChestplateKey, "armsorplus:steel_chest", amount);
+    }
+    /** 钢护腿: 6护甲 2韧性 */
+    public static ItemStack SteelLeggings(int amount) {
+        return createSteelArmor(IRON_LEGGINGS, ChatColor.GRAY + "钢护腿", 6.0, 2.0, SteelLeggingsKey, "armsorplus:steel_legs", amount);
+    }
+    /** 钢靴子: 3护甲 1韧性 */
+    public static ItemStack SteelBoots(int amount) {
+        return createSteelArmor(IRON_BOOTS, ChatColor.GRAY + "钢靴子", 3.0, 1.0, SteelBootsKey, "armsorplus:steel_boots", amount);
+    }
+
+    private static ItemStack createSteelArmor(Material material, String name, double armor, double toughness, NamespacedKey key, String nsKey, int amount) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        meta.addAttributeModifier(Attribute.ARMOR,
+                new AttributeModifier(NamespacedKey.fromString(nsKey + "_armor"), armor, AttributeModifier.Operation.ADD_NUMBER, getSlot(material)));
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
+                new AttributeModifier(NamespacedKey.fromString(nsKey + "_tough"), toughness, AttributeModifier.Operation.ADD_NUMBER, getSlot(material)));
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "精钢锻造", ChatColor.GRAY + "护甲: +" + (int)armor + " 韧性: +" + (int)toughness));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, key, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    private static EquipmentSlotGroup getSlot(Material mat) {
+        String n = mat.name();
+        if (n.contains("HELMET")) return EquipmentSlotGroup.HEAD;
+        if (n.contains("CHESTPLATE")) return EquipmentSlotGroup.CHEST;
+        if (n.contains("LEGGINGS")) return EquipmentSlotGroup.LEGS;
+        return EquipmentSlotGroup.FEET;
     }
 
     /** 桃木剑: 亡灵杀手V */
@@ -131,7 +187,7 @@ public class Weapon {
         meta.setDisplayName(ChatColor.YELLOW + "雷光");
         meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:thunder_glow_damage"),
-                        2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+                        8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
                 ChatColor.YELLOW + "雷雨天时伤害提升25%",
                 ChatColor.GRAY + "闪耀雷电之力"));
@@ -376,6 +432,7 @@ public class Weapon {
     public static ItemStack WebBow(int amount) {
         ItemStack item = new ItemStack(BOW);
         ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(WEB_BOW_NAME);
         meta.setLore(Arrays.asList(
                 ChatColor.WHITE + "攻击时在敌方周围生成蜘蛛网持续30秒",
                 ChatColor.DARK_GRAY + "使用9次后必定损坏",

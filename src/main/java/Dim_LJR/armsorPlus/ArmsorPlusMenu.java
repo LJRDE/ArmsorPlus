@@ -19,6 +19,7 @@ import java.util.*;
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.Food.FoodItems.*;
 import static Dim_LJR.armsorPlus.Food.FoodItems.OrangeSapling;
+import static Dim_LJR.armsorPlus.Item.Materials.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.GuideBookKey;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.MagicBallKey;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world;
@@ -38,6 +39,7 @@ public class ArmsorPlusMenu implements Listener {
     private static final Map<UUID, Integer> playerEnchantPage = new HashMap<>();
     private static final Map<UUID, Integer> playerFoodPage = new HashMap<>();
     private static final Map<UUID, Integer> playerSaplingPage = new HashMap<>();
+    private static final Map<UUID, Integer> playerArmsPage = new HashMap<>();
     private static Inventory armsList;
     private static Inventory magicItemsList;
     private static Inventory foodMenu;
@@ -125,6 +127,79 @@ public class ArmsorPlusMenu implements Listener {
         RECIPES.put(ChatColor.GOLD + "高级附魔向导", new String[]{
                 " C ", "   ", "   ",
                 "C=圆石"});
+
+        // ===== 食物合成配方 =====
+        RECIPES.put(ChatColor.GOLD + "汉堡", new String[]{
+                " B ", " C ", "   ",
+                "B=面包", "C=熟牛肉"});
+        RECIPES.put(ChatColor.RED + "热狗", new String[]{
+                " B ", " P ", "   ",
+                "B=面包", "P=熟猪排"});
+        RECIPES.put(ChatColor.YELLOW + "披萨", new String[]{
+                "BBB", "T  ", "C  ",
+                "B=面包", "T=西红柿", "C=奶酪"});
+        RECIPES.put(ChatColor.YELLOW + "薯条", new String[]{
+                "P  ", "S  ", "   ",
+                "P=烤马铃薯", "S=盐"});
+        RECIPES.put(ChatColor.LIGHT_PURPLE + "甜甜圈", new String[]{
+                "W  ", " E ", " S ",
+                "W=小麦", "E=鸡蛋", "S=糖"});
+        RECIPES.put(ChatColor.AQUA + "冰淇淋", new String[]{
+                "B  ", "S  ", " M ",
+                "B=雪球", "S=糖", "M=奶桶"});
+        RECIPES.put(ChatColor.GOLD + "爆米花", new String[]{
+                "W  ", "   ", "   ",
+                "W=小麦"});
+        RECIPES.put(ChatColor.LIGHT_PURPLE + "棉花糖", new String[]{
+                "S  ", "T  ", "   ",
+                "S=糖", "T=线"});
+        RECIPES.put(ChatColor.DARK_RED + "巧克力", new String[]{
+                "C  ", "S  ", " M ",
+                "C=可可豆", "S=糖", "M=奶桶"});
+        RECIPES.put(ChatColor.DARK_GREEN + "寿司", new String[]{
+                "K  ", "F  ", "W  ",
+                "K=干海带", "F=熟鳕鱼", "W=小麦"});
+        RECIPES.put(ChatColor.GOLD + "拉面", new String[]{
+                "B  ", "W  ", "KE ",
+                "B=碗", "W=小麦", "K=干海带", "E=鸡蛋"});
+        RECIPES.put(ChatColor.GOLD + "三明治", new String[]{
+                "B  ", "C  ", " L ",
+                "B=面包", "C=熟牛肉", "L=卷心菜"});
+        RECIPES.put(ChatColor.GOLD + "鸡腿", new String[]{
+                "C  ", "B  ", "   ",
+                "C=熟鸡肉", "B=面包"});
+        RECIPES.put(ChatColor.YELLOW + "奶酪", new String[]{
+                "M  ", "   ", "   ",
+                "M=奶桶"});
+        RECIPES.put(ChatColor.GOLD + "薄饼", new String[]{
+                "W  ", "E  ", "SM ",
+                "W=小麦", "E=鸡蛋", "S=糖", "M=奶桶"});
+        RECIPES.put(ChatColor.RED + "辣椒", new String[]{
+                "B  ", "R  ", "C  ",
+                "B=碗", "R=红染料", "C=熟牛肉"});
+        RECIPES.put(ChatColor.YELLOW + "黄油", new String[]{
+                "M  ", "   ", "   ",
+                "M=奶桶"});
+        RECIPES.put(ChatColor.GOLD + "金盾丹", new String[]{
+                "GGG", "GNG", "GGG",
+                "G=金块", "N=地狱疣"});
+
+        // ===== 钢制装备合成配方 =====
+        RECIPES.put(ChatColor.GRAY + "钢剑", new String[]{
+                " I ", " I ", " S ",
+                "I=钢锭", "S=木棍"});
+        RECIPES.put(ChatColor.GRAY + "钢头盔", new String[]{
+                "III", "I I", "   ",
+                "I=钢锭"});
+        RECIPES.put(ChatColor.GRAY + "钢胸甲", new String[]{
+                "I I", "III", "III",
+                "I=钢锭"});
+        RECIPES.put(ChatColor.GRAY + "钢护腿", new String[]{
+                "III", "I I", "I I",
+                "I=钢锭"});
+        RECIPES.put(ChatColor.GRAY + "钢靴子", new String[]{
+                "I I", "I I", "   ",
+                "I=钢锭"});
     }
 
     // ========================================================================
@@ -144,31 +219,55 @@ public class ArmsorPlusMenu implements Listener {
         return magicItemsList;
     }
 
-    /** 魔法武器列表 */
-    public Inventory createArmsListMenu() {
-        armsList = Bukkit.createInventory(null, 45, ChatColor.DARK_PURPLE + "魔法武器");
+    public static int getArmsPage(UUID uuid) { return playerArmsPage.getOrDefault(uuid, 0); }
+
+    /** 魔法武器列表 (支持翻页) */
+    public Inventory createArmsListMenu(Player player, int page) {
+        if (player != null) playerArmsPage.put(player.getUniqueId(), page);
+        String title = ChatColor.DARK_PURPLE + "魔法武器 " + (page + 1) + "/2";
+        armsList = Bukkit.createInventory(null, 45, title);
         addBorder(armsList, PURPLE_STAINED_GLASS_PANE);
-        armsList.setItem(10, BloodSword(1));
-        armsList.setItem(11, Iron_Epee(1));
-        armsList.setItem(12, Dagger(1));
-        armsList.setItem(13, ThrowingAxe(1));
-        armsList.setItem(14, SkeletonScepter(1));
-        armsList.setItem(15, FrostBow(1));
-        armsList.setItem(16, FlameHalberd(1));
-        armsList.setItem(19, RainSword(1));
-        armsList.setItem(20, FlyingSword(1));
-        armsList.setItem(21, FlashStepBlade(1));
-        armsList.setItem(22, MagicStick(1));
-        armsList.setItem(23, IceSword(1));
-        armsList.setItem(24, WebBow(1));
-        armsList.setItem(25, ExplosionBow(1));
-        armsList.setItem(28,DevourLifeSword(1));
-        armsList.setItem(29,StarTraceSword(1));
-        armsList.setItem(30,BlackTortoiseSword(1));
-        armsList.setItem(31,ThunderGlow(1));
-        armsList.setItem(32,BlazingSun(1));
-        armsList.setItem(33,PeachWoodSword(1));
+        if (page == 0) {
+            armsList.setItem(10, BloodSword(1));
+            armsList.setItem(11, Iron_Epee(1));
+            armsList.setItem(12, Dagger(1));
+            armsList.setItem(13, ThrowingAxe(1));
+            armsList.setItem(14, SkeletonScepter(1));
+            armsList.setItem(15, FrostBow(1));
+            armsList.setItem(16, FlameHalberd(1));
+            armsList.setItem(19, RainSword(1));
+            armsList.setItem(20, FlyingSword(1));
+            armsList.setItem(21, FlashStepBlade(1));
+            armsList.setItem(22, MagicStick(1));
+            armsList.setItem(23, IceSword(1));
+            armsList.setItem(24, WebBow(1));
+            armsList.setItem(25, ExplosionBow(1));
+            armsList.setItem(28, DevourLifeSword(1));
+            armsList.setItem(29, StarTraceSword(1));
+            armsList.setItem(30, BlackTortoiseSword(1));
+            armsList.setItem(31, ThunderGlow(1));
+            armsList.setItem(32, BlazingSun(1));
+            armsList.setItem(33, PeachWoodSword(1));
+            armsList.setItem(34, SteelSword(1));
+        } else {
+            armsList.setItem(10, CorpseKing(1));
+        }
+        if (page > 0) armsList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
+        if (page < 1) armsList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
         return armsList;
+    }
+    public Inventory createArmsListMenu(Player player) { return createArmsListMenu(player, 0); }
+    public Inventory createArmsListMenu() { return createArmsListMenu(null, 0); }
+
+    /** 护甲菜单 */
+    public Inventory createArmorListMenu() {
+        Inventory armorInv = Bukkit.createInventory(null, 45, ChatColor.DARK_GREEN + "护甲");
+        addBorder(armorInv, GREEN_STAINED_GLASS_PANE);
+        armorInv.setItem(20, SteelHelmet(1));
+        armorInv.setItem(21, SteelChestplate(1));
+        armorInv.setItem(22, SteelLeggings(1));
+        armorInv.setItem(23, SteelBoots(1));
+        return armorInv;
     }
 
 
@@ -236,6 +335,18 @@ public class ArmsorPlusMenu implements Listener {
         inv.setItem(16, Cabbage(1));
         inv.setItem(19, Butter(1));
         inv.setItem(20, Poop(1));
+    }
+
+    /** 原材料菜单 (BOSS掉落+材料) */
+    public Inventory createMaterialMenu() {
+        Inventory matMenu = Bukkit.createInventory(null, 45, ChatColor.GRAY + "原材料");
+        addBorder(matMenu, GRAY_STAINED_GLASS_PANE);
+        matMenu.setItem(20, IceCore(1));
+        matMenu.setItem(21, FireCore(1));
+        matMenu.setItem(22, RawSteel(1));
+        matMenu.setItem(23, SteelIngot(1));
+        matMenu.setItem(24, EndCore(1));
+        return matMenu;
     }
 
     /** 药品菜单 (单页) */
@@ -354,6 +465,7 @@ public class ArmsorPlusMenu implements Listener {
             enchantmentList.setItem(31, DiamondDrill_EnchantedBook(1, 5));
             enchantmentList.setItem(32, QuickThrust_EnchantedBook(1, 5));
             enchantmentList.setItem(33, Blindness_EnchantedBook(1, 5));
+            enchantmentList.setItem(34, IceSpike_EnchantedBook(1, 3));
         } else if (page == 1) {
             // 第2页: 0.3I 新附魔
             enchantmentList.setItem(10, ProtectionPRO_EnchantedBook(1, 5));
@@ -423,7 +535,11 @@ public class ArmsorPlusMenu implements Listener {
                 ChatColor.GREEN + "点击查看食物"));
         menu.setItem(20, createInfoItem(GOLDEN_APPLE, ChatColor.DARK_PURPLE + "药品",
                 ChatColor.DARK_PURPLE + "点击查看药品与材料"));
-        menu.setItem(21, createInfoItem(OAK_SAPLING, ChatColor.GREEN + "树苗商店",
+        menu.setItem(21, createInfoItem(IRON_INGOT, ChatColor.GRAY + "原材料",
+                ChatColor.GRAY + "点击查看BOSS掉落物和材料"));
+        menu.setItem(22, createInfoItem(IRON_CHESTPLATE, ChatColor.DARK_GREEN + "护甲",
+                ChatColor.DARK_GREEN + "点击查看护甲"));
+        menu.setItem(23, createInfoItem(OAK_SAPLING, ChatColor.GREEN + "树苗商店",
                 ChatColor.GREEN + "点击查看树苗"));
         menu.setItem(34, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
                 ChatColor.GRAY + "点击打开个人设置"));
@@ -497,11 +613,15 @@ public class ArmsorPlusMenu implements Listener {
             } else if (name.equals(ChatColor.AQUA + "魔法物品列表")) {
                 player.openInventory(createMagicItemMenu());
             } else if (name.equals(ChatColor.GOLD + "魔法武器列表")) {
-                player.openInventory(createArmsListMenu());
+                player.openInventory(createArmsListMenu(player));
+            } else if (name.equals(ChatColor.DARK_GREEN + "护甲")) {
+                player.openInventory(createArmorListMenu());
             } else if (name.equals(ChatColor.GREEN + "食物")) {
-                player.openInventory(createFoodMenu());
+                player.openInventory(createFoodMenu(player));
             } else if (name.equals(ChatColor.DARK_PURPLE + "药品")) {
                 player.openInventory(createMedicineMenu());
+            } else if (name.equals(ChatColor.GRAY + "原材料")) {
+                player.openInventory(createMaterialMenu());
             } else if (name.equals(ChatColor.GREEN + "树苗商店")) {
                 player.openInventory(createSaplingMenu());
             } else if (name.equals(ChatColor.BLUE + "公海世界")) {
@@ -563,8 +683,11 @@ public class ArmsorPlusMenu implements Listener {
                 || event.getClickedInventory() == magicItemsList
                 || invTitle.startsWith("§e高级附魔书列表")
                 || invTitle.startsWith(ChatColor.GREEN + "食物")
+                || invTitle.startsWith(ChatColor.DARK_PURPLE + "魔法武器")
                 || invTitle.startsWith(ChatColor.DARK_PURPLE + "药品")
                 || invTitle.startsWith(ChatColor.GREEN + "树苗商店")
+                || invTitle.equals(ChatColor.DARK_GREEN + "护甲")
+                || invTitle.equals(ChatColor.GRAY + "原材料")
                 || event.getClickedInventory() == foodMenu
                 || event.getClickedInventory() == medicineMenu
                 || event.getClickedInventory() == saplingMenu;
@@ -588,8 +711,21 @@ public class ArmsorPlusMenu implements Listener {
                 }
             }
 
+            // 武器菜单翻页导航
+            if (invTitle.startsWith(ChatColor.DARK_PURPLE + "魔法武器") || event.getClickedInventory() == armsList) {
+                int page = playerArmsPage.getOrDefault(uuid, 0);
+                if (event.getSlot() == 39 && page > 0) {
+                    player.openInventory(createArmsListMenu(player, page - 1));
+                    return;
+                }
+                if (event.getSlot() == 41 && page < 1) {
+                    player.openInventory(createArmsListMenu(player, page + 1));
+                    return;
+                }
+            }
+
             // 食物菜单翻页导航
-            if (invTitle.startsWith(ChatColor.GREEN + "食物")) {
+            if (invTitle.startsWith(ChatColor.GREEN + "食物") || event.getClickedInventory() == foodMenu) {
                 int page = playerFoodPage.getOrDefault(uuid, 0);
                 if (event.getSlot() == 39 && page > 0) {
                     player.openInventory(createFoodMenu(player, page - 1));
@@ -602,7 +738,7 @@ public class ArmsorPlusMenu implements Listener {
             }
 
             // 树苗菜单翻页导航
-            if (invTitle.startsWith(ChatColor.GREEN + "树苗商店")) {
+            if (invTitle.startsWith(ChatColor.GREEN + "树苗商店") || event.getClickedInventory() == saplingMenu) {
                 int page = playerSaplingPage.getOrDefault(uuid, 0);
                 if (event.getSlot() == 39 && page > 0) {
                     player.openInventory(createSaplingMenu(player, page - 1));
@@ -621,6 +757,11 @@ public class ArmsorPlusMenu implements Listener {
             } else {
                 showRecipe(player, clicked);
             }
+        }
+
+        // ---- 合成配方展示菜单 (防止取出物品) ----
+        if (invTitle.startsWith("§e合成配方:")) {
+            event.setCancelled(true);
         }
     }
 
@@ -812,6 +953,25 @@ public class ArmsorPlusMenu implements Listener {
                     case "蜘蛛网" -> COBWEB;
                     case "TNT" -> TNT;
                     case "弓" -> BOW;
+                    case "熟牛肉" -> COOKED_BEEF;
+                    case "鸡蛋" -> EGG;
+                    case "奶桶" -> MILK_BUCKET;
+                    case "线" -> STRING;
+                    case "可可豆" -> COCOA_BEANS;
+                    case "干海带" -> DRIED_KELP;
+                    case "熟鳕鱼" -> COOKED_COD;
+                    case "碗" -> BOWL;
+                    case "熟鸡肉" -> COOKED_CHICKEN;
+                    case "金块" -> GOLD_BLOCK;
+                    case "金苹果" -> GOLDEN_APPLE;
+                    case "雪球" -> SNOWBALL;
+                    case "烤马铃薯" -> BAKED_POTATO;
+                    case "红染料" -> RED_DYE;
+                    case "糖" -> SUGAR;
+                    case "西红柿" -> RED_DYE;
+                    case "奶酪" -> YELLOW_DYE;
+                    case "卷心菜" -> GREEN_DYE;
+                    case "钢锭" -> IRON_INGOT;
                     default -> PAPER;
                 };
             }

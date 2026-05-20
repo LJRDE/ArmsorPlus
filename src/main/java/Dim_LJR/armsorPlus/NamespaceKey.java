@@ -216,6 +216,14 @@ public class NamespaceKey {
         public static NamespacedKey IceCoreKey;
         public static NamespacedKey FireCoreKey;
         public static NamespacedKey CorpseKingKey;
+        public static NamespacedKey RawSteelKey;
+        public static NamespacedKey SteelIngotKey;
+        public static NamespacedKey SteelSwordKey;
+        public static NamespacedKey SteelHelmetKey;
+        public static NamespacedKey SteelChestplateKey;
+        public static NamespacedKey SteelLeggingsKey;
+        public static NamespacedKey SteelBootsKey;
+        public static NamespacedKey SkeletonKingBowKey;
         public static NamespacedKey AmbushKey;
         public static NamespacedKey FireMarkKey;
         public static NamespacedKey FrostMarkKey;
@@ -224,6 +232,7 @@ public class NamespaceKey {
 
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
+        public static NamespacedKey EndCoreKey;
 
         /** 初始化所有键 — 必须在插件 onEnable 中调用 */
         public static void regkey(JavaPlugin plugin) {
@@ -376,6 +385,15 @@ public class NamespaceKey {
             IceCoreKey = new NamespacedKey(plugin, "ArmsorPlus_IceCore");
             FireCoreKey = new NamespacedKey(plugin, "ArmsorPlus_FireCore");
             CorpseKingKey = new NamespacedKey(plugin, "ArmsorPlus_CorpseKing");
+            EndCoreKey = new NamespacedKey(plugin, "ArmsorPlus_EndCore");
+            RawSteelKey = new NamespacedKey(plugin, "ArmsorPlus_RawSteel");
+            SteelIngotKey = new NamespacedKey(plugin, "ArmsorPlus_SteelIngot");
+            SteelSwordKey = new NamespacedKey(plugin, "ArmsorPlus_SteelSword");
+            SteelHelmetKey = new NamespacedKey(plugin, "ArmsorPlus_SteelHelmet");
+            SteelChestplateKey = new NamespacedKey(plugin, "ArmsorPlus_SteelChestplate");
+            SteelLeggingsKey = new NamespacedKey(plugin, "ArmsorPlus_SteelLeggings");
+            SteelBootsKey = new NamespacedKey(plugin, "ArmsorPlus_SteelBoots");
+            SkeletonKingBowKey = new NamespacedKey(plugin, "ArmsorPlus_SkeletonKingBow");
             AmbushKey = new NamespacedKey(plugin, "ArmsorPlus_Ambush");
             FireMarkKey = new NamespacedKey(plugin, "ArmsorPlus_FireMark");
             FrostMarkKey = new NamespacedKey(plugin, "ArmsorPlus_FrostMark");

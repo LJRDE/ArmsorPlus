@@ -1,11 +1,9 @@
 package Dim_LJR.armsorPlus.Boss;
 
-import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,8 +16,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.*;
-
-import static Dim_LJR.armsorPlus.NamespaceKey.Keys.FreezeKey;
 
 /**
  * BOSS清单 GUI + 全局BOSS战斗系统。
@@ -34,7 +30,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN }
+    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, VOID_WRAITH }
 
     /** 身体部位实体 -> BOSS类型 */
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -46,8 +42,7 @@ public class BossMenu implements Listener {
     private static final Map<BossType, LivingEntity> bossEntities = new HashMap<>();
     private static final Map<BossType, BossBar> bossBars = new HashMap<>();
     private static final Map<BossType, Set<UUID>> bossAllStands = new HashMap<>();
-
-    private static final Random RANDOM = new Random();
+    private static final Map<BossType, String> bossBarBaseTitles = new HashMap<>();
 
     // ========================================================================
     // 注册 / 注销 API
@@ -60,6 +55,10 @@ public class BossMenu implements Listener {
         bossHealth.put(type, maxHp);
         bossBars.put(type, bar);
         bossAllStands.put(type, new HashSet<>());
+        bossBarBaseTitles.put(type, bar.getTitle());
+        if (type != BossType.CRYO) {
+            bar.setTitle(bar.getTitle() + " §7" + Math.round(maxHp) + "/" + Math.round(maxHp));
+        }
     }
 
     /** 注册身体部位实体 */
@@ -106,7 +105,15 @@ public class BossMenu implements Listener {
         bossHealth.put(type, newHealth);
 
         BossBar bar = bossBars.get(type);
-        if (bar != null) bar.setProgress(newHealth / maxHp);
+        if (bar != null) {
+            bar.setProgress(newHealth / maxHp);
+            if (type != BossType.CRYO) {
+                String base = bossBarBaseTitles.get(type);
+                if (base != null) {
+                    bar.setTitle(base + " §7" + Math.round(newHealth) + "/" + Math.round(maxHp));
+                }
+            }
+        }
 
         LivingEntity entity = bossEntities.get(type);
         if (entity != null && !entity.isDead()) {
@@ -123,6 +130,8 @@ public class BossMenu implements Listener {
                 case ZOMBIE_GIANT -> ZombieGiantBoss.onDeath();
                 case BABY_ZOMBIE_DOUBLE -> BabyZombieDoubleBoss.onDeath();
                 case TREASURE_GUARDIAN -> TreasureGuardianBoss.onDeath();
+                case SKELETON_KING -> SkeletonKing.onDeath();
+                case VOID_WRAITH -> VoidWraith.onDeath();
             }
             return true;
         }
@@ -161,29 +170,6 @@ public class BossMenu implements Listener {
     }
 
     // ========================================================================
-    // 元素反应检测
-    // ========================================================================
-
-    private static boolean hasFireDamage(Player player, Entity originalDamager) {
-        ItemStack weapon = player.getInventory().getItemInMainHand();
-        if (weapon.containsEnchantment(Enchantment.FIRE_ASPECT)) return true;
-        if (originalDamager instanceof Arrow arrow && arrow.getFireTicks() > 0) return true;
-        return false;
-    }
-
-    private static boolean hasLightningDamage(Player player, Entity originalDamager) {
-        ItemStack weapon = player.getInventory().getItemInMainHand();
-        if (weapon.containsEnchantment(Enchantment.CHANNELING)) return true;
-        if (originalDamager instanceof Trident) return true;
-        return false;
-    }
-
-    private static boolean hasFrostDamage(Player player, Entity originalDamager) {
-        ItemStack weapon = player.getInventory().getItemInMainHand();
-        return ArmsorEnchant.getEnchantLevel(weapon, FreezeKey) > 0;
-    }
-
-    // ========================================================================
     // 躯干部位伤害处理
     // ========================================================================
 
@@ -211,33 +197,6 @@ public class BossMenu implements Listener {
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
             if (boss == null || boss.isDead()) return;
-
-            // 元素反应 (仅2x伤害加成)
-            boolean elementalProc = false;
-            if (type == BossType.CRYO) {
-                if (hasFireDamage(player, originalDamager) || hasLightningDamage(player, originalDamager)) {
-                    dmg *= 2;
-                    elementalProc = true;
-                    if (RANDOM.nextInt(100) < 50) CryoRegisvine.exposeCore();
-                }
-            } else if (type == BossType.PYRO) {
-                if (hasLightningDamage(player, originalDamager) || hasFrostDamage(player, originalDamager)) {
-                    dmg *= 2;
-                    elementalProc = true;
-                    if (RANDOM.nextInt(100) < 50) PyroRegisvine.exposeCore();
-                }
-            }
-
-            // 元素反应特效
-            if (elementalProc) {
-                boss.getWorld().spawnParticle(Particle.FIREWORK, boss.getLocation().add(0, 2, 0),
-                        40, 1.5, 1.0, 1.5, 0.3);
-                boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.5f);
-                String msg = type == BossType.CRYO
-                        ? "§e⚡ 元素反应！对雪人王造成双倍伤害！"
-                        : "§e⚡ 元素反应！对烈焰领主造成双倍伤害！";
-                player.sendMessage(msg);
-            }
 
             damageBoss(type, dmg, player);
             damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 0.5, 0),
@@ -272,32 +231,6 @@ public class BossMenu implements Listener {
             event.setCancelled(true);
             LivingEntity boss = bossEntities.get(type);
             if (boss == null || boss.isDead()) return;
-
-            // 元素反应
-            boolean elementalProc = false;
-            if (type == BossType.CRYO) {
-                if (hasFireDamage(player, originalDamager) || hasLightningDamage(player, originalDamager)) {
-                    dmg *= 2;
-                    elementalProc = true;
-                    if (RANDOM.nextInt(100) < 50) CryoRegisvine.exposeCore();
-                }
-            } else if (type == BossType.PYRO) {
-                if (hasLightningDamage(player, originalDamager) || hasFrostDamage(player, originalDamager)) {
-                    dmg *= 2;
-                    elementalProc = true;
-                    if (RANDOM.nextInt(100) < 50) PyroRegisvine.exposeCore();
-                }
-            }
-
-            if (elementalProc) {
-                boss.getWorld().spawnParticle(Particle.FIREWORK, boss.getLocation().add(0, 2, 0),
-                        40, 1.5, 1.0, 1.5, 0.3);
-                boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.0f, 1.5f);
-                String msg = type == BossType.CRYO
-                        ? "§e⚡ 元素反应！对雪人王造成双倍伤害！"
-                        : "§e⚡ 元素反应！对烈焰领主造成双倍伤害！";
-                player.sendMessage(msg);
-            }
 
             damageBoss(type, dmg, player);
             damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 1, 0),
@@ -440,6 +373,32 @@ public class BossMenu implements Listener {
         ));
         doubleZombie.setItemMeta(doubleMeta);
         bossList.setItem(28, doubleZombie);
+
+        ItemStack skKing = new ItemStack(Material.BOW);
+        ItemMeta skMeta = skKing.getItemMeta();
+        skMeta.setDisplayName("§8■ 骷髅王");
+        skMeta.setLore(Arrays.asList("§7手持力量X神弓的骷髅王者，", "§7每隔10秒召唤箭雨。", "", "§c❤ 生命值: 600", "§8⚔ 箭雨伤害: 6/箭", "§e✦ 弓箭无法掉落", "", "§a▼ 点击召唤BOSS", "§7(请在空旷处召唤)"));
+        skKing.setItemMeta(skMeta);
+        bossList.setItem(32, skKing);
+
+        ItemStack wraith = new ItemStack(Material.ENDER_EYE);
+        ItemMeta wraithMeta = wraith.getItemMeta();
+        wraithMeta.setDisplayName("§5■ 虚空幽魂");
+        wraithMeta.setLore(Arrays.asList(
+                "§7来自虚空的远古凋灵骷髅，",
+                "§7掌控着末地传送门的力量。",
+                "",
+                "§c❤ 生命值: 800",
+                "§5✦ 双阶段战斗 (50%进入P2)",
+                "§5✦ 6种攻击技能: 虚空弹/末影脉冲/虚空裂隙/暗影分身/终末裁决/虚空吸取",
+                "§5✦ 每7.5-12.5秒随机传送",
+                "§e⚡ 火焰/雷电触发元素反应: 双倍伤害+50%暴露核心",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        wraith.setItemMeta(wraithMeta);
+        bossList.setItem(34, wraith);
     }
 
     // ========================================================================
@@ -540,8 +499,24 @@ public class BossMenu implements Listener {
                 return;
             }
             player.closeInventory();
-            player.sendMessage("§6◆ 宝藏守护者出现了！");
             TreasureGuardianBoss.spawnBoss(player);
+            player.sendMessage("§6◆ 宝藏守护者出现了！");
+        } else if (name.contains("骷髅王")) {
+            if (SkeletonKing.isAlive()) {
+                Location loc = SkeletonKing.getBossLocation();
+                if (loc != null) { player.teleport(loc); return; }
+            }
+            player.closeInventory();
+            SkeletonKing.spawnBoss(player);
+            player.sendMessage("§6◆ 骷髅王出现了！");
+        } else if (name.contains("虚空幽魂")) {
+            if (VoidWraith.isAlive()) {
+                Location loc = VoidWraith.getBossLocation();
+                if (loc != null) { player.teleport(loc); return; }
+            }
+            player.closeInventory();
+            VoidWraith.spawnBoss(player);
+            player.sendMessage("§5◆ 虚空幽魂从虚空中降临！");
         }
     }
 }

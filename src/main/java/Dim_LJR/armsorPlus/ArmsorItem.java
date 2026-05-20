@@ -361,6 +361,12 @@ public final class ArmsorItem {
         return Weapon.CorpseKing(amount);
     }
 
+    public static ItemStack SteelSword(int amount) { return Weapon.SteelSword(amount); }
+    public static ItemStack SteelHelmet(int amount) { return Weapon.SteelHelmet(amount); }
+    public static ItemStack SteelChestplate(int amount) { return Weapon.SteelChestplate(amount); }
+    public static ItemStack SteelLeggings(int amount) { return Weapon.SteelLeggings(amount); }
+    public static ItemStack SteelBoots(int amount) { return Weapon.SteelBoots(amount); }
+
     public static ItemStack Ambush_EnchantedBook(int amount, int level) {
         return EnchantedBook.Ambush_EnchantedBook(amount, level);
     }

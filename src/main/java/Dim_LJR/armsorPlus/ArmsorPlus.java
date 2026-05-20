@@ -19,6 +19,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
@@ -29,6 +30,7 @@ import java.util.Random;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.Food.FoodItems.*;
+import static Dim_LJR.armsorPlus.Item.Materials.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.NamespaceKey.banner;
 import static org.bukkit.Material.*;
@@ -329,6 +331,48 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(corpseRecipe);
         count++;
 
+        // 生钢: 铁锭x1 + 煤炭x1
+        NamespacedKey rawSteelKey = new NamespacedKey(this, "ArmsorPlus_RawSteel");
+        ShapelessRecipe rawSteelRecipe = new ShapelessRecipe(rawSteelKey, RawSteel(1));
+        rawSteelRecipe.addIngredient(1, IRON_INGOT);
+        rawSteelRecipe.addIngredient(1, COAL);
+        getServer().addRecipe(rawSteelRecipe);
+        count++;
+
+        // 钢: 熔炉烧制生钢
+        NamespacedKey steelSmeltKey = new NamespacedKey(this, "ArmsorPlus_SteelSmelt");
+        FurnaceRecipe steelSmelt = new FurnaceRecipe(steelSmeltKey, SteelIngot(1),
+                new RecipeChoice.ExactChoice(RawSteel(1)), 0.5f, 200);
+        getServer().addRecipe(steelSmelt);
+        count++;
+
+        // 钢剑: 钢x2 + 木棍
+        NamespacedKey steelSwordKey = new NamespacedKey(this, "ArmsorPlus_SteelSword");
+        ShapedRecipe steelSwordRecipe = new ShapedRecipe(steelSwordKey, SteelSword(1));
+        steelSwordRecipe.shape(" S ", " S ", " B ");
+        steelSwordRecipe.setIngredient('S', new RecipeChoice.ExactChoice(SteelIngot(1)));
+        steelSwordRecipe.setIngredient('B', STICK);
+        getServer().addRecipe(steelSwordRecipe);
+        count++;
+
+        // 钢装备
+        NamespacedKey[] steelArmorKeys = {
+            new NamespacedKey(this, "ArmsorPlus_SteelHelmet"),
+            new NamespacedKey(this, "ArmsorPlus_SteelChest"),
+            new NamespacedKey(this, "ArmsorPlus_SteelLegs"),
+            new NamespacedKey(this, "ArmsorPlus_SteelBoots")
+        };
+        ItemStack[] steelArmors = {SteelHelmet(1), SteelChestplate(1), SteelLeggings(1), SteelBoots(1)};
+        String[][] shapes = {{"SSS","S S"}, {"S S","SSS","SSS"}, {"SSS","S S","S S"}, {"S S","S S"}};
+        RecipeChoice steelChoice = new RecipeChoice.ExactChoice(SteelIngot(1));
+        for (int i = 0; i < 4; i++) {
+            ShapedRecipe r = new ShapedRecipe(steelArmorKeys[i], steelArmors[i]);
+            r.shape(shapes[i]);
+            r.setIngredient('S', steelChoice);
+            getServer().addRecipe(r);
+            count++;
+        }
+
         // 玄武剑: 玄武岩x2 + 烈焰棒x1
         NamespacedKey tortoiseKey = new NamespacedKey(this, "ArmsorPlus_BlackTortoiseSword");
         ShapedRecipe tortoiseRecipe = new ShapedRecipe(tortoiseKey, BlackTortoiseSword(1));
@@ -352,6 +396,152 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         ShapelessRecipe iceCubeRecipe = new ShapelessRecipe(iceCubeRecipeKey, IceCube(4));
         iceCubeRecipe.addIngredient(1, ICE);
         getServer().addRecipe(iceCubeRecipe);
+        count++;
+
+        // ===== 食物配方 =====
+        // 汉堡: 面包 + 熟牛肉 + 卷心菜
+        NamespacedKey burgerKey = new NamespacedKey(this, "ArmsorPlus_Burger");
+        ShapelessRecipe burgerRecipe = new ShapelessRecipe(burgerKey, Burger(1));
+        burgerRecipe.addIngredient(1, BREAD);
+        burgerRecipe.addIngredient(1, COOKED_BEEF);
+        burgerRecipe.addIngredient(new RecipeChoice.ExactChoice(Cabbage(1)));
+        getServer().addRecipe(burgerRecipe);
+        count++;
+
+        // 热狗: 面包 + 熟猪排
+        NamespacedKey hotDogKey = new NamespacedKey(this, "ArmsorPlus_HotDog");
+        ShapelessRecipe hotDogRecipe = new ShapelessRecipe(hotDogKey, HotDog(1));
+        hotDogRecipe.addIngredient(1, BREAD);
+        hotDogRecipe.addIngredient(1, COOKED_PORKCHOP);
+        getServer().addRecipe(hotDogRecipe);
+        count++;
+
+        // 披萨: 面包 + 西红柿 + 奶酪
+        NamespacedKey pizzaKey = new NamespacedKey(this, "ArmsorPlus_Pizza");
+        ShapelessRecipe pizzaRecipe = new ShapelessRecipe(pizzaKey, Pizza(1));
+        pizzaRecipe.addIngredient(1, BREAD);
+        pizzaRecipe.addIngredient(new RecipeChoice.ExactChoice(Tomato(1)));
+        pizzaRecipe.addIngredient(new RecipeChoice.ExactChoice(Cheese(1)));
+        getServer().addRecipe(pizzaRecipe);
+        count++;
+
+        // 薯条: 烤马铃薯 + 盐
+        NamespacedKey friesKey = new NamespacedKey(this, "ArmsorPlus_FrenchFries");
+        ShapelessRecipe friesRecipe = new ShapelessRecipe(friesKey, FrenchFries(1));
+        friesRecipe.addIngredient(1, BAKED_POTATO);
+        friesRecipe.addIngredient(new RecipeChoice.ExactChoice(Salt(1)));
+        getServer().addRecipe(friesRecipe);
+        count++;
+
+        // 甜甜圈: 小麦 + 糖 + 鸡蛋
+        NamespacedKey donutKey = new NamespacedKey(this, "ArmsorPlus_Donut");
+        ShapelessRecipe donutRecipe = new ShapelessRecipe(donutKey, Donut(1));
+        donutRecipe.addIngredient(1, WHEAT);
+        donutRecipe.addIngredient(1, SUGAR);
+        donutRecipe.addIngredient(1, EGG);
+        getServer().addRecipe(donutRecipe);
+        count++;
+
+        // 冰淇淋: 雪球 + 糖 + 奶桶
+        NamespacedKey iceCreamKey = new NamespacedKey(this, "ArmsorPlus_IceCream");
+        ShapelessRecipe iceCreamRecipe = new ShapelessRecipe(iceCreamKey, IceCream(1));
+        iceCreamRecipe.addIngredient(1, SNOWBALL);
+        iceCreamRecipe.addIngredient(1, SUGAR);
+        iceCreamRecipe.addIngredient(1, MILK_BUCKET);
+        getServer().addRecipe(iceCreamRecipe);
+        count++;
+
+        // 爆米花: 小麦
+        NamespacedKey popcornKey = new NamespacedKey(this, "ArmsorPlus_Popcorn");
+        ShapelessRecipe popcornRecipe = new ShapelessRecipe(popcornKey, Popcorn(1));
+        popcornRecipe.addIngredient(1, WHEAT);
+        getServer().addRecipe(popcornRecipe);
+        count++;
+
+        // 棉花糖: 糖 + 线
+        NamespacedKey cottonCandyKey = new NamespacedKey(this, "ArmsorPlus_CottonCandy");
+        ShapelessRecipe cottonCandyRecipe = new ShapelessRecipe(cottonCandyKey, CottonCandy(1));
+        cottonCandyRecipe.addIngredient(1, SUGAR);
+        cottonCandyRecipe.addIngredient(1, STRING);
+        getServer().addRecipe(cottonCandyRecipe);
+        count++;
+
+        // 巧克力: 可可豆 + 糖 + 奶桶
+        NamespacedKey chocolateKey = new NamespacedKey(this, "ArmsorPlus_Chocolate");
+        ShapelessRecipe chocolateRecipe = new ShapelessRecipe(chocolateKey, Chocolate(1));
+        chocolateRecipe.addIngredient(1, COCOA_BEANS);
+        chocolateRecipe.addIngredient(1, SUGAR);
+        chocolateRecipe.addIngredient(1, MILK_BUCKET);
+        getServer().addRecipe(chocolateRecipe);
+        count++;
+
+        // 寿司: 干海带 + 熟鳕鱼 + 小麦
+        NamespacedKey sushiKey = new NamespacedKey(this, "ArmsorPlus_Sushi");
+        ShapelessRecipe sushiRecipe = new ShapelessRecipe(sushiKey, Sushi(1));
+        sushiRecipe.addIngredient(1, DRIED_KELP);
+        sushiRecipe.addIngredient(1, COOKED_COD);
+        sushiRecipe.addIngredient(1, WHEAT);
+        getServer().addRecipe(sushiRecipe);
+        count++;
+
+        // 拉面: 碗 + 小麦 + 干海带 + 鸡蛋
+        NamespacedKey ramenKey = new NamespacedKey(this, "ArmsorPlus_Ramen");
+        ShapelessRecipe ramenRecipe = new ShapelessRecipe(ramenKey, Ramen(1));
+        ramenRecipe.addIngredient(1, BOWL);
+        ramenRecipe.addIngredient(1, WHEAT);
+        ramenRecipe.addIngredient(1, DRIED_KELP);
+        ramenRecipe.addIngredient(1, EGG);
+        getServer().addRecipe(ramenRecipe);
+        count++;
+
+        // 三明治: 面包 + 熟牛肉 + 卷心菜
+        NamespacedKey sandwichKey = new NamespacedKey(this, "ArmsorPlus_Sandwich");
+        ShapelessRecipe sandwichRecipe = new ShapelessRecipe(sandwichKey, Sandwich(1));
+        sandwichRecipe.addIngredient(1, BREAD);
+        sandwichRecipe.addIngredient(1, COOKED_BEEF);
+        sandwichRecipe.addIngredient(new RecipeChoice.ExactChoice(Cabbage(1)));
+        getServer().addRecipe(sandwichRecipe);
+        count++;
+
+        // 鸡腿: 熟鸡肉 + 面包
+        NamespacedKey drumstickKey = new NamespacedKey(this, "ArmsorPlus_Drumstick");
+        ShapelessRecipe drumstickRecipe = new ShapelessRecipe(drumstickKey, Drumstick(1));
+        drumstickRecipe.addIngredient(1, COOKED_CHICKEN);
+        drumstickRecipe.addIngredient(1, BREAD);
+        getServer().addRecipe(drumstickRecipe);
+        count++;
+
+        // 奶酪: 奶桶
+        NamespacedKey cheeseKey = new NamespacedKey(this, "ArmsorPlus_Cheese");
+        ShapelessRecipe cheeseRecipe = new ShapelessRecipe(cheeseKey, Cheese(1));
+        cheeseRecipe.addIngredient(1, MILK_BUCKET);
+        getServer().addRecipe(cheeseRecipe);
+        count++;
+
+        // 薄饼: 小麦 + 鸡蛋 + 糖 + 奶桶
+        NamespacedKey pancakeKey = new NamespacedKey(this, "ArmsorPlus_Pancake");
+        ShapelessRecipe pancakeRecipe = new ShapelessRecipe(pancakeKey, Pancake(1));
+        pancakeRecipe.addIngredient(1, WHEAT);
+        pancakeRecipe.addIngredient(1, EGG);
+        pancakeRecipe.addIngredient(1, SUGAR);
+        pancakeRecipe.addIngredient(1, MILK_BUCKET);
+        getServer().addRecipe(pancakeRecipe);
+        count++;
+
+        // 辣椒: 碗 + 红染料 + 熟牛肉
+        NamespacedKey chiliKey = new NamespacedKey(this, "ArmsorPlus_Chili");
+        ShapelessRecipe chiliRecipe = new ShapelessRecipe(chiliKey, Chili(1));
+        chiliRecipe.addIngredient(1, BOWL);
+        chiliRecipe.addIngredient(1, RED_DYE);
+        chiliRecipe.addIngredient(1, COOKED_BEEF);
+        getServer().addRecipe(chiliRecipe);
+        count++;
+
+        // 黄油: 奶桶
+        NamespacedKey butterKey = new NamespacedKey(this, "ArmsorPlus_Butter");
+        ShapelessRecipe butterRecipe = new ShapelessRecipe(butterKey, Butter(1));
+        butterRecipe.addIngredient(1, MILK_BUCKET);
+        getServer().addRecipe(butterRecipe);
         count++;
 
         getLogger().info("ArmsorPlus 配方注册完成 数量: " + count);
