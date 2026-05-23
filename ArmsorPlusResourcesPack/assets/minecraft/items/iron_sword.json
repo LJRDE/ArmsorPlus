@@ -10,6 +10,27 @@
           "type": "model",
           "model": "armsorplus:item/star_trace_sword"
         }
+      },
+      {
+        "when": {"floats":[20260517]},
+        "model": {
+          "type": "model",
+          "model": "armsorplus:item/thunder_glow"
+        }
+      },
+      {
+        "when": {"floats":[20260518]},
+        "model": {
+          "type": "model",
+          "model": "armsorplus:item/blazing_sun"
+        }
+      },
+      {
+        "when": {"floats":[20260520]},
+        "model": {
+          "type": "model",
+          "model": "armsorplus:item/corpse_king"
+        }
       }
     ],
     "fallback": {

@@ -1887,6 +1887,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             damager.setHealth(Math.max(0, damager.getHealth() - 10));
             PlayerSettings.notify(ebEvent.getDamager(), "你发动了" + ChatColor.RED + "血祭" + ChatColor.RESET + "对对方造成" + rate + "倍伤害");
             PlayerSettings.notify(ebEvent.getEntity(), "对方发动了" + ChatColor.RED + "血祭" + ChatColor.RESET + "对你造成" + rate + "倍伤害");
+            if (damager.isDead()) return;
         }
 
         // 利刃
@@ -1937,7 +1938,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         // 烈阳
         if (ArmsorEnchant.getEnchantLevel(weapon, BlazingSunKey) > 0 && world.getTime() < 13000)
-            ebEvent.setDamage(ebEvent.getDamage() + 4.0);
+            ebEvent.setDamage(ebEvent.getDamage() + 8.0);
 
         // 冰刺
         int isLvl = ArmsorEnchant.getEnchantLevel(weapon, IceSpikeKey);

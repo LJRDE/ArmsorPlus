@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:component",
+    "component": "minecraft:custom_model_data",
+    "cases": [
+      {
+        "when": {"floats":[20260516]},
+        "model": {
+          "type": "model",
+          "model": "armsorplus:item/black_tortoise_sword"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "model",
+      "model": "item/stone_sword"
+    }
+  }
+}

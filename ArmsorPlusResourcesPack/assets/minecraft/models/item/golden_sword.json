@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "minecraft:item/golden_sword"
+  },
+  "overrides": [
+    {
+      "predicate": {"custom_model_data": 20260511},
+      "model": "armsorplus:item/blood_sword"
+    }
+  ]
+}

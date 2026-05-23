@@ -79,6 +79,7 @@ public class Weapon {
         meta.setLore(Arrays.asList(
                 ChatColor.DARK_GREEN + "饥荒 II · 剧毒 II",
                 ChatColor.GRAY + "尸王之力，腐蚀生灵"));
+        meta.setCustomModelData(20260520);
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, CorpseKingKey, 1);
         ArmsorEnchant.addEnchant(item, Faminekey, 2);
@@ -168,7 +169,7 @@ public class Weapon {
         meta.setDisplayName(ChatColor.GOLD + "烈阳");
         meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:blazing_sun_damage"),
-                        2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+                        8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
                 ChatColor.GOLD + "白天时额外造成4点伤害",
                 ChatColor.RED + "火焰附加 V",
@@ -225,9 +226,15 @@ public class Weapon {
         meta.setLore(Arrays.asList(
                 ChatColor.AQUA + "夜晚时伤害提升100%",
                 ChatColor.DARK_AQUA + "由七颗珍珠点缀而成，对应北斗七星"));
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:thunder_glow_damage"),
+                        8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+
         meta.setCustomModelData(20260515);
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, StarTraceSwordKey, 1);
+        ArmsorEnchant.addEnchant(item,FreezeKey,2);
+        ArmsorEnchant.addEnchant(item,IceSpikeKey,1);
         item.setAmount(amount);
         return item;
     }

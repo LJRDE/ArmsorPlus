@@ -1,0 +1,24 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "minecraft:item/iron_sword"
+  },
+  "overrides": [
+    {
+      "predicate": {"custom_model_data": 20260515},
+      "model": "armsorplus:item/star_trace_sword"
+    },
+    {
+      "predicate": {"custom_model_data": 20260517},
+      "model": "armsorplus:item/thunder_glow"
+    },
+    {
+      "predicate": {"custom_model_data": 20260518},
+      "model": "armsorplus:item/blazing_sun"
+    },
+    {
+      "predicate": {"custom_model_data": 20260520},
+      "model": "armsorplus:item/corpse_king"
+    }
+  ]
+}
