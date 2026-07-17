@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -30,7 +31,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, VOID_WRAITH }
+    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, VOID_WRAITH, ILLUSIONER }
 
     /** 身体部位实体 -> BOSS类型 */
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -95,6 +96,12 @@ public class BossMenu implements Listener {
         return bossMaxHealth.getOrDefault(type, 1.0);
     }
 
+    /** 同步实体实际血量到追踪系统 (幻术师等使用原生血量的Boss) */
+    public static void syncBossHealth(BossType type, double health, double maxHealth) {
+        bossHealth.put(type, health);
+        bossMaxHealth.put(type, maxHealth);
+    }
+
     /** 对BOSS造成伤害 (返回true表示BOSS死亡) */
     public static boolean damageBoss(BossType type, double damage, Entity damager) {
         Double current = bossHealth.get(type);
@@ -122,6 +129,11 @@ public class BossMenu implements Listener {
                     entity.getLocation().add(0, 2, 0), 12, 0.8, 0.5, 0.8, 0.3);
         }
 
+        // 幻术师：通知当前攻击者用于卫道士索敌
+        if (type == BossType.ILLUSIONER) {
+            IllusionerBoss.updateTarget(damager);
+        }
+
         if (newHealth <= 0) {
             switch (type) {
                 case CRYO -> CryoRegisvine.onDeath();
@@ -132,6 +144,7 @@ public class BossMenu implements Listener {
                 case TREASURE_GUARDIAN -> TreasureGuardianBoss.onDeath();
                 case SKELETON_KING -> SkeletonKing.onDeath();
                 case VOID_WRAITH -> VoidWraith.onDeath();
+                case ILLUSIONER -> IllusionerBoss.onDeath();
             }
             return true;
         }
@@ -179,63 +192,63 @@ public class BossMenu implements Listener {
         Entity damaged = event.getEntity();
         UUID id = damaged.getUniqueId();
 
-        // 保存原始伤害来源和伤害值 (投射物为箭矢/三叉戟等)
-        Entity originalDamager = event.getDamager();
+        // 检查是否为已追踪的BOSS实体/部位
+        BossType type = BOSS_BODY_PARTS.get(id);
+        if (type == null) type = BOSS_CORE_PARTS.get(id);
+        if (type == null) type = findBossTypeByEntity(id);
+        if (type == null) return;
+
+        // 幻术师/骷髅王：使用实体原生血量，保留原版AI，不取消伤害
+        if (type == BossType.ILLUSIONER) {
+            Entity damager = event.getDamager();
+            if (damager instanceof Projectile proj) {
+                ProjectileSource src = proj.getShooter();
+                if (src instanceof Entity) damager = (Entity) src;
+            }
+            IllusionerBoss.updateTarget(damager);
+            return;
+        }
+        if (type == BossType.SKELETON_KING) {
+            return; // 原版伤害，AI循环读实体血量
+        }
+
+        // 无条件取消伤害 —— 防止实体实际血量被非玩家来源扣除致死
+        event.setCancelled(true);
+        LivingEntity boss = bossEntities.get(type);
+        if (boss == null || boss.isDead()) return;
+
         double rawDamage = event.getDamage();
 
+        // 解析伤害来源
+        Entity originalDamager = event.getDamager();
         Entity damager = originalDamager;
         if (damager instanceof Projectile proj) {
             ProjectileSource src = proj.getShooter();
             if (src instanceof Entity) damager = (Entity) src;
         }
-        if (!(damager instanceof Player player)) return;
 
-        // ======== 身体部位命中 (伤害转移至核心) ========
-        BossType type = BOSS_BODY_PARTS.get(id);
-        if (type != null) {
-            double dmg = Math.max(rawDamage, 1.0);
-            event.setCancelled(true);
-            LivingEntity boss = bossEntities.get(type);
-            if (boss == null || boss.isDead()) return;
+        // 阻止Boss自身造成的伤害(如箭雨箭矢/召唤物)
+        if (damager.getUniqueId().equals(boss.getUniqueId())) return;
 
-            damageBoss(type, dmg, player);
-            damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 0.5, 0),
-                    6, 0.3, 0.3, 0.3, 0.1);
-            return;
-        }
+        double dmg = Math.max(rawDamage, 1.0);
 
-        // ======== 核心命中 (伤害转移至核心) ========
-        type = BOSS_CORE_PARTS.get(id);
-        if (type != null) {
-            double dmg = Math.max(rawDamage, 1.0);
-            event.setCancelled(true);
-            LivingEntity boss = bossEntities.get(type);
-            if (boss == null || boss.isDead()) return;
-
-            // 核心命中特效
+        // ======== 核心命中 ========
+        if (BOSS_CORE_PARTS.containsKey(id)) {
             boss.getWorld().strikeLightningEffect(boss.getLocation());
             boss.getWorld().spawnParticle(Particle.EXPLOSION, boss.getLocation().add(0, 2, 0),
                     2, 0.5, 0.5, 0.5, 0);
             boss.getWorld().playSound(boss.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.5f, 1.0f);
-
-            player.sendMessage("§c✦ 命中核心！造成大量伤害！");
-
-            damageBoss(type, dmg, player);
+            if (damager instanceof Player player) {
+                player.sendMessage("§c✦ 命中核心！造成大量伤害！");
+            }
+            damageBoss(type, dmg, damager);
             return;
         }
 
-        // ======== 直接命中BOSS本体 ========
-        type = findBossTypeByEntity(id);
-        if (type != null) {
-            double dmg = Math.max(rawDamage, 1.0);
-            event.setCancelled(true);
-            LivingEntity boss = bossEntities.get(type);
-            if (boss == null || boss.isDead()) return;
-
-            damageBoss(type, dmg, player);
-            damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 1, 0),
-                    6, 0.3, 0.3, 0.3, 0.1);
-        }
+        // ======== 身体部位 / 本体命中 ========
+        damageBoss(type, dmg, damager);
+        damaged.getWorld().spawnParticle(Particle.CRIT, damaged.getLocation().add(0, 0.5, 0),
+                6, 0.3, 0.3, 0.3, 0.1);
     }
 
     private static BossType findBossTypeByEntity(UUID id) {
@@ -245,6 +258,18 @@ public class BossMenu implements Listener {
             }
         }
         return null;
+    }
+
+    // ========================================================================
+    // 环境伤害拦截 (坠落/火焰/窒息等)
+    // ========================================================================
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onBossEnvironmentalDamage(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent) return;
+        if (findBossTypeByEntity(event.getEntity().getUniqueId()) != null) {
+            event.setCancelled(true);
+        }
     }
 
     // ========================================================================
@@ -399,6 +424,23 @@ public class BossMenu implements Listener {
         ));
         wraith.setItemMeta(wraithMeta);
         bossList.setItem(34, wraith);
+
+        ItemStack illusioner = new ItemStack(Material.AMETHYST_SHARD);
+        ItemMeta illusionerMeta = illusioner.getItemMeta();
+        illusionerMeta.setDisplayName("§d■ 幻术师");
+        illusionerMeta.setLore(Arrays.asList(
+                "§7掌控幻术的神秘灾厄村民，",
+                "§7手持力量X冲击III神弓。",
+                "",
+                "§c❤ 生命值: 500",
+                "§d✦ 血量40%时召唤4名幻术护卫",
+                "§d✦ 血量20%时降下5秒箭雨",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        illusioner.setItemMeta(illusionerMeta);
+        bossList.setItem(22, illusioner);
     }
 
     // ========================================================================
@@ -517,6 +559,19 @@ public class BossMenu implements Listener {
             player.closeInventory();
             VoidWraith.spawnBoss(player);
             player.sendMessage("§5◆ 虚空幽魂从虚空中降临！");
+        } else if (name.contains("幻术师")) {
+            if (IllusionerBoss.isAlive()) {
+                Location loc = IllusionerBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e幻术师尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§d◆ 幻术师已降临！");
+            IllusionerBoss.spawnBoss(player);
         }
     }
 }

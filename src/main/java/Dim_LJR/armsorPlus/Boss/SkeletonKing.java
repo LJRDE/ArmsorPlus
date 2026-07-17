@@ -83,10 +83,33 @@ public class SkeletonKing {
         aiTask = new BukkitRunnable() {
             @Override
             public void run() {
-                if (!isAlive()) { cancel(); return; }
+                // 实体无效(区块卸载等) → 异常清理
+                if (bossEntity == null || !bossEntity.isValid()) {
+                    if (bossAlive) {
+                        Bukkit.broadcastMessage("§8骷髅王异常消失...");
+                        cleanup();
+                    }
+                    cancel();
+                    return;
+                }
+
+                // 实体自然死亡 → 触发死亡掉落
+                if (bossEntity.isDead()) {
+                    if (bossAlive) {
+                        onDeath();
+                    }
+                    cancel();
+                    return;
+                }
+
                 tickCounter++;
 
-                // ---- BossBar 更新 (每10tick) ----
+                // 从实体原生血量更新BossBar
+                double currentHp = bossEntity.getHealth();
+                double maxHp = bossEntity.getAttribute(Attribute.MAX_HEALTH).getValue();
+                bossBar.setProgress(Math.max(0, currentHp / maxHp));
+                bossBar.setTitle("§8■ 骷髅王 §7" + Math.round(currentHp) + "/" + Math.round(maxHp));
+                BossMenu.syncBossHealth(BossMenu.BossType.SKELETON_KING, currentHp, maxHp);
                 BossMenu.updateBossBar(BossMenu.BossType.SKELETON_KING);
 
                 // ---- 寻找附近玩家 ----
@@ -119,6 +142,7 @@ public class SkeletonKing {
                             arrow.setVelocity(new Vector(0, -2, 0));
                             arrow.setDamage(6);
                             arrow.setShooter(bossEntity);
+                            arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
                         }
                     }
                     bl.getWorld().playSound(bl, Sound.ENTITY_ARROW_SHOOT, 0.5f, 1.5f);
@@ -128,10 +152,19 @@ public class SkeletonKing {
     }
 
     private static void despawn() {
-        if (aiTask != null) aiTask.cancel();
-        if (bossEntity != null) bossEntity.remove();
+        if (bossEntity != null) {
+            Location loc = bossEntity.getLocation();
+            loc.getWorld().spawnParticle(Particle.SMOKE, loc, 40, 2, 2, 2, 0.1);
+            bossEntity.remove();
+        }
+        cleanup();
+    }
+
+    private static void cleanup() {
+        if (aiTask != null) { aiTask.cancel(); aiTask = null; }
         bossAlive = false;
-        if (bossBar != null) { bossBar.setVisible(false); bossBar.removeAll(); }
+        bossEntity = null;
+        if (bossBar != null) { bossBar.setVisible(false); bossBar.removeAll(); bossBar = null; }
         BossMenu.unregisterBoss(BossMenu.BossType.SKELETON_KING);
     }
 
@@ -150,6 +183,7 @@ public class SkeletonKing {
     }
 
     public static void onDeath() {
+        if (!bossAlive) return;
         if (aiTask != null) aiTask.cancel();
         Location loc = bossEntity.getLocation();
         loc.getWorld().strikeLightningEffect(loc);
@@ -162,8 +196,6 @@ public class SkeletonKing {
         loc.getWorld().dropItemNaturally(loc, new ItemStack(BONE, 8+RANDOM.nextInt(8)));
         loc.getWorld().dropItemNaturally(loc, new ItemStack(ARROW, 16+RANDOM.nextInt(16)));
 
-        bossAlive = false;
-        if (bossBar != null) { bossBar.setVisible(false); bossBar.removeAll(); }
-        BossMenu.unregisterBoss(BossMenu.BossType.SKELETON_KING);
+        cleanup();
     }
 }

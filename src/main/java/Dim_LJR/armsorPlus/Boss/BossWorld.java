@@ -1,9 +1,8 @@
 package Dim_LJR.armsorPlus.Boss;
 
+import io.papermc.paper.registry.keys.GameRuleKeys;
 import org.bukkit.*;
 import org.bukkit.generator.ChunkGenerator;
-
-import java.util.Random;
 
 /**
  * BOSS世界 —— 专用的BOSS战斗世界。
@@ -16,6 +15,7 @@ public class BossWorld {
     public static World world;
 
     /** 加载/创建BOSS世界 */
+    @SuppressWarnings("unchecked")
     public static void loadWorld() {
         WorldCreator creator = new WorldCreator("BossWorld");
         creator.type(WorldType.FLAT);
@@ -26,18 +26,25 @@ public class BossWorld {
         if (world != null) {
             world.setAutoSave(true);
             world.setPVP(false);
-            world.setGameRule(GameRule.KEEP_INVENTORY, true);
-            world.setGameRule(GameRule.MOB_GRIEFING, false);
-            world.setGameRule(GameRule.DO_FIRE_TICK, false);
-            world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-            world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-            world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+            setRule(world, GameRuleKeys.KEEP_INVENTORY, true);
+            setRule(world, GameRuleKeys.MOB_GRIEFING, false);
+            setRule(world, GameRuleKeys.FIRE_DAMAGE, false);
+            setRule(world, GameRuleKeys.SPAWN_MOBS, false);
+            setRule(world, GameRuleKeys.SPAWN_MONSTERS, false);
+            setRule(world, GameRuleKeys.SPAWN_PHANTOMS, false);
+            setRule(world, GameRuleKeys.ADVANCE_TIME, false);
+            setRule(world, GameRuleKeys.ADVANCE_WEATHER, false);
             world.setDifficulty(Difficulty.EASY);
-            world.setTime(6000); // 永远白天
+            world.setTime(6000);
 
             Bukkit.getLogger().info("BOSS世界加载完成");
         } else {
             Bukkit.getLogger().warning("BOSS世界加载失败");
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void setRule(World world, io.papermc.paper.registry.TypedKey<GameRule<?>> key, T value) {
+        world.setGameRule((GameRule<T>) (GameRule<?>) Registry.GAME_RULE.get(key), value);
     }
 }

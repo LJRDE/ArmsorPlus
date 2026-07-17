@@ -164,7 +164,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
         long time = event.getEntity().getWorld().getTime();
         if (time >= 0 && time < 13000) {
-            event.setDamage(event.getDamage() + 4.0);
+            event.setDamage(event.getDamage() + 6.0);
         }
     }
 

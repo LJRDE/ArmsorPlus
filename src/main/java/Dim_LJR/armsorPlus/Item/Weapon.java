@@ -169,9 +169,9 @@ public class Weapon {
         meta.setDisplayName(ChatColor.GOLD + "烈阳");
         meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:blazing_sun_damage"),
-                        8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+                        10.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "白天时额外造成4点伤害",
+                ChatColor.GOLD + "白天时额外造成6点伤害",
                 ChatColor.RED + "火焰附加 V",
                 ChatColor.GRAY + "骄阳烈焰"));
         meta.setCustomModelData(20260518);
@@ -234,7 +234,6 @@ public class Weapon {
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, StarTraceSwordKey, 1);
         ArmsorEnchant.addEnchant(item,FreezeKey,2);
-        ArmsorEnchant.addEnchant(item,IceSpikeKey,1);
         item.setAmount(amount);
         return item;
     }

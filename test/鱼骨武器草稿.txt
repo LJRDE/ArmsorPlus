@@ -1,0 +1,275 @@
+================================================================================
+              鱼骨系列武器 - 新增草稿（不写入代码，仅供确认）
+================================================================================
+
+一、武器清单（共 15 个，分 7 个等级 + 2 个分支）
+--------------------------------------------------------------------------------
+
+【等级1 - 鱼骨武器】基础级
+  名称      | 伤害  | 合成配方
+  鱼骨剑    |  5.0  | 2 鲑鱼 + 1 骨头
+  鱼骨刀    |  5.0  | 2 鳕鱼 + 1 骨头
+
+【等级2 - 鱼刺武器】进阶级
+  名称      | 伤害  | 合成配方
+  鱼刺剑    |  6.5  | 4 骨块 + 4 海晶沙粒 + 1 鱼骨剑
+  鱼刺刀    |  6.5  | 4 骨块 + 4 海晶沙粒 + 1 鱼骨刀
+
+【等级3 - 海骨武器】水中增幅
+  名称      | 伤害  | 合成配方                         | 水中特效
+  海骨剑    |  7.5  | 4 海绵 + 4 海晶灯 + 1 鱼刺剑     | +10%伤害, +10%移速
+  海骨刀    |  7.5  | 4 海绵 + 4 海晶灯 + 1 鱼刺刀     | +16%伤害
+
+【等级4 - 灵骨武器】光灵+水中概率
+  名称      | 伤害  | 合成配方                         | 攻击特效
+  灵骨剑    |  8.0  | 8 灵魂沙 + 1 海骨剑             | 光灵3s + 水中15%穿透6点
+  灵骨刀    |  8.0  | 8 灵魂沙 + 1 海骨刀             | 光灵3s + 水中15%双倍伤害
+
+【等级5 - 海刺武器】雨天水域强化
+  名称      | 伤害  | 合成配方                         | 水域/雨天特效
+  海刺剑    | 10.0  | 4 鳞甲 + 4 海洋之心 + 1 灵骨剑  | +40%伤害 + 水中水下呼吸
+  海刺刀    | 12.0  | 4 鳞甲 + 4 海洋之心 + 1 灵骨刀  | -40%受伤 + 水中水下呼吸
+
+【分支 - 蚀骨武器】凋零路线（从灵骨剑分支）
+  名称      | 伤害  | 合成配方                                   | 特效
+  蚀骨剑    | 13.0  | 1 凋零骷髅头 + 7 灵魂土 + 1 灵骨剑        | 自带凋零III附魔
+
+【等级6 - 灵刺武器】穿透增幅（从海刺武器升级）
+  名称      | 伤害  | 合成配方                             | 特效
+  灵刺剑    | 13.0  | 4 潮涌核心 + 4 恶魂之泪 + 1 海刺剑  | 攻击必穿透1点 + 水中额外穿透2点
+  灵刺刀    | 14.0  | 4 潮涌核心 + 4 凋零骷髅头 + 1 海刺刀| 水中/雨天伤害+5
+
+【等级7 - 海哭武器】终极·深海支配者
+  名称      | 伤害  | 合成配方                               | 特效
+  海哭剑    | 16.0  | 4 下界之星 + 4 潮涌核心 + 1 灵刺剑   | 见下方详细说明
+  海哭刀    | 16.0  | 4 下界之星 + 4 潮涌核心 + 1 灵刺刀   | 见下方详细说明
+
+  ★ 海哭剑详细特效:
+    【被动-持有时】(主手/副手均生效, PlayerMoveEvent刷新):
+      - 水下呼吸 (Water Breathing)
+      - 海豚的恩惠 (Dolphin's Grace)
+      - 潮涌能量 (Conduit Power)
+    【攻击时】(EntityDamageByEntityEvent, 直接操作damage不依赖原版BUFF):
+      a) 给敌人施加发光效果 (Glowing, 持续10秒)
+      b) 15% 概率给敌人施加挖掘疲劳III (Mining Fatigue, 持续30秒)
+      c) 伤害提升: event.setDamage(event.getDamage() * 1.20)
+         水中: event.setDamage(event.getDamage() * 1.40)
+      d) 无减伤、无穿透 (纯伤害路线)
+
+  ★ 海哭刀详细特效:
+    【被动-持有时】(主手/副手均生效, PlayerMoveEvent刷新):
+      - 水下呼吸 (Water Breathing)
+      - 海豚的恩惠 (Dolphin's Grace)
+      - 潮涌能量 (Conduit Power)
+    【攻击时】(EntityDamageByEntityEvent, 直接操作damage不依赖原版BUFF):
+      a) 给敌人施加发光效果 (Glowing, 持续10秒)
+      b) 15% 概率给敌人施加挖掘疲劳III (Mining Fatigue, 持续30秒)
+      c) 伤害提升: event.setDamage(event.getDamage() * 1.45)
+         水中: event.setDamage(event.getDamage() * 1.90)
+      d) 无减伤、无穿透 (纯伤害路线)
+
+
+二、需要修改的文件（共 5 个文件）
+================================================================================
+
+★ 重要原则:
+  - 全系统一使用 IRON_SWORD 作为基底材质
+  - 伤害增幅/减免直接在事件中操作 event.setDamage(), 不使用原版药水BUFF
+  - 被动药水效果(水下呼吸等)使用 PlayerMoveEvent 刷新
+
+【文件1】src/main/java/Dim_LJR/armsorPlus/Item/Weapon.java
+
+  新增 15 个静态方法 (全部 IRON_SWORD 基底):
+
+  Lv1 FishBoneSword  — 铁剑, "鱼骨剑",   伤害5.0,  修正 -1.0
+  Lv1 FishBoneKnife  — 铁剑, "鱼骨刀",   伤害5.0,  修正 -1.0
+  Lv2 FishSpineSword — 铁剑, "鱼刺剑",   伤害6.5,  修正 +0.5
+  Lv2 FishSpineKnife — 铁剑, "鱼刺刀",   伤害6.5,  修正 +0.5
+  Lv3 SeaBoneSword   — 铁剑, "海骨剑",   伤害7.5,  修正 +1.5, Lore: 水中+10%伤+10%速
+  Lv3 SeaBoneKnife   — 铁剑, "海骨刀",   伤害7.5,  修正 +1.5, Lore: 水中+16%伤
+  Lv4 SpiritBoneSword— 铁剑, "灵骨剑",   伤害8.0,  修正 +2.0, Lore: 光灵3s+水中15%穿透6
+  Lv4 SpiritBoneKnife— 铁剑, "灵骨刀",   伤害8.0,  修正 +2.0, Lore: 光灵3s+水中15%双倍
+  Lv5 SeaSpineSword  — 铁剑, "海刺剑",   伤害10.0, 修正 +4.0, Lore: 水/雨+40%伤+水呼
+  Lv5 SeaSpineKnife  — 铁剑, "海刺刀",   伤害12.0, 修正 +6.0, Lore: 水/雨-40%受伤+水呼
+  分支 CorrodeBoneSword—铁剑,"蚀骨剑",   伤害13.0, 修正 +7.0, +WitheringKey(3)
+  Lv6 SpiritSpineSword—铁剑, "灵刺剑",   伤害13.0, 修正 +7.0, Lore: 穿透1+水中+2
+  Lv6 SpiritSpineKnife—铁剑, "灵刺刀",   伤害14.0, 修正 +8.0, Lore: 水/雨+5伤
+  Lv7 SeaCrySword     — 铁剑, "海哭剑",  伤害16.0, 修正+10.0, Lore: 被动3效果+发光+疲劳
+  Lv7 SeaCryKnife     — 铁剑, "海哭刀",  伤害16.0, 修正+10.0, Lore: 被动3效果+发光+疲劳
+
+  每个方法的标记 Key 均为各自对应的 NamespacedKey(1)。
+  蚀骨剑额外调用 ArmsorEnchant.addEnchant(item, WitheringKey, 3)。
+
+
+【文件2】src/main/java/Dim_LJR/armsorPlus/NamespaceKey.java
+
+  Keys 内部类新增 15 个静态字段:
+    FishBoneSwordKey,   FishBoneKnifeKey,
+    FishSpineSwordKey,  FishSpineKnifeKey,
+    SeaBoneSwordKey,    SeaBoneKnifeKey,
+    SpiritBoneSwordKey, SpiritBoneKnifeKey,
+    SeaSpineSwordKey,   SeaSpineKnifeKey,
+    CorrodeBoneSwordKey,
+    SpiritSpineSwordKey, SpiritSpineKnifeKey,
+    SeaCrySwordKey,     SeaCryKnifeKey
+
+  regkey() 中新增 15 行初始化 (格式: Key = new NamespacedKey(plugin, "ArmsorPlus_Xxx"))
+
+
+【文件3】src/main/java/Dim_LJR/armsorPlus/ArmsorItem.java
+
+  新增 15 个委托方法 (一行写法: return Weapon.Xxx(amount))
+
+
+【文件4】src/main/java/Dim_LJR/armsorPlus/ArmsorPlus.java
+
+  在 registerRecipes() 中新增 15 个配方:
+
+  ① 鱼骨剑: 竖排 "A","B","C" → SALMON / SALMON / BONE
+  ② 鱼骨刀: 竖排 "A","B","C" → COD / COD / BONE
+  ③ 鱼刺剑: 3x3, 4角BONE_BLOCK + 十字PRISMARINE_SHARD + H=Exact(FishBoneSword)
+  ④ 鱼刺刀: 同上, H=Exact(FishBoneKnife)
+  ⑤ 海骨剑: 3x3, 4角SPONGE + 十字SEA_LANTERN + H=Exact(FishSpineSword)
+  ⑥ 海骨刀: 同上, H=Exact(FishSpineKnife)
+  ⑦ 灵骨剑: 3x3, 8格SOUL_SAND围H, H=Exact(SeaBoneSword)
+  ⑧ 灵骨刀: 同上, H=Exact(SeaBoneKnife)
+  ⑨ 海刺剑: 3x3, 4角SCUTE + 十字HEART_OF_THE_SEA + H=Exact(SpiritBoneSword)
+  ⑩ 海刺刀: 同上, H=Exact(SpiritBoneKnife)
+  ⑪ 蚀骨剑: 3x3, 7格SOUL_SOIL+E=WITHER_SKELETON_SKULL + H=Exact(SpiritBoneSword)
+  ⑫ 灵刺剑: 3x3, 4角CONDUIT + 十字GHAST_TEAR + H=Exact(SeaSpineSword)
+  ⑬ 灵刺刀: 3x3, 4角CONDUIT + 十字WITHER_SKELETON_SKULL + H=Exact(SeaSpineKnife)
+  ⑭ 海哭剑: 3x3, 4角NETHER_STAR + 十字CONDUIT + H=Exact(SpiritSpineSword)
+  ⑮ 海哭刀: 3x3, 4角NETHER_STAR + 十字CONDUIT + H=Exact(SpiritSpineKnife)
+
+
+【文件5】src/main/java/Dim_LJR/armsorPlus/ArmsorPlusItemHandler.java
+
+  新增以下 @EventHandler:
+
+  ── 海骨剑 (攻击时) ──
+  条件: 手持 SeaBoneSword && 攻击者在水中
+  效果: event.setDamage(event.getDamage() * 1.10)
+        攻击者获得 SPEED(等级1, 5秒) —— 仅此效果用原版药水
+
+  ── 海骨刀 (攻击时) ──
+  条件: 手持 SeaBoneKnife && 攻击者在水中
+  效果: event.setDamage(event.getDamage() * 1.16)
+
+  ── 灵骨剑 (攻击时) ──
+  条件: 手持 SpiritBoneSword
+  效果: a) 被攻击者 GLOWING(3秒)
+        b) 攻击者在水中 && 15%概率 → entity.damage(6.0, attacker) 穿透
+
+  ── 灵骨刀 (攻击时) ──
+  条件: 手持 SpiritBoneKnife
+  效果: a) 被攻击者 GLOWING(3秒)
+        b) 攻击者在水中 && 15%概率 → event.setDamage(event.getDamage() * 2.0)
+
+  ── 海刺剑 (攻击时) ──
+  条件: 手持 SeaSpineSword && (攻击者在水中 || 雨天露天)
+  效果: event.setDamage(event.getDamage() * 1.40)
+
+  ── 海刺刀 (受伤时) ──
+  条件: 受伤者手持 SeaSpineKnife && (受伤者在水中 || 雨天露天)
+  效果: event.setDamage(event.getDamage() * 0.60)
+
+  ── 海刺水下呼吸被动 (PlayerMoveEvent) ──
+  条件: 手持 SeaSpineSword 或 SeaSpineKnife && 进入水中
+  效果: 给予 WATER_BREATHING(持续10~15秒)
+
+  ── 灵刺剑 (攻击时) ──
+  条件: 手持 SpiritSpineSword
+  效果: a) entity.damage(1.0, attacker) 穿透
+        b) 若攻击者在水中: entity.damage(2.0, attacker) 额外穿透
+
+  ── 灵刺刀 (攻击时) ──
+  条件: 手持 SpiritSpineKnife && (攻击者在水中 || 雨天露天)
+  效果: event.setDamage(event.getDamage() + 5.0)
+
+  ── 蚀骨剑: 无需新增！已有 WitheringHandler 自动处理 ──
+
+  ── 海哭被动 (PlayerMoveEvent) ──
+  条件: 主手或副手持有 SeaCrySword 或 SeaCryKnife
+  效果: 每10秒刷新 WATER_BREATHING + DOLPHINS_GRACE + CONDUIT_POWER (等级1)
+
+  ── 海哭剑 (攻击时) ──
+  条件: 手持 SeaCrySword
+  效果: a) 被攻击者 GLOWING(10秒)
+        b) 15%概率: 被攻击者 MINING_FATIGUE(等级3, 30秒)
+        c) event.setDamage(event.getDamage() * 1.20)
+           若攻击者在水中: * 1.40
+
+  ── 海哭刀 (攻击时) ──
+  条件: 手持 SeaCryKnife
+  效果: a) 被攻击者 GLOWING(10秒)
+        b) 15%概率: 被攻击者 MINING_FATIGUE(等级3, 30秒)
+        c) event.setDamage(event.getDamage() * 1.45)
+           若攻击者在水中: * 1.90
+
+
+三、配方材料对照
+--------------------------------------------------------------------------------
+中文名        | Bukkit Material          | 用途
+骨头          | BONE                     | Lv1 鱼骨剑/刀
+鲑鱼          | SALMON                   | Lv1 鱼骨剑
+鳕鱼          | COD                      | Lv1 鱼骨刀
+骨块          | BONE_BLOCK               | Lv2 鱼刺剑/刀
+海晶沙粒      | PRISMARINE_SHARD         | Lv2 鱼刺剑/刀
+海绵          | SPONGE                   | Lv3 海骨剑/刀
+海晶灯        | SEA_LANTERN              | Lv3 海骨剑/刀
+灵魂沙        | SOUL_SAND                | Lv4 灵骨剑/刀
+鳞甲          | SCUTE                    | Lv5 海刺剑/刀
+海洋之心      | HEART_OF_THE_SEA         | Lv5 海刺剑/刀
+凋零骷髅头    | WITHER_SKELETON_SKULL     | 分支蚀骨剑 / Lv6灵刺刀
+灵魂土        | SOUL_SOIL                | 分支蚀骨剑
+潮涌核心      | CONDUIT                  | Lv6灵刺/Lv7海哭
+恶魂之泪      | GHAST_TEAR               | Lv6 灵刺剑
+下界之星      | NETHER_STAR              | Lv7 海哭剑/刀
+
+
+四、伤害一览（全系铁剑基底=6）
+--------------------------------------------------------------------------------
+Lv1 (鱼骨) → 6 -1.0 = 5.0
+Lv2 (鱼刺) → 6 +0.5 = 6.5
+Lv3 (海骨) → 6 +1.5 = 7.5
+Lv4 (灵骨) → 6 +2.0 = 8.0
+Lv5 (海刺) → 6 +4.0 = 10.0 (剑) / 6 +6.0 = 12.0 (刀)
+分支 (蚀骨) → 6 +7.0 = 13.0
+Lv6 (灵刺) → 6 +7.0 = 13.0 (剑) / 6 +8.0 = 14.0 (刀)
+Lv7 (海哭) → 6+10.0 = 16.0 (剑/刀)
+
+
+五、合成升级路线总览
+================================================================================
+                                   鱼骨剑 ──→ 鱼刺剑 ──→ 海骨剑 ──→ 灵骨剑 ──→ 海刺剑 ──→ 灵刺剑 ──→ 海哭剑
+        (鲑鱼+骨)      (骨块+海晶沙粒)   (海绵+海晶灯)  (灵魂沙)    (鳞甲+海洋之心)  (潮涌+恶魂泪)  (下界星+潮涌)
+                                                                   ↘
+                                                                    蚀骨剑
+                                                        (凋零头+灵魂土)
+
+                                   鱼骨刀 ──→ 鱼刺刀 ──→ 海骨刀 ──→ 灵骨刀 ──→ 海刺刀 ──→ 灵刺刀 ──→ 海哭刀
+        (鳕鱼+骨)      (骨块+海晶沙粒)   (海绵+海晶灯)  (灵魂沙)    (鳞甲+海洋之心)  (潮涌+凋零头)  (下界星+潮涌)
+
+剑系: 5.0→6.5→7.5→8.0→10.0→13.0→16.0 (特效逐步叠加)
+刀系: 5.0→6.5→7.5→8.0→12.0→14.0→16.0 (纯伤害路线)
+
+
+六、已确认事项
+================================================================================
+✓ 全系统一使用 IRON_SWORD 基底
+✓ 伤害增幅/减免直接用 event.setDamage(), 不用原版BUFF
+✓ 被动药水效果使用 PlayerMoveEvent 刷新
+✓ 海哭剑无减伤无穿透 (纯伤害)
+✓ 海哭刀合成原料为灵刺刀
+✓ 海刺/海哭合成时原料名称已修正 (鱼刺→海骨→灵骨→海刺→灵刺→海哭)
+
+
+七、待确认事项
+--------------------------------------------------------------------------------
+1. 海刺刀减伤: 受伤时 event.setDamage(*0.60), 是否OK？
+2. 水下呼吸触发: PlayerMoveEvent 进入水中时给予, 10~15秒刷新, 是否OK？
+3. 穿透伤害: 使用 entity.damage(N, attacker) 实现, 是否OK？
+4. 移速效果: 海骨剑+10%移速仍用原版 SPEED 药水 (事件中不好直接改移速), 是否OK？
+5. CustomModelData 是否需要设置？
+
+================================================================================
