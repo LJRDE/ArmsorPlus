@@ -62,6 +62,10 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "HeavyArmor_EnchantedBook", "EarthFavor_EnchantedBook",
             "Ambush_EnchantedBook",
             "ThunderGlow", "BlazingSun",
+            "FishBoneSword", "FishBoneKnife", "FishSpineSword", "FishSpineKnife",
+            "SeaBoneSword", "SeaBoneKnife", "SpiritBoneSword", "SpiritBoneKnife",
+            "SeaSpineSword", "SeaSpineKnife", "CorrodeBoneSword",
+            "SpiritSpineSword", "SpiritSpineKnife", "SeaCrySword", "SeaCryKnife",
             "GoldShieldElixir",
             "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
@@ -649,6 +653,82 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(GoldShieldElixir(amount));
                 sender.sendMessage(ChatColor.GOLD + "已获得 " + amount + " 个金盾丹");
+            }
+            // ===== 鱼骨系列武器 (0.3I+) =====
+            case "FishBoneSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FishBoneSword(amount));
+                sender.sendMessage(ChatColor.YELLOW + "已获得 " + amount + " 把鱼骨剑");
+            }
+            case "FishBoneKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FishBoneKnife(amount));
+                sender.sendMessage(ChatColor.YELLOW + "已获得 " + amount + " 把鱼骨刀");
+            }
+            case "FishSpineSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FishSpineSword(amount));
+                sender.sendMessage(ChatColor.YELLOW + "已获得 " + amount + " 把鱼刺剑");
+            }
+            case "FishSpineKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(FishSpineKnife(amount));
+                sender.sendMessage(ChatColor.YELLOW + "已获得 " + amount + " 把鱼刺刀");
+            }
+            case "SeaBoneSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SeaBoneSword(amount));
+                sender.sendMessage(ChatColor.AQUA + "已获得 " + amount + " 把海骨剑");
+            }
+            case "SeaBoneKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SeaBoneKnife(amount));
+                sender.sendMessage(ChatColor.AQUA + "已获得 " + amount + " 把海骨刀");
+            }
+            case "SpiritBoneSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SpiritBoneSword(amount));
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "已获得 " + amount + " 把灵骨剑");
+            }
+            case "SpiritBoneKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SpiritBoneKnife(amount));
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "已获得 " + amount + " 把灵骨刀");
+            }
+            case "SeaSpineSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SeaSpineSword(amount));
+                sender.sendMessage(ChatColor.DARK_AQUA + "已获得 " + amount + " 把海刺剑");
+            }
+            case "SeaSpineKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SeaSpineKnife(amount));
+                sender.sendMessage(ChatColor.DARK_AQUA + "已获得 " + amount + " 把海刺刀");
+            }
+            case "CorrodeBoneSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(CorrodeBoneSword(amount));
+                sender.sendMessage(ChatColor.DARK_PURPLE + "已获得 " + amount + " 把蚀骨剑");
+            }
+            case "SpiritSpineSword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SpiritSpineSword(amount));
+                sender.sendMessage(ChatColor.DARK_PURPLE + "已获得 " + amount + " 把灵刺剑");
+            }
+            case "SpiritSpineKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SpiritSpineKnife(amount));
+                sender.sendMessage(ChatColor.DARK_PURPLE + "已获得 " + amount + " 把灵刺刀");
+            }
+            case "SeaCrySword" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SeaCrySword(amount));
+                sender.sendMessage(ChatColor.DARK_BLUE + "已获得 " + amount + " 把海哭剑");
+            }
+            case "SeaCryKnife" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(SeaCryKnife(amount));
+                sender.sendMessage(ChatColor.DARK_BLUE + "已获得 " + amount + " 把海哭刀");
             }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }

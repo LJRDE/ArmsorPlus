@@ -149,6 +149,23 @@ public class NamespaceKey {
         public static NamespacedKey ExplosionBowKey;
         public static NamespacedKey ScoreKey;
 
+        // ---- 鱼骨系列武器键 (0.3I+) ----
+        public static NamespacedKey FishBoneSwordKey;
+        public static NamespacedKey FishBoneKnifeKey;
+        public static NamespacedKey FishSpineSwordKey;
+        public static NamespacedKey FishSpineKnifeKey;
+        public static NamespacedKey SeaBoneSwordKey;
+        public static NamespacedKey SeaBoneKnifeKey;
+        public static NamespacedKey SpiritBoneSwordKey;
+        public static NamespacedKey SpiritBoneKnifeKey;
+        public static NamespacedKey SeaSpineSwordKey;
+        public static NamespacedKey SeaSpineKnifeKey;
+        public static NamespacedKey CorrodeBoneSwordKey;
+        public static NamespacedKey SpiritSpineSwordKey;
+        public static NamespacedKey SpiritSpineKnifeKey;
+        public static NamespacedKey SeaCrySwordKey;
+        public static NamespacedKey SeaCryKnifeKey;
+
         // ---- 新附魔键 (0.3H) ----
         public static NamespacedKey ProtectionPROKey;
         public static NamespacedKey StunKey;
@@ -438,6 +455,23 @@ public class NamespaceKey {
             // 武器使用次数键
             WebBowUsesKey = new NamespacedKey(plugin, "ArmsorPlus_WebBowUses");
             ExplosionBowUsesKey = new NamespacedKey(plugin, "ArmsorPlus_ExplosionBowUses");
+
+            // 鱼骨系列武器键
+            FishBoneSwordKey = new NamespacedKey(plugin, "ArmsorPlus_FishBoneSword");
+            FishBoneKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_FishBoneKnife");
+            FishSpineSwordKey = new NamespacedKey(plugin, "ArmsorPlus_FishSpineSword");
+            FishSpineKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_FishSpineKnife");
+            SeaBoneSwordKey = new NamespacedKey(plugin, "ArmsorPlus_SeaBoneSword");
+            SeaBoneKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SeaBoneKnife");
+            SpiritBoneSwordKey = new NamespacedKey(plugin, "ArmsorPlus_SpiritBoneSword");
+            SpiritBoneKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SpiritBoneKnife");
+            SeaSpineSwordKey = new NamespacedKey(plugin, "ArmsorPlus_SeaSpineSword");
+            SeaSpineKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SeaSpineKnife");
+            CorrodeBoneSwordKey = new NamespacedKey(plugin, "ArmsorPlus_CorrodeBoneSword");
+            SpiritSpineSwordKey = new NamespacedKey(plugin, "ArmsorPlus_SpiritSpineSword");
+            SpiritSpineKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SpiritSpineKnife");
+            SeaCrySwordKey = new NamespacedKey(plugin, "ArmsorPlus_SeaCrySword");
+            SeaCryKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SeaCryKnife");
         }
     }
 

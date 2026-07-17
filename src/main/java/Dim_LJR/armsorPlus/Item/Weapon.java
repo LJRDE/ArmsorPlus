@@ -467,4 +467,281 @@ public class Weapon {
         item.setAmount(amount);
         return item;
     }
+
+    // ========================================================================
+    // 鱼骨系列武器 (0.3I+)
+    // ========================================================================
+
+    private static final String FISH_BONE_SWORD_NAME = ChatColor.YELLOW + "鱼骨剑";
+    private static final String FISH_BONE_KNIFE_NAME = ChatColor.YELLOW + "鱼骨刀";
+    private static final String FISH_SPINE_SWORD_NAME = ChatColor.YELLOW + "鱼刺剑";
+    private static final String FISH_SPINE_KNIFE_NAME = ChatColor.YELLOW + "鱼刺刀";
+    private static final String SEA_BONE_SWORD_NAME = ChatColor.AQUA + "海骨剑";
+    private static final String SEA_BONE_KNIFE_NAME = ChatColor.AQUA + "海骨刀";
+    private static final String SPIRIT_BONE_SWORD_NAME = ChatColor.LIGHT_PURPLE + "灵骨剑";
+    private static final String SPIRIT_BONE_KNIFE_NAME = ChatColor.LIGHT_PURPLE + "灵骨刀";
+    private static final String SEA_SPINE_SWORD_NAME = ChatColor.DARK_AQUA + "海刺剑";
+    private static final String SEA_SPINE_KNIFE_NAME = ChatColor.DARK_AQUA + "海刺刀";
+    private static final String CORRODE_BONE_SWORD_NAME = ChatColor.DARK_PURPLE + "蚀骨剑";
+    private static final String SPIRIT_SPINE_SWORD_NAME = ChatColor.DARK_PURPLE + "灵刺剑";
+    private static final String SPIRIT_SPINE_KNIFE_NAME = ChatColor.DARK_PURPLE + "灵刺刀";
+    private static final String SEA_CRY_SWORD_NAME = ChatColor.DARK_BLUE + "海哭剑";
+    private static final String SEA_CRY_KNIFE_NAME = ChatColor.DARK_BLUE + "海哭刀";
+
+    /** 鱼骨剑: 伤害5.0, 2鲑鱼+1骨头合成 */
+    public static ItemStack FishBoneSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FISH_BONE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:fish_bone_sword"),
+                        -1.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "鲑鱼之骨铸造的利剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FishBoneSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 鱼骨刀: 伤害5.0, 2鳕鱼+1骨头合成 */
+    public static ItemStack FishBoneKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FISH_BONE_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:fish_bone_knife"),
+                        -1.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "鳕鱼之骨铸造的短刀"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FishBoneKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 鱼刺剑: 伤害6.5, 4骨块+4海晶沙粒+鱼骨剑合成 */
+    public static ItemStack FishSpineSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FISH_SPINE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:fish_spine_sword"),
+                        0.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "海晶沙粒淬炼的鱼刺之剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FishSpineSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 鱼刺刀: 伤害6.5, 4骨块+4海晶沙粒+鱼骨刀合成 */
+    public static ItemStack FishSpineKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(FISH_SPINE_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:fish_spine_knife"),
+                        0.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "海晶沙粒淬炼的鱼刺之刀"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, FishSpineKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 海骨剑: 伤害7.5, 水中+10%伤害+10%移速 */
+    public static ItemStack SeaBoneSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SEA_BONE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_bone_sword"),
+                        1.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "在水中时 伤害+10% 移速+10%",
+                ChatColor.GRAY + "海绵孕育的海洋之剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SeaBoneSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 海骨刀: 伤害7.5, 水中+16%伤害 */
+    public static ItemStack SeaBoneKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SEA_BONE_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_bone_knife"),
+                        1.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "在水中时 伤害+16%",
+                ChatColor.GRAY + "海绵孕育的海洋之刀"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SeaBoneKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 灵骨剑: 伤害8.0, 光灵3s+水中15%穿透6点 */
+    public static ItemStack SpiritBoneSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SPIRIT_BONE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:spirit_bone_sword"),
+                        2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "攻击施加光灵效果3秒",
+                ChatColor.AQUA + "在水中15%概率造成6点穿透伤害",
+                ChatColor.GRAY + "灵魂沙淬炼的亡灵之剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SpiritBoneSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 灵骨刀: 伤害8.0, 光灵3s+水中15%双倍伤害 */
+    public static ItemStack SpiritBoneKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SPIRIT_BONE_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:spirit_bone_knife"),
+                        2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "攻击施加光灵效果3秒",
+                ChatColor.AQUA + "在水中15%概率造成双倍伤害",
+                ChatColor.GRAY + "灵魂沙淬炼的亡灵之刀"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SpiritBoneKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 海刺剑: 伤害10.0, 水中/雨天+40%伤害+水下呼吸 */
+    public static ItemStack SeaSpineSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SEA_SPINE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_spine_sword"),
+                        4.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_AQUA + "在水中/雨天时 伤害+40%",
+                ChatColor.AQUA + "在水中时 获得水下呼吸",
+                ChatColor.GRAY + "鳞甲与海洋之心铸就的深海之剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SeaSpineSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 海刺刀: 伤害12.0, 水中/雨天-40%受伤+水下呼吸 */
+    public static ItemStack SeaSpineKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SEA_SPINE_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_spine_knife"),
+                        6.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_AQUA + "在水中/雨天时 受到伤害-40%",
+                ChatColor.AQUA + "在水中时 获得水下呼吸",
+                ChatColor.GRAY + "鳞甲与海洋之心铸就的深海之刀"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SeaSpineKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 蚀骨剑: 伤害13.0, 自带凋零III */
+    public static ItemStack CorrodeBoneSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(CORRODE_BONE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:corrode_bone_sword"),
+                        7.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_PURPLE + "凋零 III",
+                ChatColor.GRAY + "凋零骷髅的诅咒之剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, CorrodeBoneSwordKey, 1);
+        ArmsorEnchant.addEnchant(item, WitheringKey, 3);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 灵刺剑: 伤害13.0, 攻击必穿透1点+水中额外穿透2点 */
+    public static ItemStack SpiritSpineSword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SPIRIT_SPINE_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:spirit_spine_sword"),
+                        7.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_PURPLE + "攻击时必定造成1点穿透伤害",
+                ChatColor.AQUA + "在水中额外造成2点穿透伤害",
+                ChatColor.GRAY + "潮涌核心与恶魂之泪淬炼的灵刺"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SpiritSpineSwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 灵刺刀: 伤害14.0, 水中/雨天伤害+5 */
+    public static ItemStack SpiritSpineKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SPIRIT_SPINE_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:spirit_spine_knife"),
+                        8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.DARK_PURPLE + "在水中/雨天时 伤害+5",
+                ChatColor.GRAY + "潮涌核心与凋零骷髅之力淬炼的灵刺"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SpiritSpineKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 海哭剑: 伤害16.0, 被动3药水+发光+疲劳+伤害增幅 */
+    public static ItemStack SeaCrySword(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SEA_CRY_SWORD_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_cry_sword"),
+                        16.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.BLUE + "持有时: 水下呼吸+海豚恩惠+潮涌能量",
+                ChatColor.LIGHT_PURPLE + "攻击: 发光+15%挖掘疲劳30s",
+                ChatColor.RED + "攻击: 伤害+20% (水中翻倍至40%)",
+                ChatColor.GRAY + "深海的哀鸣之剑"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SeaCrySwordKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    /** 海哭刀: 伤害16.0, 被动3药水+发光+疲劳+伤害增幅 */
+    public static ItemStack SeaCryKnife(int amount) {
+        ItemStack item = new ItemStack(IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(SEA_CRY_KNIFE_NAME);
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_cry_knife"),
+                        16.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setLore(Arrays.asList(
+                ChatColor.BLUE + "持有时: 水下呼吸+海豚恩惠+潮涌能量",
+                ChatColor.LIGHT_PURPLE + "攻击: 发光+15%挖掘疲劳30s",
+                ChatColor.RED + "攻击: 伤害+45% (水中翻倍至90%)",
+                ChatColor.GRAY + "深海的哀鸣之刀"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, SeaCryKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
 }

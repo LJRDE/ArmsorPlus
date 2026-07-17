@@ -153,6 +153,23 @@ public final class ArmsorItem {
         return Weapon.ExplosionBow(amount);
     }
 
+    // ---- 鱼骨系列武器 ----
+    public static ItemStack FishBoneSword(int amount) { return Weapon.FishBoneSword(amount); }
+    public static ItemStack FishBoneKnife(int amount) { return Weapon.FishBoneKnife(amount); }
+    public static ItemStack FishSpineSword(int amount) { return Weapon.FishSpineSword(amount); }
+    public static ItemStack FishSpineKnife(int amount) { return Weapon.FishSpineKnife(amount); }
+    public static ItemStack SeaBoneSword(int amount) { return Weapon.SeaBoneSword(amount); }
+    public static ItemStack SeaBoneKnife(int amount) { return Weapon.SeaBoneKnife(amount); }
+    public static ItemStack SpiritBoneSword(int amount) { return Weapon.SpiritBoneSword(amount); }
+    public static ItemStack SpiritBoneKnife(int amount) { return Weapon.SpiritBoneKnife(amount); }
+    public static ItemStack SeaSpineSword(int amount) { return Weapon.SeaSpineSword(amount); }
+    public static ItemStack SeaSpineKnife(int amount) { return Weapon.SeaSpineKnife(amount); }
+    public static ItemStack CorrodeBoneSword(int amount) { return Weapon.CorrodeBoneSword(amount); }
+    public static ItemStack SpiritSpineSword(int amount) { return Weapon.SpiritSpineSword(amount); }
+    public static ItemStack SpiritSpineKnife(int amount) { return Weapon.SpiritSpineKnife(amount); }
+    public static ItemStack SeaCrySword(int amount) { return Weapon.SeaCrySword(amount); }
+    public static ItemStack SeaCryKnife(int amount) { return Weapon.SeaCryKnife(amount); }
+
     // ========================================================================
     // 附魔书 (委托至 EnchantedBook)
     // ========================================================================
