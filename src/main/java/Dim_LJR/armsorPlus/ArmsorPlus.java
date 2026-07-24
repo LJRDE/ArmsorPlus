@@ -566,71 +566,71 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().addRecipe(fishBoneKnifeRecipe);
         count++;
 
-        // 鱼刺剑: 4骨块+4海晶沙粒+鱼骨剑
+        // 鱼刺剑: 4骨块+4海晶沙粒+鱼骨剑(中心)
         NamespacedKey fishSpineSwordKey = new NamespacedKey(this, "ArmsorPlus_FishSpineSword");
         ShapedRecipe fishSpineSwordRecipe = new ShapedRecipe(fishSpineSwordKey, FishSpineSword(1));
         fishSpineSwordRecipe.shape("ABC", "DEF", "GHI");
         fishSpineSwordRecipe.setIngredient('A', BONE_BLOCK);
-        fishSpineSwordRecipe.setIngredient('B', BONE_BLOCK);
+        fishSpineSwordRecipe.setIngredient('B', PRISMARINE_SHARD);
         fishSpineSwordRecipe.setIngredient('C', BONE_BLOCK);
-        fishSpineSwordRecipe.setIngredient('D', BONE_BLOCK);
-        fishSpineSwordRecipe.setIngredient('E', PRISMARINE_SHARD);
+        fishSpineSwordRecipe.setIngredient('D', PRISMARINE_SHARD);
+        fishSpineSwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(FishBoneSword(1)));
         fishSpineSwordRecipe.setIngredient('F', PRISMARINE_SHARD);
-        fishSpineSwordRecipe.setIngredient('G', PRISMARINE_SHARD);
-        fishSpineSwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(FishBoneSword(1)));
-        fishSpineSwordRecipe.setIngredient('I', PRISMARINE_SHARD);
+        fishSpineSwordRecipe.setIngredient('G', BONE_BLOCK);
+        fishSpineSwordRecipe.setIngredient('H', PRISMARINE_SHARD);
+        fishSpineSwordRecipe.setIngredient('I', BONE_BLOCK);
         getServer().addRecipe(fishSpineSwordRecipe);
         count++;
 
-        // 鱼刺刀: 4骨块+4海晶沙粒+鱼骨刀
+        // 鱼刺刀: 4骨块+4海晶沙粒+鱼骨刀(中心)
         NamespacedKey fishSpineKnifeKey = new NamespacedKey(this, "ArmsorPlus_FishSpineKnife");
         ShapedRecipe fishSpineKnifeRecipe = new ShapedRecipe(fishSpineKnifeKey, FishSpineKnife(1));
         fishSpineKnifeRecipe.shape("ABC", "DEF", "GHI");
         fishSpineKnifeRecipe.setIngredient('A', BONE_BLOCK);
-        fishSpineKnifeRecipe.setIngredient('B', BONE_BLOCK);
+        fishSpineKnifeRecipe.setIngredient('B', PRISMARINE_SHARD);
         fishSpineKnifeRecipe.setIngredient('C', BONE_BLOCK);
-        fishSpineKnifeRecipe.setIngredient('D', BONE_BLOCK);
-        fishSpineKnifeRecipe.setIngredient('E', PRISMARINE_SHARD);
+        fishSpineKnifeRecipe.setIngredient('D', PRISMARINE_SHARD);
+        fishSpineKnifeRecipe.setIngredient('E', new RecipeChoice.ExactChoice(FishBoneKnife(1)));
         fishSpineKnifeRecipe.setIngredient('F', PRISMARINE_SHARD);
-        fishSpineKnifeRecipe.setIngredient('G', PRISMARINE_SHARD);
-        fishSpineKnifeRecipe.setIngredient('H', new RecipeChoice.ExactChoice(FishBoneKnife(1)));
-        fishSpineKnifeRecipe.setIngredient('I', PRISMARINE_SHARD);
+        fishSpineKnifeRecipe.setIngredient('G', BONE_BLOCK);
+        fishSpineKnifeRecipe.setIngredient('H', PRISMARINE_SHARD);
+        fishSpineKnifeRecipe.setIngredient('I', BONE_BLOCK);
         getServer().addRecipe(fishSpineKnifeRecipe);
         count++;
 
-        // 海骨剑: 4海绵+4海晶灯+鱼刺剑
+        // 海骨剑: 4海绵+4海晶灯+鱼刺剑(中心)
         NamespacedKey seaBoneSwordKey = new NamespacedKey(this, "ArmsorPlus_SeaBoneSword");
         ShapedRecipe seaBoneSwordRecipe = new ShapedRecipe(seaBoneSwordKey, SeaBoneSword(1));
         seaBoneSwordRecipe.shape("ABC", "DEF", "GHI");
         seaBoneSwordRecipe.setIngredient('A', SPONGE);
-        seaBoneSwordRecipe.setIngredient('B', SPONGE);
+        seaBoneSwordRecipe.setIngredient('B', SEA_LANTERN);
         seaBoneSwordRecipe.setIngredient('C', SPONGE);
-        seaBoneSwordRecipe.setIngredient('D', SPONGE);
-        seaBoneSwordRecipe.setIngredient('E', SEA_LANTERN);
+        seaBoneSwordRecipe.setIngredient('D', SEA_LANTERN);
+        seaBoneSwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(FishSpineSword(1)));
         seaBoneSwordRecipe.setIngredient('F', SEA_LANTERN);
-        seaBoneSwordRecipe.setIngredient('G', SEA_LANTERN);
-        seaBoneSwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(FishSpineSword(1)));
-        seaBoneSwordRecipe.setIngredient('I', SEA_LANTERN);
+        seaBoneSwordRecipe.setIngredient('G', SPONGE);
+        seaBoneSwordRecipe.setIngredient('H', SEA_LANTERN);
+        seaBoneSwordRecipe.setIngredient('I', SPONGE);
         getServer().addRecipe(seaBoneSwordRecipe);
         count++;
 
-        // 海骨刀: 4海绵+4海晶灯+鱼刺刀
+        // 海骨刀: 4海绵+4海晶灯+鱼刺刀(中心)
         NamespacedKey seaBoneKnifeKey = new NamespacedKey(this, "ArmsorPlus_SeaBoneKnife");
         ShapedRecipe seaBoneKnifeRecipe = new ShapedRecipe(seaBoneKnifeKey, SeaBoneKnife(1));
         seaBoneKnifeRecipe.shape("ABC", "DEF", "GHI");
         seaBoneKnifeRecipe.setIngredient('A', SPONGE);
-        seaBoneKnifeRecipe.setIngredient('B', SPONGE);
+        seaBoneKnifeRecipe.setIngredient('B', SEA_LANTERN);
         seaBoneKnifeRecipe.setIngredient('C', SPONGE);
-        seaBoneKnifeRecipe.setIngredient('D', SPONGE);
-        seaBoneKnifeRecipe.setIngredient('E', SEA_LANTERN);
+        seaBoneKnifeRecipe.setIngredient('D', SEA_LANTERN);
+        seaBoneKnifeRecipe.setIngredient('E', new RecipeChoice.ExactChoice(FishSpineKnife(1)));
         seaBoneKnifeRecipe.setIngredient('F', SEA_LANTERN);
-        seaBoneKnifeRecipe.setIngredient('G', SEA_LANTERN);
-        seaBoneKnifeRecipe.setIngredient('H', new RecipeChoice.ExactChoice(FishSpineKnife(1)));
-        seaBoneKnifeRecipe.setIngredient('I', SEA_LANTERN);
+        seaBoneKnifeRecipe.setIngredient('G', SPONGE);
+        seaBoneKnifeRecipe.setIngredient('H', SEA_LANTERN);
+        seaBoneKnifeRecipe.setIngredient('I', SPONGE);
         getServer().addRecipe(seaBoneKnifeRecipe);
         count++;
 
-        // 灵骨剑: 8灵魂沙+海骨剑
+        // 灵骨剑: 8灵魂沙+海骨剑(中心)
         NamespacedKey spiritBoneSwordKey = new NamespacedKey(this, "ArmsorPlus_SpiritBoneSword");
         ShapedRecipe spiritBoneSwordRecipe = new ShapedRecipe(spiritBoneSwordKey, SpiritBoneSword(1));
         spiritBoneSwordRecipe.shape("ABC", "DEF", "GHI");
@@ -638,15 +638,15 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         spiritBoneSwordRecipe.setIngredient('B', SOUL_SAND);
         spiritBoneSwordRecipe.setIngredient('C', SOUL_SAND);
         spiritBoneSwordRecipe.setIngredient('D', SOUL_SAND);
-        spiritBoneSwordRecipe.setIngredient('E', SOUL_SAND);
+        spiritBoneSwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SeaBoneSword(1)));
         spiritBoneSwordRecipe.setIngredient('F', SOUL_SAND);
         spiritBoneSwordRecipe.setIngredient('G', SOUL_SAND);
-        spiritBoneSwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SeaBoneSword(1)));
+        spiritBoneSwordRecipe.setIngredient('H', SOUL_SAND);
         spiritBoneSwordRecipe.setIngredient('I', SOUL_SAND);
         getServer().addRecipe(spiritBoneSwordRecipe);
         count++;
 
-        // 灵骨刀: 8灵魂沙+海骨刀
+        // 灵骨刀: 8灵魂沙+海骨刀(中心)
         NamespacedKey spiritBoneKnifeKey = new NamespacedKey(this, "ArmsorPlus_SpiritBoneKnife");
         ShapedRecipe spiritBoneKnifeRecipe = new ShapedRecipe(spiritBoneKnifeKey, SpiritBoneKnife(1));
         spiritBoneKnifeRecipe.shape("ABC", "DEF", "GHI");
@@ -654,123 +654,123 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         spiritBoneKnifeRecipe.setIngredient('B', SOUL_SAND);
         spiritBoneKnifeRecipe.setIngredient('C', SOUL_SAND);
         spiritBoneKnifeRecipe.setIngredient('D', SOUL_SAND);
-        spiritBoneKnifeRecipe.setIngredient('E', SOUL_SAND);
+        spiritBoneKnifeRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SeaBoneKnife(1)));
         spiritBoneKnifeRecipe.setIngredient('F', SOUL_SAND);
         spiritBoneKnifeRecipe.setIngredient('G', SOUL_SAND);
-        spiritBoneKnifeRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SeaBoneKnife(1)));
+        spiritBoneKnifeRecipe.setIngredient('H', SOUL_SAND);
         spiritBoneKnifeRecipe.setIngredient('I', SOUL_SAND);
         getServer().addRecipe(spiritBoneKnifeRecipe);
         count++;
 
-        // 海刺剑: 4鳞甲+4海洋之心+灵骨剑
+        // 海刺剑: 4鳞甲+4海洋之心+灵骨剑(中心)
         NamespacedKey seaSpineSwordKey = new NamespacedKey(this, "ArmsorPlus_SeaSpineSword");
         ShapedRecipe seaSpineSwordRecipe = new ShapedRecipe(seaSpineSwordKey, SeaSpineSword(1));
         seaSpineSwordRecipe.shape("ABC", "DEF", "GHI");
         seaSpineSwordRecipe.setIngredient('A', TURTLE_SCUTE);
-        seaSpineSwordRecipe.setIngredient('B', TURTLE_SCUTE);
+        seaSpineSwordRecipe.setIngredient('B', HEART_OF_THE_SEA);
         seaSpineSwordRecipe.setIngredient('C', TURTLE_SCUTE);
-        seaSpineSwordRecipe.setIngredient('D', TURTLE_SCUTE);
-        seaSpineSwordRecipe.setIngredient('E', HEART_OF_THE_SEA);
+        seaSpineSwordRecipe.setIngredient('D', HEART_OF_THE_SEA);
+        seaSpineSwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SpiritBoneSword(1)));
         seaSpineSwordRecipe.setIngredient('F', HEART_OF_THE_SEA);
-        seaSpineSwordRecipe.setIngredient('G', HEART_OF_THE_SEA);
-        seaSpineSwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SpiritBoneSword(1)));
-        seaSpineSwordRecipe.setIngredient('I', HEART_OF_THE_SEA);
+        seaSpineSwordRecipe.setIngredient('G', TURTLE_SCUTE);
+        seaSpineSwordRecipe.setIngredient('H', HEART_OF_THE_SEA);
+        seaSpineSwordRecipe.setIngredient('I', TURTLE_SCUTE);
         getServer().addRecipe(seaSpineSwordRecipe);
         count++;
 
-        // 海刺刀: 4鳞甲+4海洋之心+灵骨刀
+        // 海刺刀: 4鳞甲+4海洋之心+灵骨刀(中心)
         NamespacedKey seaSpineKnifeKey = new NamespacedKey(this, "ArmsorPlus_SeaSpineKnife");
         ShapedRecipe seaSpineKnifeRecipe = new ShapedRecipe(seaSpineKnifeKey, SeaSpineKnife(1));
         seaSpineKnifeRecipe.shape("ABC", "DEF", "GHI");
         seaSpineKnifeRecipe.setIngredient('A', TURTLE_SCUTE);
-        seaSpineKnifeRecipe.setIngredient('B', TURTLE_SCUTE);
+        seaSpineKnifeRecipe.setIngredient('B', HEART_OF_THE_SEA);
         seaSpineKnifeRecipe.setIngredient('C', TURTLE_SCUTE);
-        seaSpineKnifeRecipe.setIngredient('D', TURTLE_SCUTE);
-        seaSpineKnifeRecipe.setIngredient('E', HEART_OF_THE_SEA);
+        seaSpineKnifeRecipe.setIngredient('D', HEART_OF_THE_SEA);
+        seaSpineKnifeRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SpiritBoneKnife(1)));
         seaSpineKnifeRecipe.setIngredient('F', HEART_OF_THE_SEA);
-        seaSpineKnifeRecipe.setIngredient('G', HEART_OF_THE_SEA);
-        seaSpineKnifeRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SpiritBoneKnife(1)));
-        seaSpineKnifeRecipe.setIngredient('I', HEART_OF_THE_SEA);
+        seaSpineKnifeRecipe.setIngredient('G', TURTLE_SCUTE);
+        seaSpineKnifeRecipe.setIngredient('H', HEART_OF_THE_SEA);
+        seaSpineKnifeRecipe.setIngredient('I', TURTLE_SCUTE);
         getServer().addRecipe(seaSpineKnifeRecipe);
         count++;
 
-        // 蚀骨剑: 7灵魂土+1凋零骷髅头+灵骨剑
+        // 蚀骨剑: 7灵魂土+1凋零骷髅头+灵骨剑(中心)
         NamespacedKey corrodeBoneSwordKey = new NamespacedKey(this, "ArmsorPlus_CorrodeBoneSword");
         ShapedRecipe corrodeBoneSwordRecipe = new ShapedRecipe(corrodeBoneSwordKey, CorrodeBoneSword(1));
         corrodeBoneSwordRecipe.shape("ABC", "DEF", "GHI");
         corrodeBoneSwordRecipe.setIngredient('A', SOUL_SOIL);
-        corrodeBoneSwordRecipe.setIngredient('B', SOUL_SOIL);
+        corrodeBoneSwordRecipe.setIngredient('B', WITHER_SKELETON_SKULL);
         corrodeBoneSwordRecipe.setIngredient('C', SOUL_SOIL);
         corrodeBoneSwordRecipe.setIngredient('D', SOUL_SOIL);
-        corrodeBoneSwordRecipe.setIngredient('E', WITHER_SKELETON_SKULL);
+        corrodeBoneSwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SpiritBoneSword(1)));
         corrodeBoneSwordRecipe.setIngredient('F', SOUL_SOIL);
         corrodeBoneSwordRecipe.setIngredient('G', SOUL_SOIL);
-        corrodeBoneSwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SpiritBoneSword(1)));
+        corrodeBoneSwordRecipe.setIngredient('H', SOUL_SOIL);
         corrodeBoneSwordRecipe.setIngredient('I', SOUL_SOIL);
         getServer().addRecipe(corrodeBoneSwordRecipe);
         count++;
 
-        // 灵刺剑: 4潮涌核心+4恶魂之泪+海刺剑
+        // 灵刺剑: 4潮涌核心+4恶魂之泪+海刺剑(中心)
         NamespacedKey spiritSpineSwordKey = new NamespacedKey(this, "ArmsorPlus_SpiritSpineSword");
         ShapedRecipe spiritSpineSwordRecipe = new ShapedRecipe(spiritSpineSwordKey, SpiritSpineSword(1));
         spiritSpineSwordRecipe.shape("ABC", "DEF", "GHI");
         spiritSpineSwordRecipe.setIngredient('A', CONDUIT);
-        spiritSpineSwordRecipe.setIngredient('B', CONDUIT);
+        spiritSpineSwordRecipe.setIngredient('B', GHAST_TEAR);
         spiritSpineSwordRecipe.setIngredient('C', CONDUIT);
-        spiritSpineSwordRecipe.setIngredient('D', CONDUIT);
-        spiritSpineSwordRecipe.setIngredient('E', GHAST_TEAR);
+        spiritSpineSwordRecipe.setIngredient('D', GHAST_TEAR);
+        spiritSpineSwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SeaSpineSword(1)));
         spiritSpineSwordRecipe.setIngredient('F', GHAST_TEAR);
-        spiritSpineSwordRecipe.setIngredient('G', GHAST_TEAR);
-        spiritSpineSwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SeaSpineSword(1)));
-        spiritSpineSwordRecipe.setIngredient('I', GHAST_TEAR);
+        spiritSpineSwordRecipe.setIngredient('G', CONDUIT);
+        spiritSpineSwordRecipe.setIngredient('H', GHAST_TEAR);
+        spiritSpineSwordRecipe.setIngredient('I', CONDUIT);
         getServer().addRecipe(spiritSpineSwordRecipe);
         count++;
 
-        // 灵刺刀: 4潮涌核心+4凋零骷髅头+海刺刀
+        // 灵刺刀: 4潮涌核心+4凋零骷髅头+海刺刀(中心)
         NamespacedKey spiritSpineKnifeKey = new NamespacedKey(this, "ArmsorPlus_SpiritSpineKnife");
         ShapedRecipe spiritSpineKnifeRecipe = new ShapedRecipe(spiritSpineKnifeKey, SpiritSpineKnife(1));
         spiritSpineKnifeRecipe.shape("ABC", "DEF", "GHI");
         spiritSpineKnifeRecipe.setIngredient('A', CONDUIT);
-        spiritSpineKnifeRecipe.setIngredient('B', CONDUIT);
+        spiritSpineKnifeRecipe.setIngredient('B', WITHER_SKELETON_SKULL);
         spiritSpineKnifeRecipe.setIngredient('C', CONDUIT);
-        spiritSpineKnifeRecipe.setIngredient('D', CONDUIT);
-        spiritSpineKnifeRecipe.setIngredient('E', WITHER_SKELETON_SKULL);
+        spiritSpineKnifeRecipe.setIngredient('D', WITHER_SKELETON_SKULL);
+        spiritSpineKnifeRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SeaSpineKnife(1)));
         spiritSpineKnifeRecipe.setIngredient('F', WITHER_SKELETON_SKULL);
-        spiritSpineKnifeRecipe.setIngredient('G', WITHER_SKELETON_SKULL);
-        spiritSpineKnifeRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SeaSpineKnife(1)));
-        spiritSpineKnifeRecipe.setIngredient('I', WITHER_SKELETON_SKULL);
+        spiritSpineKnifeRecipe.setIngredient('G', CONDUIT);
+        spiritSpineKnifeRecipe.setIngredient('H', WITHER_SKELETON_SKULL);
+        spiritSpineKnifeRecipe.setIngredient('I', CONDUIT);
         getServer().addRecipe(spiritSpineKnifeRecipe);
         count++;
 
-        // 海哭剑: 4下界之星+4潮涌核心+灵刺剑
+        // 海哭剑: 4下界之星+4潮涌核心+灵刺剑(中心)
         NamespacedKey seaCrySwordKey = new NamespacedKey(this, "ArmsorPlus_SeaCrySword");
         ShapedRecipe seaCrySwordRecipe = new ShapedRecipe(seaCrySwordKey, SeaCrySword(1));
         seaCrySwordRecipe.shape("ABC", "DEF", "GHI");
         seaCrySwordRecipe.setIngredient('A', NETHER_STAR);
-        seaCrySwordRecipe.setIngredient('B', NETHER_STAR);
+        seaCrySwordRecipe.setIngredient('B', CONDUIT);
         seaCrySwordRecipe.setIngredient('C', NETHER_STAR);
-        seaCrySwordRecipe.setIngredient('D', NETHER_STAR);
-        seaCrySwordRecipe.setIngredient('E', CONDUIT);
+        seaCrySwordRecipe.setIngredient('D', CONDUIT);
+        seaCrySwordRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SpiritSpineSword(1)));
         seaCrySwordRecipe.setIngredient('F', CONDUIT);
-        seaCrySwordRecipe.setIngredient('G', CONDUIT);
-        seaCrySwordRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SpiritSpineSword(1)));
-        seaCrySwordRecipe.setIngredient('I', CONDUIT);
+        seaCrySwordRecipe.setIngredient('G', NETHER_STAR);
+        seaCrySwordRecipe.setIngredient('H', CONDUIT);
+        seaCrySwordRecipe.setIngredient('I', NETHER_STAR);
         getServer().addRecipe(seaCrySwordRecipe);
         count++;
 
-        // 海哭刀: 4下界之星+4潮涌核心+灵刺刀
+        // 海哭刀: 4下界之星+4潮涌核心+灵刺刀(中心)
         NamespacedKey seaCryKnifeKey = new NamespacedKey(this, "ArmsorPlus_SeaCryKnife");
         ShapedRecipe seaCryKnifeRecipe = new ShapedRecipe(seaCryKnifeKey, SeaCryKnife(1));
         seaCryKnifeRecipe.shape("ABC", "DEF", "GHI");
         seaCryKnifeRecipe.setIngredient('A', NETHER_STAR);
-        seaCryKnifeRecipe.setIngredient('B', NETHER_STAR);
+        seaCryKnifeRecipe.setIngredient('B', CONDUIT);
         seaCryKnifeRecipe.setIngredient('C', NETHER_STAR);
-        seaCryKnifeRecipe.setIngredient('D', NETHER_STAR);
-        seaCryKnifeRecipe.setIngredient('E', CONDUIT);
+        seaCryKnifeRecipe.setIngredient('D', CONDUIT);
+        seaCryKnifeRecipe.setIngredient('E', new RecipeChoice.ExactChoice(SpiritSpineKnife(1)));
         seaCryKnifeRecipe.setIngredient('F', CONDUIT);
-        seaCryKnifeRecipe.setIngredient('G', CONDUIT);
-        seaCryKnifeRecipe.setIngredient('H', new RecipeChoice.ExactChoice(SpiritSpineKnife(1)));
-        seaCryKnifeRecipe.setIngredient('I', CONDUIT);
+        seaCryKnifeRecipe.setIngredient('G', NETHER_STAR);
+        seaCryKnifeRecipe.setIngredient('H', CONDUIT);
+        seaCryKnifeRecipe.setIngredient('I', NETHER_STAR);
         getServer().addRecipe(seaCryKnifeRecipe);
         count++;
 

@@ -201,7 +201,7 @@ public class ArmsorPlusMenu implements Listener {
                 "I I", "I I", "   ",
                 "I=钢锭"});
 
-        // ===== 鱼骨系列武器合成配方 =====
+        // ===== 鱼骨系列武器合成配方 (上一步武器在中心E位置) =====
         RECIPES.put(ChatColor.DARK_GREEN + "尸王", new String[]{
                 " Z ", "ZBZ", " Z ",
                 "Z=僵尸头颅", "B=骨头"});
@@ -212,70 +212,44 @@ public class ArmsorPlusMenu implements Listener {
                 "A  ", "B  ", "C  ",
                 "A=鳕鱼", "B=鳕鱼", "C=骨头"});
         RECIPES.put(ChatColor.YELLOW + "鱼刺剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=骨块", "B=骨块", "C=骨块", "D=骨块",
-                "E=海晶沙粒", "F=海晶沙粒", "G=海晶沙粒",
-                "H=鱼骨剑", "I=海晶沙粒"});
+                "ABA", "BCB", "ABA",
+                "A=骨块", "B=海晶沙粒", "C=鱼骨剑"});
         RECIPES.put(ChatColor.YELLOW + "鱼刺刀", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=骨块", "B=骨块", "C=骨块", "D=骨块",
-                "E=海晶沙粒", "F=海晶沙粒", "G=海晶沙粒",
-                "H=鱼骨刀", "I=海晶沙粒"});
+                "ABA", "BCB", "ABA",
+                "A=骨块", "B=海晶沙粒", "C=鱼骨刀"});
         RECIPES.put(ChatColor.AQUA + "海骨剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=海绵", "B=海绵", "C=海绵", "D=海绵",
-                "E=海晶灯", "F=海晶灯", "G=海晶灯",
-                "H=鱼刺剑", "I=海晶灯"});
+                "ABA", "BCB", "ABA",
+                "A=海绵", "B=海晶灯", "C=鱼刺剑"});
         RECIPES.put(ChatColor.AQUA + "海骨刀", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=海绵", "B=海绵", "C=海绵", "D=海绵",
-                "E=海晶灯", "F=海晶灯", "G=海晶灯",
-                "H=鱼刺刀", "I=海晶灯"});
+                "ABA", "BCB", "ABA",
+                "A=海绵", "B=海晶灯", "C=鱼刺刀"});
         RECIPES.put(ChatColor.LIGHT_PURPLE + "灵骨剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=灵魂沙", "B=灵魂沙", "C=灵魂沙", "D=灵魂沙",
-                "E=灵魂沙", "F=灵魂沙", "G=灵魂沙",
-                "H=海骨剑", "I=灵魂沙"});
+                "AAA", "ABA", "AAA",
+                "A=灵魂沙", "B=海骨剑"});
         RECIPES.put(ChatColor.LIGHT_PURPLE + "灵骨刀", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=灵魂沙", "B=灵魂沙", "C=灵魂沙", "D=灵魂沙",
-                "E=灵魂沙", "F=灵魂沙", "G=灵魂沙",
-                "H=海骨刀", "I=灵魂沙"});
+                "AAA", "ABA", "AAA",
+                "A=灵魂沙", "B=海骨刀"});
         RECIPES.put(ChatColor.DARK_AQUA + "海刺剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=鳞甲", "B=鳞甲", "C=鳞甲", "D=鳞甲",
-                "E=海洋之心", "F=海洋之心", "G=海洋之心",
-                "H=灵骨剑", "I=海洋之心"});
+                "ABA", "BCB", "ABA",
+                "A=鳞甲", "B=海洋之心", "C=灵骨剑"});
         RECIPES.put(ChatColor.DARK_AQUA + "海刺刀", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=鳞甲", "B=鳞甲", "C=鳞甲", "D=鳞甲",
-                "E=海洋之心", "F=海洋之心", "G=海洋之心",
-                "H=灵骨刀", "I=海洋之心"});
+                "ABA", "BCB", "ABA",
+                "A=鳞甲", "B=海洋之心", "C=灵骨刀"});
         RECIPES.put(ChatColor.DARK_PURPLE + "蚀骨剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=灵魂土", "B=灵魂土", "C=灵魂土", "D=灵魂土",
-                "E=凋零骷髅头", "F=灵魂土", "G=灵魂土",
-                "H=灵骨剑", "I=灵魂土"});
+                "ABA", "ACA", "AAA",
+                "A=灵魂土", "B=凋零骷髅头", "C=灵骨剑"});
         RECIPES.put(ChatColor.DARK_PURPLE + "灵刺剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=潮涌核心", "B=潮涌核心", "C=潮涌核心", "D=潮涌核心",
-                "E=恶魂之泪", "F=恶魂之泪", "G=恶魂之泪",
-                "H=海刺剑", "I=恶魂之泪"});
+                "ABA", "BCB", "ABA",
+                "A=潮涌核心", "B=恶魂之泪", "C=海刺剑"});
         RECIPES.put(ChatColor.DARK_PURPLE + "灵刺刀", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=潮涌核心", "B=潮涌核心", "C=潮涌核心", "D=潮涌核心",
-                "E=凋零骷髅头", "F=凋零骷髅头", "G=凋零骷髅头",
-                "H=海刺刀", "I=凋零骷髅头"});
+                "ABA", "BCB", "ABA",
+                "A=潮涌核心", "B=凋零骷髅头", "C=海刺刀"});
         RECIPES.put(ChatColor.DARK_BLUE + "海哭剑", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=下界之星", "B=下界之星", "C=下界之星", "D=下界之星",
-                "E=潮涌核心", "F=潮涌核心", "G=潮涌核心",
-                "H=灵刺剑", "I=潮涌核心"});
+                "ABA", "BCB", "ABA",
+                "A=下界之星", "B=潮涌核心", "C=灵刺剑"});
         RECIPES.put(ChatColor.DARK_BLUE + "海哭刀", new String[]{
-                "ABC", "DEF", "GHI",
-                "A=下界之星", "B=下界之星", "C=下界之星", "D=下界之星",
-                "E=潮涌核心", "F=潮涌核心", "G=潮涌核心",
-                "H=灵刺刀", "I=潮涌核心"});
+                "ABA", "BCB", "ABA",
+                "A=下界之星", "B=潮涌核心", "C=灵刺刀"});
     }
 
     // ========================================================================
@@ -292,6 +266,7 @@ public class ArmsorPlusMenu implements Listener {
         magicItemsList.setItem(13, ArmorPlusCreate(1));
         magicItemsList.setItem(14, ArmorPlusCreateII(1));
         magicItemsList.setItem(15, BowPlusCreate(1));
+        magicItemsList.setItem(36, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return magicItemsList;
     }
 
@@ -347,6 +322,7 @@ public class ArmsorPlusMenu implements Listener {
         }
         if (page > 0) armsList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
         if (page < totalPages - 1) armsList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+        armsList.setItem(40, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return armsList;
     }
     public Inventory createArmsListMenu(Player player) { return createArmsListMenu(player, 0); }
@@ -360,6 +336,7 @@ public class ArmsorPlusMenu implements Listener {
         armorInv.setItem(21, SteelChestplate(1));
         armorInv.setItem(22, SteelLeggings(1));
         armorInv.setItem(23, SteelBoots(1));
+        armorInv.setItem(40, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return armorInv;
     }
 
@@ -439,6 +416,7 @@ public class ArmsorPlusMenu implements Listener {
         matMenu.setItem(22, RawSteel(1));
         matMenu.setItem(23, SteelIngot(1));
         matMenu.setItem(24, EndCore(1));
+        matMenu.setItem(36, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return matMenu;
     }
 
@@ -452,6 +430,7 @@ public class ArmsorPlusMenu implements Listener {
         medicineMenu.setItem(14, GoldShieldElixir(1));
         medicineMenu.setItem(15, IceCore(1));
         medicineMenu.setItem(16, FireCore(1));
+        medicineMenu.setItem(22, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return medicineMenu;
     }
 
@@ -466,6 +445,7 @@ public class ArmsorPlusMenu implements Listener {
         else fillFoodPage2(foodMenu);
         if (page > 0) foodMenu.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
         if (page < 2) foodMenu.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+        foodMenu.setItem(40, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return foodMenu;
     }
 
@@ -507,6 +487,7 @@ public class ArmsorPlusMenu implements Listener {
         }
         if (page > 0) saplingMenu.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
         if (page < 1) saplingMenu.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+        saplingMenu.setItem(40, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return saplingMenu;
     }
 
@@ -523,6 +504,7 @@ public class ArmsorPlusMenu implements Listener {
         shop.setItem(40, createInfoItem(EXPERIENCE_BOTTLE, "§a兑换说明",
                 "§7使用经验值兑换魔法球", "§7不同等级魔法球需要不同经验值",
                 "§7点击商品进行兑换"));
+        shop.setItem(36, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
         return shop;
     }
 
@@ -594,6 +576,7 @@ public class ArmsorPlusMenu implements Listener {
         // 翻页导航按钮
         if (page > 0) enchantmentList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
         if (page < 2) enchantmentList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
+        enchantmentList.setItem(40, createInfoItem(Material.BARRIER, "§c返回", "§7点击返回主菜单"));
 
         return enchantmentList;
     }
@@ -761,6 +744,12 @@ public class ArmsorPlusMenu implements Listener {
             event.setCancelled(true);
             if (event.getCurrentItem() == null || event.getCurrentItem().isEmpty()) return;
 
+            ItemStack shopClicked = event.getCurrentItem();
+            if (shopClicked.hasItemMeta() && "§c返回".equals(shopClicked.getItemMeta().getDisplayName())) {
+                player.openInventory(createMenu());
+                return;
+            }
+
             // 管理员模式可直接拿取
             if (PlayerSettings.isAdminMode(uuid) && player.hasPermission("ArmsorPlus.op")) {
                 giveAdminItem(player, event.getCurrentItem());
@@ -845,6 +834,12 @@ public class ArmsorPlusMenu implements Listener {
 
             if (" ".equals(itemName)) return;
 
+            // 返回主菜单按钮
+            if ("§c返回".equals(itemName)) {
+                player.openInventory(createMenu());
+                return;
+            }
+
             if (PlayerSettings.isAdminMode(uuid) && player.hasPermission("ArmsorPlus.op")) {
                 giveAdminItem(player, clicked);
             } else {
@@ -852,9 +847,22 @@ public class ArmsorPlusMenu implements Listener {
             }
         }
 
-        // ---- 合成配方展示菜单 (防止取出物品) ----
+        // ---- 合成配方展示菜单 ----
         if (invTitle.startsWith("§e合成配方:")) {
             event.setCancelled(true);
+            ItemStack clickedRecipe = event.getCurrentItem();
+            if (clickedRecipe == null || !clickedRecipe.hasItemMeta()) return;
+            String clickedName = clickedRecipe.getItemMeta().getDisplayName();
+            // 返回按钮
+            if ("§c§l返回武器列表".equals(clickedName)) {
+                player.openInventory(createArmsListMenu(player));
+                return;
+            }
+            // 点击材料中可合成物品→递归显示该物品的配方
+            if (RECIPES.containsKey(clickedName)) {
+                showRecipe(player, clickedRecipe);
+            }
+            return;
         }
     }
 
@@ -975,11 +983,14 @@ public class ArmsorPlusMenu implements Listener {
                 for (int j = 0; j < 3 && j < row.length(); j++) {
                     char c = row.charAt(j);
                     if (c == ' ') continue;
-                    Material mat = getRecipeMaterial(recipe, c);
                     String chineseName = getMaterialChineseName(recipe, c);
-                    recipeView.setItem(gridSlots[i * 3 + j], createInfoItem(mat,
-                            "§f" + chineseName,
-                            "§c" + c));
+                    ItemStack exactItem = getArmsItem(chineseName);
+                    if (exactItem != null) {
+                        recipeView.setItem(gridSlots[i * 3 + j], exactItem);
+                    } else {
+                        Material mat = getRecipeMaterial(recipe, c);
+                        recipeView.setItem(gridSlots[i * 3 + j], new ItemStack(mat));
+                    }
                 }
             }
 
@@ -998,6 +1009,9 @@ public class ArmsorPlusMenu implements Listener {
             recipeView.setItem(31, createInfoItem(PAPER, "§e合成材料",
                     materialNotes.toArray(new String[0])));
         }
+
+        // 返回按钮 (回到武器列表)
+        recipeView.setItem(40, createInfoItem(BARRIER, "§c§l返回武器列表", "§7点击返回魔法武器列表"));
 
         player.openInventory(recipeView);
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
@@ -1109,5 +1123,35 @@ public class ArmsorPlusMenu implements Listener {
             }
         }
         return "???";
+    }
+
+    /** 根据中文名获取对应的插件武器ItemStack，没有则返回null */
+    private ItemStack getArmsItem(String chineseName) {
+        return switch (chineseName) {
+            case "鱼骨剑" -> FishBoneSword(1);
+            case "鱼骨刀" -> FishBoneKnife(1);
+            case "鱼刺剑" -> FishSpineSword(1);
+            case "鱼刺刀" -> FishSpineKnife(1);
+            case "海骨剑" -> SeaBoneSword(1);
+            case "海骨刀" -> SeaBoneKnife(1);
+            case "灵骨剑" -> SpiritBoneSword(1);
+            case "灵骨刀" -> SpiritBoneKnife(1);
+            case "海刺剑" -> SeaSpineSword(1);
+            case "海刺刀" -> SeaSpineKnife(1);
+            case "灵刺剑" -> SpiritSpineSword(1);
+            case "灵刺刀" -> SpiritSpineKnife(1);
+            case "尸王" -> CorpseKing(1);
+            case "重剑" -> Iron_Epee(1);
+            case "寒冰剑" -> IceSword(1);
+            case "盘丝弓" -> WebBow(1);
+            case "爆炸弓" -> ExplosionBow(1);
+            case "雨御前" -> RainSword(1);
+            case "飞天御剑" -> FlyingSword(1);
+            case "瞬步刃" -> FlashStepBlade(1);
+            case "血祭之剑" -> BloodSword(1);
+            case "精炼金刚石" -> ArmsPlusCreateII(1);
+            case "基础强化石" -> ArmsPlusCreateI(1);
+            default -> null;
+        };
     }
 }

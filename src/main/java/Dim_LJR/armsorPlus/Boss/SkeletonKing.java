@@ -83,20 +83,20 @@ public class SkeletonKing {
         aiTask = new BukkitRunnable() {
             @Override
             public void run() {
-                // 实体无效(区块卸载等) → 异常清理
-                if (bossEntity == null || !bossEntity.isValid()) {
+                // 实体自然死亡 → 触发死亡掉落（必须在 !isValid 前检测，因为死亡后 isValid 也为 false）
+                if (bossEntity.isDead()) {
                     if (bossAlive) {
-                        Bukkit.broadcastMessage("§8骷髅王异常消失...");
-                        cleanup();
+                        onDeath();
                     }
                     cancel();
                     return;
                 }
 
-                // 实体自然死亡 → 触发死亡掉落
-                if (bossEntity.isDead()) {
+                // 实体无效(区块卸载等) → 异常清理
+                if (bossEntity == null || !bossEntity.isValid()) {
                     if (bossAlive) {
-                        onDeath();
+                        Bukkit.broadcastMessage("§8骷髅王异常消失...");
+                        cleanup();
                     }
                     cancel();
                     return;

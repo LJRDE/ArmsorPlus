@@ -251,6 +251,12 @@ public class BossMenu implements Listener {
                 6, 0.3, 0.3, 0.3, 0.1);
     }
 
+    private static boolean isBossSummonWorld(World world) {
+        if (BossWorld.world != null && world.equals(BossWorld.world)) return true;
+        if (Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world != null && world.equals(Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world)) return true;
+        return false;
+    }
+
     private static BossType findBossTypeByEntity(UUID id) {
         for (Map.Entry<BossType, LivingEntity> entry : bossEntities.entrySet()) {
             if (entry.getValue() != null && entry.getValue().getUniqueId().equals(id)) {
@@ -458,8 +464,8 @@ public class BossMenu implements Listener {
         String name = event.getCurrentItem().getItemMeta().getDisplayName();
         Player player = (Player) event.getWhoClicked();
 
-        if (BossWorld.world == null || !player.getWorld().equals(BossWorld.world)) {
-            player.sendMessage("§c⚠ 请在BOSS世界召唤BOSS！");
+        if (!isBossSummonWorld(player.getWorld())) {
+            player.sendMessage("§c⚠ 请在BOSS世界或公海世界召唤BOSS！");
             player.sendMessage("§e使用主菜单中的「前往BOSS世界」传送");
             player.closeInventory();
             return;
