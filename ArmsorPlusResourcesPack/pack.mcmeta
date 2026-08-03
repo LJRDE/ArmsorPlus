@@ -1,9 +1,7 @@
 {
   "pack": {
-    "pack_format": 15,
-    "supported_formats": [15, 255],
-    "min_format": 15,
-    "max_format": 255,
-    "description": "The resource pack for ArmsorPlus Plugin"
+    "description": "ArmsorPlus Resource Pack v0.3-J",
+    "min_format": 75,
+    "max_format": 75
   }
 }

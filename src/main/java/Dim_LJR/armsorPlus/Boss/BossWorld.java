@@ -4,17 +4,14 @@ import io.papermc.paper.registry.keys.GameRuleKeys;
 import org.bukkit.*;
 import org.bukkit.generator.ChunkGenerator;
 
-/**
- * BOSS世界 —— 专用的BOSS战斗世界。
- * <p>
- * 一个平坦的虚空世界，用于BOSS战斗，防止破坏主世界地形。
- * 通过主菜单的「前往BOSS世界」传送进入。
- */
+// BOSS世界 —— 专用的BOSS战斗世界。
+// 一个平坦的虚空世界，用于BOSS战斗，防止破坏主世界地形。
+// 通过主菜单的「前往BOSS世界」传送进入。
 public class BossWorld {
 
     public static World world;
 
-    /** 加载/创建BOSS世界 */
+    // 加载/创建BOSS世界
     @SuppressWarnings("unchecked")
     public static void loadWorld() {
         WorldCreator creator = new WorldCreator("BossWorld");

@@ -18,23 +18,37 @@ import java.util.UUID;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static org.bukkit.Material.*;
 
-/**
- * 所有食物/药品/树苗的定义与创建方法。
- * <p>
- * 每个方法接收数量参数(amount)和可选的等级参数(level/tier)。
- */
+// 所有食物/药品/树苗的定义与创建方法。
+// 每个方法接收数量参数(amount)和可选的等级参数(level/tier)。
 public class FoodItems {
+
+    // 创建带自定义头颅纹理的食物/物品 (PLAYER_HEAD 基底)
+    // profileName: 用于生成唯一头颅 UUID; texture: 皮肤 base64; lore: 物品说明
+    private static ItemStack createHeadItem(String profileName, String texture, String displayName,
+                                             List<String> lore, NamespacedKey key, int amount) {
+        ItemStack item = new ItemStack(PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes(profileName.getBytes()), null);
+        profile.setProperty(new ProfileProperty("textures", texture));
+        meta.setPlayerProfile(profile);
+        meta.setDisplayName(displayName);
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, key, 1);
+        item.setAmount(amount);
+        return item;
+    }
 
     private static final String REJUVENATION_POWDER_NAME = ChatColor.LIGHT_PURPLE + "回春散";
     private static final String HEMOSTATIC_BANDAGE_NAME = ChatColor.RED + "止血绷带";
     private static final String COMPRESSED_BISCUIT_NAME = ChatColor.GOLD + "压缩饼干";
 
-    /** 回春散: 生命恢复V 3s，有概率合成出高级品 */
+    // 回春散: 生命恢复V 3s，有概率合成出高级品
     public static ItemStack RejuvenationPowder(int amount) {
         return createRejuvenationPowder(amount, 0);
     }
 
-    /** 回春散: tier=1上品, tier=2极品, tier=3仙品 */
+    // 回春散: tier=1上品, tier=2极品, tier=3仙品
     public static ItemStack RejuvenationPowder(int amount, int tier) {
         return createRejuvenationPowder(amount, tier);
     }
@@ -76,7 +90,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 止血绷带 */
+    // 止血绷带
     public static ItemStack HemostaticBandage(int amount) {
         ItemStack item = new ItemStack(WHITE_DYE);
         ItemMeta meta = item.getItemMeta();
@@ -90,7 +104,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 压缩饼干: 瞬间吃掉，等于9块面包 */
+    // 压缩饼干: 瞬间吃掉，等于9块面包
     public static ItemStack CompressedBiscuit(int amount) {
         ItemStack item = new ItemStack(BREAD);
         ItemMeta meta = item.getItemMeta();
@@ -104,7 +118,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 盐 */
+    // 盐
     public static ItemStack Salt(int amount) {
         ItemStack item = new ItemStack(SUGAR);
         ItemMeta meta = item.getItemMeta();
@@ -118,7 +132,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 肉干: 恢复6饥饿值，7.2饱和度 */
+    // 肉干: 恢复6饥饿值，7.2饱和度
     public static ItemStack Jerky(int amount) {
         ItemStack item = new ItemStack(COOKED_BEEF);
         ItemMeta meta = item.getItemMeta();
@@ -133,7 +147,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 猪肉干: 恢复7饥饿值，8.0饱和度 */
+    // 猪肉干: 恢复7饥饿值，8.0饱和度
     public static ItemStack PorkJerky(int amount) {
         ItemStack item = new ItemStack(COOKED_PORKCHOP);
         ItemMeta meta = item.getItemMeta();
@@ -148,7 +162,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 羊肉干: 恢复5饥饿值，6.0饱和度 */
+    // 羊肉干: 恢复5饥饿值，6.0饱和度
     public static ItemStack MuttonJerky(int amount) {
         ItemStack item = new ItemStack(COOKED_MUTTON);
         ItemMeta meta = item.getItemMeta();
@@ -178,194 +192,104 @@ public class FoodItems {
     private static final String TANGERINE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWNkYWQyMzQ5NDgzYzBkNDg5Y2M0NjRiZWVkNzI4YzZhMDQxOTkyYTIwMWQyM2FlNTU1MzFmMDMzNGZjMTQwOSJ9fX0=";
     private static final String ICE_CUBE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTI2NDQwNzFiNmM3YmJhZTdiNWU0NWQ5ZjgyZjk2ZmZiNWVlOGUxNzdhMjNiODI1YTQ0NjU2MDdmMWM5YyJ9fX0=";
 
-    /** 大苹果: 恢复4饥饿值 + 2饱和度 */
+    // 大苹果: 恢复4饥饿值 + 2饱和度
     public static ItemStack BigApple(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_BigApple".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", BIG_APPLE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "大苹果");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "传说中的大苹果"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, BigAppleKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_BigApple", BIG_APPLE_TEXTURE, ChatColor.RED + "大苹果",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "传说中的大苹果"), BigAppleKey, amount);
     }
 
-    /** 李子: 恢复3饥饿值 + 2饱和度 */
+    // 李子: 恢复3饥饿值 + 2饱和度
     public static ItemStack Plum(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Plum".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", PLUM_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "李子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "酸甜可口的李子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PlumKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Plum", PLUM_TEXTURE, ChatColor.LIGHT_PURPLE + "李子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "酸甜可口的李子"), PlumKey, amount);
     }
 
-    /** 榛子: 恢复2饥饿值 + 3饱和度 */
+    // 榛子: 恢复2饥饿值 + 3饱和度
     public static ItemStack Hazelnut(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Hazelnut".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", HAZELNUT_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "榛子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复2点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "香脆的榛子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, HazelnutKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Hazelnut", HAZELNUT_TEXTURE, ChatColor.GOLD + "榛子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复2点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "香脆的榛子"), HazelnutKey, amount);
     }
 
-    /** 椰子: 恢复5饥饿值 + 3饱和度 */
+    // 椰子: 恢复5饥饿值 + 3饱和度
     public static ItemStack Coconut(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Coconut".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", COCONUT_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.WHITE + "椰子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "清凉解渴的椰子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, CoconutKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Coconut", COCONUT_TEXTURE, ChatColor.WHITE + "椰子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复5点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "清凉解渴的椰子"), CoconutKey, amount);
     }
 
-    /** 菠萝: 恢复6饥饿值 + 5饱和度 */
+    // 菠萝: 恢复6饥饿值 + 5饱和度
     public static ItemStack Pineapple(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Pineapple".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", PINEAPPLE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.YELLOW + "菠萝");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复6点饥饿值",
-                ChatColor.YELLOW + "恢复5点饱和度",
-                ChatColor.GRAY + "多汁的热带菠萝"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PineappleKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Pineapple", PINEAPPLE_TEXTURE, ChatColor.YELLOW + "菠萝",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复6点饥饿值",
+                        ChatColor.YELLOW + "恢复5点饱和度",
+                        ChatColor.GRAY + "多汁的热带菠萝"), PineappleKey, amount);
     }
 
-    /** 草莓: 恢复2饥饿值 + 1.5饱和度 */
+    // 草莓: 恢复2饥饿值 + 1.5饱和度
     public static ItemStack Strawberry(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Strawberry".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", STRAWBERRY_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "草莓");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复2点饥饿值",
-                ChatColor.YELLOW + "恢复1.5点饱和度",
-                ChatColor.GRAY + "鲜红的草莓"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, StrawberryKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Strawberry", STRAWBERRY_TEXTURE, ChatColor.RED + "草莓",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复2点饥饿值",
+                        ChatColor.YELLOW + "恢复1.5点饱和度",
+                        ChatColor.GRAY + "鲜红的草莓"), StrawberryKey, amount);
     }
 
-    /** 蓝莓: 恢复2饥饿值 + 1饱和度 */
+    // 蓝莓: 恢复2饥饿值 + 1饱和度
     public static ItemStack Blueberry(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Blueberry".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", BLUEBERRY_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.DARK_PURPLE + "蓝莓");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复2点饥饿值",
-                ChatColor.YELLOW + "恢复1点饱和度",
-                ChatColor.GRAY + "小小的蓝莓"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, BlueberryKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Blueberry", BLUEBERRY_TEXTURE, ChatColor.DARK_PURPLE + "蓝莓",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复2点饥饿值",
+                        ChatColor.YELLOW + "恢复1点饱和度",
+                        ChatColor.GRAY + "小小的蓝莓"), BlueberryKey, amount);
     }
 
-    /** 橙子: 恢复4饥饿值 + 3饱和度 */
+    // 橙子: 恢复4饥饿值 + 3饱和度
     public static ItemStack Orange(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Orange".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", ORANGE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "橙子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "新鲜的橙子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, OrangeKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Orange", ORANGE_TEXTURE, ChatColor.GOLD + "橙子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "新鲜的橙子"), OrangeKey, amount);
     }
 
-    /** 橘子: 恢复3饥饿值 + 2饱和度 */
+    // 橘子: 恢复3饥饿值 + 2饱和度
     public static ItemStack Tangerine(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Tangerine".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", TANGERINE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "橘子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "甜甜的橘子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, TangerineKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Tangerine", TANGERINE_TEXTURE, ChatColor.GOLD + "橘子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "甜甜的橘子"), TangerineKey, amount);
     }
 
-    /** 冰块: 恢复1饥饿值 + 1饱和度 */
+    // 冰块: 恢复1饥饿值 + 1饱和度
     public static ItemStack IceCube(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_IceCube".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", ICE_CUBE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.AQUA + "冰块");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复1点饥饿值",
-                ChatColor.YELLOW + "恢复1点饱和度",
-                ChatColor.GRAY + "冰冰凉凉的冰块"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, IceCubeKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_IceCube", ICE_CUBE_TEXTURE, ChatColor.AQUA + "冰块",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复1点饥饿值",
+                        ChatColor.YELLOW + "恢复1点饱和度",
+                        ChatColor.GRAY + "冰冰凉凉的冰块"), IceCubeKey, amount);
     }
 
     // ========================================================================
@@ -383,274 +307,147 @@ public class FoodItems {
     private static final String CHESTNUT_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjAxMzQyYzE4NzlkZTZjNzNlODVlMjk1YTg5NDU4Yzk3ZTEyZjZhM2IyMjgwZjAzMzQ3MGQzNTAwMWU0NDM2In19fQ==";
     private static final String KIWI_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGNjMThlYzQ2NDlmMDdkNWEzOGE1ODNkOTI3MWZkODNhNmYzNzMxODc1OGU0NmVhODdmYzJiMmQxYWZjMmQ5In19fQ==";
     private static final String LONGAN_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTA5YTJkYWM2M2Y4YWZlM2RmZDFhMDgyM2Y2ODQ2NDc1NDU1YTIzYTU2M2Q4MmQzYTNhMzRlNDIyMjQyY2JhNiJ9fX0=";
-    private static final String LYCHEE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTA5YTJkYWM2M2Y4YWZlM2RmZDFhMDgyM2Y2ODQ2NDc1NDU1YTIzYTU2M2Q4MmQzYTNhMzRlNDIyMjQyY2JhNiJ9fX0=";
     private static final String CHERRY_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWU1M2EzYWVlYzk2NjJiZTUxM2M5NDA0OWE5ZWUwYWFkZTM1MTcwMTVhOTc2MzhkOWY4NmIyMWU4YjMxODJlYSJ9fX0=";
     private static final String PEACH_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmFkYmJhYjM4ODFhYWNiYTU3N2UyN2JiZWUxZmJlNGI5YTUwZTE5ZjVhODdmOGQ0OWI2MzYwNTRmYTE3ODhmYyJ9fX0=";
 
-    /** 无花果: 恢复4饥饿值 + 3饱和度 */
+    // 无花果: 恢复4饥饿值 + 3饱和度
     public static ItemStack Fig(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Fig".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", FIG_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "无花果");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "甜美的无花果"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, FigKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Fig", FIG_TEXTURE, ChatColor.LIGHT_PURPLE + "无花果",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "甜美的无花果"), FigKey, amount);
     }
 
-    /** 枣子: 恢复3饥饿值 + 2饱和度 */
+    // 枣子: 恢复3饥饿值 + 2饱和度
     public static ItemStack Date(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Date".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", DATE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "枣子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "甜甜的枣子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, DateKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Date", DATE_TEXTURE, ChatColor.GOLD + "枣子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "甜甜的枣子"), DateKey, amount);
     }
 
-    /** 柿子: 恢复4饥饿值 + 3饱和度 */
+    // 柿子: 恢复4饥饿值 + 3饱和度
     public static ItemStack Persimmon(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Persimmon".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", PERSIMMON_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "柿子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "软糯的柿子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PersimmonKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Persimmon", PERSIMMON_TEXTURE, ChatColor.GOLD + "柿子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "软糯的柿子"), PersimmonKey, amount);
     }
 
-    /** 山竹: 恢复5饥饿值 + 4饱和度 */
+    // 山竹: 恢复5饥饿值 + 4饱和度
     public static ItemStack Mangosteen(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Mangosteen".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", MANGOSTEEN_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.DARK_PURPLE + "山竹");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "酸甜可口的山竹"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, MangosteenKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Mangosteen", MANGOSTEEN_TEXTURE, ChatColor.DARK_PURPLE + "山竹",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复5点饥饿值",
+                        ChatColor.YELLOW + "恢复4点饱和度",
+                        ChatColor.GRAY + "酸甜可口的山竹"), MangosteenKey, amount);
     }
 
-    /** 圣女果: 恢复2饥饿值 + 1饱和度 */
+    // 圣女果: 恢复2饥饿值 + 1饱和度
     public static ItemStack CherryTomato(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_CherryTomato".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CHERRY_TOMATO_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "圣女果");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复2点饥饿值",
-                ChatColor.YELLOW + "恢复1点饱和度",
-                ChatColor.GRAY + "小巧的圣女果"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, CherryTomatoKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_CherryTomato", CHERRY_TOMATO_TEXTURE, ChatColor.RED + "圣女果",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复2点饥饿值",
+                        ChatColor.YELLOW + "恢复1点饱和度",
+                        ChatColor.GRAY + "小巧的圣女果"), CherryTomatoKey, amount);
     }
 
-    /** 西红柿: 恢复3饥饿值 + 2.5饱和度 */
+    // 西红柿: 恢复3饥饿值 + 2.5饱和度
     public static ItemStack Tomato(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Tomato".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", TOMATO_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "西红柿");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2.5点饱和度",
-                ChatColor.GRAY + "新鲜的西红柿"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, TomatoKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Tomato", TOMATO_TEXTURE, ChatColor.RED + "西红柿",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2.5点饱和度",
+                        ChatColor.GRAY + "新鲜的西红柿"), TomatoKey, amount);
     }
 
-    /** 葡萄: 恢复3饥饿值 + 2饱和度 */
+    // 葡萄: 恢复3饥饿值 + 2饱和度
     public static ItemStack Grape(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Grape".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", GRAPE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.DARK_PURPLE + "葡萄");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "甜甜的葡萄"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, GrapeKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Grape", GRAPE_TEXTURE, ChatColor.DARK_PURPLE + "葡萄",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "甜甜的葡萄"), GrapeKey, amount);
     }
 
-    /** 石榴: 恢复5饥饿值 + 4饱和度 */
+    // 石榴: 恢复5饥饿值 + 4饱和度
     public static ItemStack Pomegranate(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Pomegranate".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", POMEGRANATE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "石榴");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "多汁的石榴"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PomegranateKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Pomegranate", POMEGRANATE_TEXTURE, ChatColor.RED + "石榴",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复5点饥饿值",
+                        ChatColor.YELLOW + "恢复4点饱和度",
+                        ChatColor.GRAY + "多汁的石榴"), PomegranateKey, amount);
     }
 
-    /** 栗子: 恢复3饥饿值 + 4饱和度 */
+    // 栗子: 恢复3饥饿值 + 4饱和度
     public static ItemStack Chestnut(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Chestnut".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CHESTNUT_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "栗子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "香糯的栗子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, ChestnutKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Chestnut", CHESTNUT_TEXTURE, ChatColor.GOLD + "栗子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复4点饱和度",
+                        ChatColor.GRAY + "香糯的栗子"), ChestnutKey, amount);
     }
 
-    /** 猕猴桃: 恢复4饥饿值 + 3饱和度 */
+    // 猕猴桃: 恢复4饥饿值 + 3饱和度
     public static ItemStack Kiwi(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Kiwi".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", KIWI_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GREEN + "猕猴桃");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "酸酸甜甜的猕猴桃"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, KiwiKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Kiwi", KIWI_TEXTURE, ChatColor.GREEN + "猕猴桃",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "酸酸甜甜的猕猴桃"), KiwiKey, amount);
     }
 
-    /** 龙眼: 恢复3饥饿值 + 2饱和度 */
+    // 龙眼: 恢复3饥饿值 + 2饱和度
     public static ItemStack Longan(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Longan".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", LONGAN_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.YELLOW + "龙眼");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "甜美的龙眼"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, LonganKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Longan", LONGAN_TEXTURE, ChatColor.YELLOW + "龙眼",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "甜美的龙眼"), LonganKey, amount);
     }
 
-    /** 荔枝: 恢复4饥饿值 + 3饱和度 */
+    // 荔枝: 恢复4饥饿值 + 3饱和度
     public static ItemStack Lychee(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Lychee".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", LYCHEE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "荔枝");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "多汁的荔枝"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, LycheeKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Lychee", LONGAN_TEXTURE, ChatColor.RED + "荔枝",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "多汁的荔枝"), LycheeKey, amount);
     }
 
-    /** 樱桃: 恢复2饥饿值 + 1.5饱和度 */
+    // 樱桃: 恢复2饥饿值 + 1.5饱和度
     public static ItemStack Cherry(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Cherry".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CHERRY_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "樱桃");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复2点饥饿值",
-                ChatColor.YELLOW + "恢复1.5点饱和度",
-                ChatColor.GRAY + "鲜红的樱桃"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, CherryKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Cherry", CHERRY_TEXTURE, ChatColor.RED + "樱桃",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复2点饥饿值",
+                        ChatColor.YELLOW + "恢复1.5点饱和度",
+                        ChatColor.GRAY + "鲜红的樱桃"), CherryKey, amount);
     }
 
-    /** 桃子: 恢复5饥饿值 + 4饱和度 */
+    // 桃子: 恢复5饥饿值 + 4饱和度
     public static ItemStack Peach(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Peach".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", PEACH_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "桃子");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "多汁的桃子"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PeachKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Peach", PEACH_TEXTURE, ChatColor.LIGHT_PURPLE + "桃子",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复5点饥饿值",
+                        ChatColor.YELLOW + "恢复4点饱和度",
+                        ChatColor.GRAY + "多汁的桃子"), PeachKey, amount);
     }
 
     // ========================================================================
@@ -725,7 +522,7 @@ public class FoodItems {
     // 功能性食物续
     // ========================================================================
 
-    /** 甜浆果派: 恢复9饥饿值，8饱和度 */
+    // 甜浆果派: 恢复9饥饿值，8饱和度
     public static ItemStack SweetBerryPie(int amount) {
         ItemStack item = new ItemStack(PUMPKIN_PIE);
         ItemMeta meta = item.getItemMeta();
@@ -740,7 +537,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 酒桶: 放置后打开有9瓶酒 */
+    // 酒桶: 放置后打开有9瓶酒
     public static ItemStack WineBarrel(int amount) {
         ItemStack item = new ItemStack(BARREL);
         ItemMeta meta = item.getItemMeta();
@@ -754,7 +551,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 酒 (tier: 1=酒, 2=佳酿, 3=金樽清酒) */
+    // 酒 (tier: 1=酒, 2=佳酿, 3=金樽清酒)
     public static ItemStack Wine(int amount, int tier) {
         ItemStack item = new ItemStack(POTION);
         ItemMeta meta = item.getItemMeta();
@@ -780,7 +577,7 @@ public class FoodItems {
         return item;
     }
 
-    /** 腐肉干: 恢复4饥饿值，3饱和度 */
+    // 腐肉干: 恢复4饥饿值，3饱和度
     public static ItemStack RottenJerky(int amount) {
         ItemStack item = new ItemStack(ROTTEN_FLESH);
         ItemMeta meta = item.getItemMeta();
@@ -803,435 +600,71 @@ public class FoodItems {
     private static final String BURGER_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
     // 纹理: 热狗 (TODO: Replace with hotdog texture from minecraft-heads.com)
     private static final String HOTDOG_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDY2ZmJmY2NiYWVlZjgxZTY4NWU5NDEwNTBlYThmYmQyMzQxMWMzOGNlMDFkZjJkYWVlYzk0ZDQ1MjFlNzczZCJ9fX0=";
-    // 纹理: 披萨 (TODO: Replace with pizza texture)
-    private static final String PIZZA_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 薯条 (TODO: Replace with fries texture)
-    private static final String FRIES_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 甜甜圈 (TODO: Replace with donut texture)
-    private static final String DONUT_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 冰淇淋 (TODO: Replace with ice cream texture)
-    private static final String ICECREAM_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 爆米花 (TODO: Replace with popcorn texture)
-    private static final String POPCORN_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 棉花糖 (TODO: Replace with cotton candy texture)
-    private static final String COTTON_CANDY_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 巧克力 (TODO: Replace with chocolate texture)
-    private static final String CHOCOLATE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 寿司 (TODO: Replace with sushi texture)
-    private static final String SUSHI_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 拉面 (TODO: Replace with ramen texture)
-    private static final String RAMEN_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 三明治 (TODO: Replace with sandwich texture)
-    private static final String SANDWICH_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 鸡腿 (TODO: Replace with drumstick texture)
-    private static final String DRUMSTICK_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 奶酪 (TODO: Replace with cheese texture)
-    private static final String CHEESE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 薄饼 (TODO: Replace with pancake texture)
-    private static final String PANCAKE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 辣椒 (TODO: Replace with chili texture)
-    private static final String CHILI_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 洋葱 (TODO: Replace with onion texture)
-    private static final String ONION_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 卷心菜 (TODO: Replace with cabbage texture)
-    private static final String CABBAGE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 黄油 (TODO: Replace with butter texture)
-    private static final String BUTTER_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 大便 (TODO: Replace with poop texture)
-    private static final String POOP_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 金盾丹 (TODO: Replace with gold shield elixir texture)
-    private static final String GOLD_SHIELD_ELIXIR_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 极寒冰核 (TODO: Replace)
-    private static final String ICE_CORE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    // 纹理: 烈焰原核 (TODO: Replace)
-    private static final String FIRE_CORE_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGU0ODAzOWUxOTZkMDNjZWZmNjJmZTk3Njg0ZTcxMmY4ZDMxYjZlN2IxYTZjYjFjOTU1YTg2NzU1Yjg0N2IxNyJ9fX0=";
-    /** 汉堡: 恢复8饥饿值 + 6饱和度 */
+    // 汉堡: 恢复8饥饿值 + 6饱和度
     public static ItemStack Burger(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Burger".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", BURGER_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "汉堡");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复8点饥饿值",
-                ChatColor.YELLOW + "恢复6点饱和度",
-                ChatColor.GRAY + "香喷喷的牛肉汉堡"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, BurgerKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Burger", BURGER_TEXTURE, ChatColor.GOLD + "汉堡",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复8点饥饿值",
+                        ChatColor.YELLOW + "恢复6点饱和度",
+                        ChatColor.GRAY + "香喷喷的牛肉汉堡"), BurgerKey, amount);
     }
 
-    /** 热狗: 恢复6饥饿值 + 5饱和度 */
+    // 热狗: 恢复6饥饿值 + 5饱和度
     public static ItemStack HotDog(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_HotDog".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", HOTDOG_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "热狗");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复6点饥饿值",
-                ChatColor.YELLOW + "恢复5点饱和度",
-                ChatColor.GRAY + "经典美式热狗"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, HotDogKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_HotDog", HOTDOG_TEXTURE, ChatColor.RED + "热狗",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复6点饥饿值",
+                        ChatColor.YELLOW + "恢复5点饱和度",
+                        ChatColor.GRAY + "经典美式热狗"), HotDogKey, amount);
     }
 
-    /** 披萨: 恢复9饥饿值 + 7饱和度 */
-    public static ItemStack Pizza(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Pizza".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", PIZZA_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.YELLOW + "披萨");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复9点饥饿值",
-                ChatColor.YELLOW + "恢复7点饱和度",
-                ChatColor.GRAY + "芝士满满的披萨"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PizzaKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 薯条: 恢复4饥饿值 + 3饱和度 */
-    public static ItemStack FrenchFries(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_FrenchFries".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", FRIES_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.YELLOW + "薯条");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "金黄酥脆的薯条"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, FrenchFriesKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 甜甜圈: 恢复5饥饿值 + 4饱和度 */
-    public static ItemStack Donut(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Donut".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", DONUT_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "甜甜圈");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "撒满糖霜的甜甜圈"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, DonutKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 冰淇淋: 恢复3饥饿值 + 2饱和度 */
-    public static ItemStack IceCream(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_IceCream".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", ICECREAM_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.AQUA + "冰淇淋");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "冰凉甜美的冰淇淋"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, IceCreamKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 爆米花: 恢复4饥饿值 + 2饱和度 */
-    public static ItemStack Popcorn(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Popcorn".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", POPCORN_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "爆米花");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "香脆可口的爆米花"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PopcornKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 棉花糖: 恢复3饥饿值 + 4饱和度 */
-    public static ItemStack CottonCandy(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_CottonCandy".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", COTTON_CANDY_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "棉花糖");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "松软甜蜜的棉花糖"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, CottonCandyKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 巧克力: 恢复5饥饿值 + 5饱和度 */
-    public static ItemStack Chocolate(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Chocolate".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CHOCOLATE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.DARK_RED + "巧克力");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复5点饱和度",
-                ChatColor.GRAY + "香浓丝滑的巧克力"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, ChocolateKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 寿司: 恢复5饥饿值 + 4饱和度 */
-    public static ItemStack Sushi(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Sushi".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", SUSHI_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.DARK_GREEN + "寿司");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复5点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "新鲜美味的寿司"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, SushiKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 拉面: 恢复8饥饿值 + 6饱和度 */
-    public static ItemStack Ramen(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Ramen".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", RAMEN_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "拉面");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复8点饥饿值",
-                ChatColor.YELLOW + "恢复6点饱和度",
-                ChatColor.GRAY + "热气腾腾的拉面"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, RamenKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 三明治: 恢复7饥饿值 + 5饱和度 */
-    public static ItemStack Sandwich(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Sandwich".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", SANDWICH_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "三明治");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复7点饥饿值",
-                ChatColor.YELLOW + "恢复5点饱和度",
-                ChatColor.GRAY + "用料丰富的三明治"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, SandwichKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 鸡腿: 恢复6饥饿值 + 4饱和度 */
-    public static ItemStack Drumstick(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Drumstick".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", DRUMSTICK_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "鸡腿");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复6点饥饿值",
-                ChatColor.YELLOW + "恢复4点饱和度",
-                ChatColor.GRAY + "香喷喷的烤鸡腿"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, DrumstickKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 奶酪: 恢复4饥饿值 + 5饱和度 */
-    public static ItemStack Cheese(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Cheese".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CHEESE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.YELLOW + "奶酪");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复5点饱和度",
-                ChatColor.GRAY + "浓郁醇厚的奶酪"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, CheeseKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 薄饼: 恢复6饥饿值 + 5饱和度 */
-    public static ItemStack Pancake(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Pancake".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", PANCAKE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GOLD + "薄饼");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复6点饥饿值",
-                ChatColor.YELLOW + "恢复5点饱和度",
-                ChatColor.GRAY + "淋着糖浆的薄饼"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PancakeKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 辣椒: 恢复3饥饿值 + 2饱和度 */
+    // 辣椒: 恢复3饥饿值 + 2饱和度
     public static ItemStack Chili(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Chili".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CHILI_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.RED + "辣椒");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "火辣辣的辣椒"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, ChiliKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Chili", BURGER_TEXTURE, ChatColor.RED + "辣椒",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "火辣辣的辣椒"), ChiliKey, amount);
     }
 
-    /** 洋葱: 恢复3饥饿值 + 2饱和度 */
+    // 洋葱: 恢复3饥饿值 + 2饱和度
     public static ItemStack Onion(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Onion".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", ONION_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "洋葱");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复3点饥饿值",
-                ChatColor.YELLOW + "恢复2点饱和度",
-                ChatColor.GRAY + "催人泪下的洋葱"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, OnionKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Onion", BURGER_TEXTURE, ChatColor.LIGHT_PURPLE + "洋葱",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复3点饥饿值",
+                        ChatColor.YELLOW + "恢复2点饱和度",
+                        ChatColor.GRAY + "催人泪下的洋葱"), OnionKey, amount);
     }
 
-    /** 卷心菜: 恢复4饥饿值 + 3饱和度 */
+    // 卷心菜: 恢复4饥饿值 + 3饱和度
     public static ItemStack Cabbage(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Cabbage".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", CABBAGE_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.GREEN + "卷心菜");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复4点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "新鲜的卷心菜"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, CabbageKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Cabbage", BURGER_TEXTURE, ChatColor.GREEN + "卷心菜",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复4点饥饿值",
+                        ChatColor.YELLOW + "恢复3点饱和度",
+                        ChatColor.GRAY + "新鲜的卷心菜"), CabbageKey, amount);
     }
 
-    /** 黄油: 恢复2饥饿值 + 3饱和度 */
-    public static ItemStack Butter(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Butter".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", BUTTER_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.YELLOW + "黄油");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复2点饥饿值",
-                ChatColor.YELLOW + "恢复3点饱和度",
-                ChatColor.GRAY + "香浓的黄油"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, ButterKey, 1);
-        item.setAmount(amount);
-        return item;
-    }
-
-    /** 大便: 恢复1饥饿值 + 1饱和度, 给予饥饿效果 */
+    // 大便: 恢复1饥饿值 + 1饱和度, 给予饥饿效果
     public static ItemStack Poop(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_Poop".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", POOP_TEXTURE));
-        meta.setPlayerProfile(profile);
-        meta.setDisplayName(ChatColor.DARK_GRAY + "大便");
-        meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "右键食用",
-                ChatColor.GOLD + "恢复1点饥饿值",
-                ChatColor.YELLOW + "恢复1点饱和度",
-                ChatColor.GRAY + "……你真的要吃这个？"));
-        item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, PoopKey, 1);
-        item.setAmount(amount);
-        return item;
+        return createHeadItem("ArmsorPlus_Poop", BURGER_TEXTURE, ChatColor.DARK_GRAY + "大便",
+                Arrays.asList(
+                        ChatColor.GOLD + "右键食用",
+                        ChatColor.GOLD + "恢复1点饥饿值",
+                        ChatColor.YELLOW + "恢复1点饱和度",
+                        ChatColor.RED + "食用后获得10秒饥饿",
+                        ChatColor.GRAY + "……你真的要吃这个？"), PoopKey, amount);
     }
 
-    /** 金盾丹: 右击食用, 获得12s伤害吸收X */
+    // 金盾丹: 右击食用, 获得12s伤害吸收X (材质: 附魔金苹果)
     public static ItemStack GoldShieldElixir(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_GoldShieldElixir".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", GOLD_SHIELD_ELIXIR_TEXTURE));
-        meta.setPlayerProfile(profile);
+        ItemStack item = new ItemStack(ENCHANTED_GOLDEN_APPLE);
+        ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + "金盾丹");
         meta.setLore(Arrays.asList(
                 ChatColor.GOLD + "右键食用",
@@ -1243,13 +676,10 @@ public class FoodItems {
         return item;
     }
 
-    /** 极寒冰核: 急冻树掉落物，用于合成寒冰弓 */
+    // 极寒冰核: 急冻树掉落物，用于合成寒冰弓 (材质: 海洋之心)
     public static ItemStack IceCore(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_IceCore".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", ICE_CORE_TEXTURE));
-        meta.setPlayerProfile(profile);
+        ItemStack item = new ItemStack(HEART_OF_THE_SEA);
+        ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "极寒冰核");
         meta.setLore(Arrays.asList(
                 ChatColor.AQUA + "急冻树的核心",
@@ -1260,13 +690,10 @@ public class FoodItems {
         return item;
     }
 
-    /** 烈焰原核: 爆炎树掉落物，用于合成烈焰戟 */
+    // 烈焰原核: 爆炎树掉落物，用于合成烈焰戟 (材质: 烈焰弹)
     public static ItemStack FireCore(int amount) {
-        ItemStack item = new ItemStack(PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes("ArmsorPlus_FireCore".getBytes()), null);
-        profile.setProperty(new ProfileProperty("textures", FIRE_CORE_TEXTURE));
-        meta.setPlayerProfile(profile);
+        ItemStack item = new ItemStack(FIRE_CHARGE);
+        ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.RED + "烈焰原核");
         meta.setLore(Arrays.asList(
                 ChatColor.RED + "爆炎树的核心",

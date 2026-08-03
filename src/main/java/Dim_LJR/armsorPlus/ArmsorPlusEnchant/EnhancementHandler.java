@@ -16,21 +16,19 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.google.common.collect.Multimap;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.Map;
 
 import static Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant.addEnchantLore;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static org.bukkit.Material.*;
 
-/**
- * 强化/附魔处理 —— 监听背包点击事件(拖拽物品到装备上)。
- * <p>
- * 处理逻辑:
- * - 强化石 → 提升原版附魔等级或添加属性修饰符
- * - 精炼金刚石 → 无限耐久
- * - 自定义附魔书 → 通过PDC添加自定义附魔
- */
+// 强化/附魔处理 —— 监听背包点击事件(拖拽物品到装备上)。
+// 处理逻辑:
+// - 强化石 → 提升原版附魔等级或添加属性修饰符
+// - 精炼金刚石 → 无限耐久
+// - 自定义附魔书 → 通过PDC添加自定义附魔
 public class EnhancementHandler implements Listener {
 
     // ===== 装备类型判断 =====
@@ -103,10 +101,8 @@ public class EnhancementHandler implements Listener {
 
     // ===== 武器等级对照 =====
 
-    /**
-     * 根据材质获取该装备的原版护甲值/武器伤害。
-     * 用于二级强化石的属性叠加计算。
-     */
+    // 根据材质获取该装备的原版护甲值/武器伤害。
+    // 用于二级强化石的属性叠加计算。
     private int getBaseValue(ItemStack item) {
         Material mate = item.getType();
         return switch (mate) {
@@ -152,13 +148,11 @@ public class EnhancementHandler implements Listener {
 
     // ===== 护甲默认属性值 (硬编码, 不依赖服务端 API) =====
 
-    /** 护甲默认属性: 护甲值, 韧性, 击退抗性 */
+    // 护甲默认属性: 护甲值, 韧性, 击退抗性
     private record ArmorStats(double armor, double toughness, double knockback) {}
 
-    /**
-     * 根据材质返回该护甲的原版默认属性值。
-     * 硬编码以避免依赖服务端 API 实现差异 (如 Purpur 插件重映射)。
-     */
+    // 根据材质返回该护甲的原版默认属性值。
+    // 硬编码以避免依赖服务端 API 实现差异 (如 Purpur 插件重映射)。
     private ArmorStats getDefaultArmorStats(Material type) {
         return switch (type) {
             case DIAMOND_HELMET -> new ArmorStats(3, 2, 0);
@@ -192,11 +186,8 @@ public class EnhancementHandler implements Listener {
 
     // ===== 主监听器: 背包点击(拖拽)事件 =====
 
-    /**
-     * 监听背包点击事件，处理所有强化石/附魔书的拖拽使用。
-     * <p>
-     * 玩家将强化石或附魔书拖拽到装备上时触发对应的强化/附魔逻辑。
-     */
+    // 监听背包点击事件，处理所有强化石/附魔书的拖拽使用。
+    // 玩家将强化石或附魔书拖拽到装备上时触发对应的强化/附魔逻辑。
     @EventHandler
     public void onPlayerInteract(InventoryClickEvent event) {
         if (event.getCursor() == null || event.getCurrentItem() == null) return;
@@ -227,21 +218,41 @@ public class EnhancementHandler implements Listener {
         // ====================================================================
         if (consum.hasItemMeta() && ArmsorEnchant.getEnchantLevel(consum, Armskey) == 2 && isSwordOrAxe(item)) {
             event.setCancelled(true);
-            if (!itemMeta.hasAttributeModifiers()) {
-                double base = getBaseValue(item);
-                itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
-                        new AttributeModifier(NamespacedKey.fromString("armsorplus:modifier"),
-                                base + 1, AttributeModifier.Operation.ADD_NUMBER,
-                                EquipmentSlotGroup.HAND));
+
+            // 计算强化后的攻击伤害: 已有修饰符则在其总和上+1, 否则以原版基础伤害为基准
+            Collection<AttributeModifier> currentDmg = itemMeta.getAttributeModifiers(Attribute.ATTACK_DAMAGE);
+            double newDmg;
+            if (currentDmg != null && !currentDmg.isEmpty()) {
+                newDmg = currentDmg.stream().mapToDouble(AttributeModifier::getAmount).sum() + 1;
             } else {
-                double current = itemMeta.getAttributeModifiers().get(Attribute.ATTACK_DAMAGE).stream()
-                        .mapToDouble(AttributeModifier::getAmount).sum();
-                itemMeta.removeAttributeModifier(Attribute.ATTACK_DAMAGE);
-                itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
-                        new AttributeModifier(Objects.requireNonNull(NamespacedKey.fromString("armsorplus:modifier")),
-                                current + 1, AttributeModifier.Operation.ADD_NUMBER,
-                                EquipmentSlotGroup.HAND));
+                // 优先取物品类型默认攻击伤害 (如钻石剑=7, 三叉戟=9), 硬编码表缺项时退回 getBaseValue
+                Collection<AttributeModifier> defaultDmg =
+                        item.getType().getDefaultAttributeModifiers().get(Attribute.ATTACK_DAMAGE);
+                double base = (defaultDmg != null && !defaultDmg.isEmpty())
+                        ? defaultDmg.stream().mapToDouble(AttributeModifier::getAmount).sum()
+                        : getBaseValue(item);
+                newDmg = base + 1;
             }
+
+            // 清除旧的攻击伤害修饰符, 避免叠加
+            itemMeta.removeAttributeModifier(Attribute.ATTACK_DAMAGE);
+
+            // 补齐物品默认属性修饰符 (如攻击速度), 防止 setItemMeta 时被 attribute_modifiers 组件覆盖丢失
+            Multimap<Attribute, AttributeModifier> defaults = item.getType().getDefaultAttributeModifiers();
+            for (Map.Entry<Attribute, AttributeModifier> entry : defaults.entries()) {
+                if (entry.getKey() == Attribute.ATTACK_DAMAGE) continue; // 攻击伤害由强化石接管
+                Collection<AttributeModifier> existing = itemMeta.getAttributeModifiers(entry.getKey());
+                if (existing == null || existing.isEmpty()) {
+                    itemMeta.addAttributeModifier(entry.getKey(), entry.getValue());
+                }
+            }
+
+            // 添加强化后的攻击伤害
+            itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                    new AttributeModifier(NamespacedKey.fromString("armsorplus:modifier"),
+                            newDmg, AttributeModifier.Operation.ADD_NUMBER,
+                            EquipmentSlotGroup.HAND));
+
             consumeItem(player, consum, 1);
             player.sendMessage(ChatColor.BLUE + "武器强化成功");
             item.setItemMeta(itemMeta);
@@ -277,12 +288,12 @@ public class EnhancementHandler implements Listener {
 
             // 计算当前已升级次数
             int upgradeCount;
-            if (!itemMeta.hasAttributeModifiers()) {
+            Collection<AttributeModifier> armorMods = itemMeta.getAttributeModifiers(Attribute.ARMOR);
+            if (armorMods == null || armorMods.isEmpty()) {
                 upgradeCount = 0;
                 getplugin.getLogger().info("[ArmsorPlus] 首次强化, upgradeCount=0");
             } else {
-                double currentArmor = itemMeta.getAttributeModifiers().get(Attribute.ARMOR).stream()
-                        .mapToDouble(AttributeModifier::getAmount).sum();
+                double currentArmor = armorMods.stream().mapToDouble(AttributeModifier::getAmount).sum();
                 upgradeCount = (int) (currentArmor - defaults.armor());
                 getplugin.getLogger().info("[ArmsorPlus] 非首次强化, currentArmor=" + currentArmor
                         + " upgradeCount=" + upgradeCount);
@@ -355,7 +366,7 @@ public class EnhancementHandler implements Listener {
 
     // ===== 附魔书处理 =====
 
-    /** 统一处理所有自定义附魔书的拖拽附魔 */
+    // 统一处理所有自定义附魔书的拖拽附魔
     private void handleEnchantBook(InventoryClickEvent event, ItemStack consum,
                                     ItemStack item, Player player, ItemMeta itemMeta) {
         if (consum.getType() != Material.BOOK) return;
@@ -480,18 +491,18 @@ public class EnhancementHandler implements Listener {
         // [百草] 胸甲
         if (tryApplyEnchant(event, consum, item, player, HerbGuardKey, HerbGuardKey,
                 isChestplate(item), ChatColor.GREEN + "百草")) return;
-        // [火刃] 武器
+        // [火印] 武器
         if (tryApplyEnchant(event, consum, item, player, FireBladeKey, FireBladeKey,
-                isSwordOrAxe(item), ChatColor.RED + "火刃")) return;
-        // [霜刃] 武器
+                isSwordOrAxe(item), ChatColor.RED + "火印")) return;
+        // [霜印] 武器
         if (tryApplyEnchant(event, consum, item, player, FrostBladeKey, FrostBladeKey,
-                isSwordOrAxe(item), ChatColor.AQUA + "霜刃")) return;
-        // [雷刃] 武器
+                isSwordOrAxe(item), ChatColor.AQUA + "霜印")) return;
+        // [雷印] 武器
         if (tryApplyEnchant(event, consum, item, player, ThunderBladeKey, ThunderBladeKey,
-                isSwordOrAxe(item), ChatColor.YELLOW + "雷刃")) return;
-        // [魔刃] 武器
+                isSwordOrAxe(item), ChatColor.YELLOW + "雷印")) return;
+        // [魔印] 武器
         if (tryApplyEnchant(event, consum, item, player, MagicBladeKey, MagicBladeKey,
-                isSwordOrAxe(item), ChatColor.DARK_PURPLE + "魔刃")) return;
+                isSwordOrAxe(item), ChatColor.DARK_PURPLE + "魔印")) return;
         // [冰刺] 武器
         if (tryApplyEnchant(event, consum, item, player, IceSpikeKey, IceSpikeKey,
                 isSwordOrAxe(item), ChatColor.AQUA + "冰刺")) return;
@@ -512,11 +523,9 @@ public class EnhancementHandler implements Listener {
                 item.getType() == Material.SHIELD, ChatColor.DARK_RED + "伏击")) return;
     }
 
-    /**
-     * 尝试应用附魔书的通用方法。
-     *
-     * @return true=已处理(附魔成功或失败), false=不匹配
-     */
+    // 尝试应用附魔书的通用方法。
+    //
+    // @return true=已处理(附魔成功或失败), false=不匹配
     private boolean tryApplyEnchant(InventoryClickEvent event, ItemStack consum,
                                      ItemStack item, Player player,
                                      NamespacedKey consumKey, NamespacedKey itemKey,
@@ -535,12 +544,34 @@ public class EnhancementHandler implements Listener {
 
         consumeItem(player, consum, 1);
         ArmsorEnchant.addEnchant(item, itemKey, level);
+        // 元素印记互斥: 应用一种印记时移除其他三种
+        if (isElementMark(itemKey)) {
+            removeOtherElementMarks(item, itemKey);
+        }
         player.sendMessage("附魔成功, 魔咒级别" + ArmsorEnchant.getEnchantLevel(item, itemKey));
         addEnchantLore(item, displayName, level, itemKey);
         return true;
     }
 
-    /** 生命提升特殊处理 (需要额外添加MaxHealth修饰符) */
+    // 是否为元素印记 (火印/霜印/雷印/魔印)
+    private boolean isElementMark(NamespacedKey key) {
+        return key.equals(FireBladeKey) || key.equals(FrostBladeKey)
+                || key.equals(ThunderBladeKey) || key.equals(MagicBladeKey);
+    }
+
+    // 移除物品上其他三种元素印记 (四种印记互斥, 只保留 keepKey)
+    private void removeOtherElementMarks(ItemStack item, NamespacedKey keepKey) {
+        NamespacedKey[] marks = {FireBladeKey, FrostBladeKey, ThunderBladeKey, MagicBladeKey};
+        for (NamespacedKey mark : marks) {
+            if (mark.equals(keepKey)) continue;
+            if (ArmsorEnchant.getEnchantLevel(item, mark) > 0) {
+                item.editMeta(meta -> meta.getPersistentDataContainer().remove(mark));
+                ArmsorEnchant.removeEnchantLore(item, mark);
+            }
+        }
+    }
+
+    // 生命提升特殊处理 (需要额外添加MaxHealth修饰符)
     private boolean tryApplyHealthBoost(InventoryClickEvent event, ItemStack consum,
                                          ItemStack item, Player player, ItemMeta itemMeta) {
         if (!isChestplate(item)) return false;
@@ -558,20 +589,26 @@ public class EnhancementHandler implements Listener {
         consumeItem(player, consum, 1);
         ArmsorEnchant.addEnchant(item, HealthBoostKey, level);
 
-        // 移除旧的 MaxHealth 修饰符
-        Collection<AttributeModifier> modifiers = itemMeta.getAttributeModifiers(Attribute.MAX_HEALTH);
-        if (modifiers != null) {
-            for (AttributeModifier mod : modifiers) {
-                if (mod.getName().equals("HealthBoostEnchant")) {
-                    itemMeta.removeAttributeModifier(Attribute.MAX_HEALTH, mod);
-                }
+        // 重新读取附魔后的 ItemMeta, 避免用旧的快照覆盖导致附魔(PDC)数据丢失
+        itemMeta = item.getItemMeta();
+
+        // 移除旧的 MaxHealth 修饰符, 防止重复叠加 (本模组只在生命提升中添加MaxHealth修饰符)
+        itemMeta.removeAttributeModifier(Attribute.MAX_HEALTH);
+
+        // 补齐物品默认属性修饰符 (护甲/韧性等)。
+        // 注意: Bukkit 的 ItemMeta 不含物品类型的默认属性, 直接 setItemMeta 会写入
+        // attribute_modifiers 组件覆盖默认值, 导致护甲值完全丢失, 因此需把默认修饰符一并写回。
+        Multimap<Attribute, AttributeModifier> defaults = item.getType().getDefaultAttributeModifiers();
+        for (Map.Entry<Attribute, AttributeModifier> entry : defaults.entries()) {
+            Collection<AttributeModifier> existing = itemMeta.getAttributeModifiers(entry.getKey());
+            if (existing == null || existing.isEmpty()) {
+                itemMeta.addAttributeModifier(entry.getKey(), entry.getValue());
             }
         }
 
         // 添加新的生命加成 (每级+5)
         AttributeModifier healthMod = new AttributeModifier(
-                new NamespacedKey(getplugin, "ArmsorPlus_HealthBoost"),
-                level * 5.0, AttributeModifier.Operation.ADD_NUMBER,
+                HealthBoostKey, level * 5.0, AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.CHEST);
         itemMeta.addAttributeModifier(Attribute.MAX_HEALTH, healthMod);
         item.setItemMeta(itemMeta);
@@ -583,7 +620,7 @@ public class EnhancementHandler implements Listener {
 
     // ===== 工具方法 =====
 
-    /** 根据装备类型获取对应的装备槽位 */
+    // 根据装备类型获取对应的装备槽位
     private EquipmentSlotGroup getSlotByType(Material type) {
         if (type.name().endsWith("_HELMET")) return EquipmentSlotGroup.HEAD;
         if (type.name().endsWith("_CHESTPLATE")) return EquipmentSlotGroup.CHEST;
@@ -592,20 +629,10 @@ public class EnhancementHandler implements Listener {
         return EquipmentSlotGroup.HEAD;
     }
 
-    /** 消耗物品 (创造模式下不消耗) */
+    // 消耗物品 (创造模式下不消耗)
     private void consumeItem(Player player, ItemStack item, int amount) {
         if (player.getGameMode() != GameMode.CREATIVE) {
             item.setAmount(item.getAmount() - amount);
         }
-    }
-
-    /** 添加护甲+韧性属性修饰符 */
-    private void addArmorModifier(ItemMeta meta, double value, EquipmentSlotGroup slot) {
-        meta.addAttributeModifier(Attribute.ARMOR,
-                new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ArmorAdd"),
-                        value, AttributeModifier.Operation.ADD_NUMBER, slot));
-        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
-                new AttributeModifier(new NamespacedKey(getplugin, "ArmsorPlus_ToughnessAdd"),
-                        value, AttributeModifier.Operation.ADD_NUMBER, slot));
     }
 }

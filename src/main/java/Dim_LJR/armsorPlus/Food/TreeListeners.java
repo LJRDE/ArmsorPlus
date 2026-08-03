@@ -129,7 +129,7 @@ public class TreeListeners implements Listener {
         }
     }
 
-    /** 在树叶下方生成果实头颅 (概率25%)，状态设为上方悬挂 */
+    // 在树叶下方生成果实头颅 (概率25%)，状态设为上方悬挂
     private void placeFruitSkulls(Location loc, String fruitKey) {
         Supplier<ItemStack> fruitSupplier = FRUIT_MAP.get(fruitKey);
         if (fruitSupplier == null) return;
@@ -166,7 +166,7 @@ public class TreeListeners implements Listener {
         }
     }
 
-    /** 破坏果实头颅时掉落对应果实 */
+    // 破坏果实头颅时掉落对应果实
     @EventHandler
     public void onFruitSkullBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
@@ -256,5 +256,15 @@ public class TreeListeners implements Listener {
 
     private static boolean isLeaf(Material material) {
         return material.name().endsWith("_LEAVES");
+    }
+
+    // 破坏带自定义树苗/果实元数据的方块时清理, 避免残留导致重种结错果
+    @EventHandler
+    public void onPlantBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (block.hasMetadata(SAPLING_METADATA)) block.removeMetadata(SAPLING_METADATA, getplugin);
+        if (block.hasMetadata(HERB_LEAF_METADATA)) block.removeMetadata(HERB_LEAF_METADATA, getplugin);
+        if (block.hasMetadata(FRUIT_SKULL_METADATA)) block.removeMetadata(FRUIT_SKULL_METADATA, getplugin);
+        if (block.hasMetadata(LEAF_FRUIT_METADATA)) block.removeMetadata(LEAF_FRUIT_METADATA, getplugin);
     }
 }

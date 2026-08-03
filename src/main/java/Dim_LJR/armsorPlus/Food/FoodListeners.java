@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -23,12 +24,24 @@ import java.util.Random;
 import java.util.Set;
 
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
-import static Dim_LJR.armsorPlus.NamespaceKey.Keys.getplugin;
-import Dim_LJR.armsorPlus.ArmsorPlus.*;
-/**
- * 所有食物/药品/树苗的事件监听器。
- */
+// 所有食物/药品/树苗的事件监听器。
 public class FoodListeners implements Listener {
+
+    // 通用食物/药品食用前置处理
+    // 校验: 主手右键 + 物品带有指定自定义附魔键
+    // 通过后取消事件, 并在非创造模式下消耗1个物品
+    private boolean consumeIfFood(PlayerInteractEvent event, NamespacedKey key) {
+        if (event.getHand() != EquipmentSlot.HAND) return false;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return false;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, key) == 0) return false;
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
+            item.setAmount(item.getAmount() - 1);
+        }
+        return true;
+    }
 
     private static final Random RANDOM = new Random();
 
@@ -54,10 +67,10 @@ public class FoodListeners implements Listener {
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0),
                 15, 0.4, 0.4, 0.4, 0.05);
         int[] effects = switch (tier) {
-            case 4 -> new int[]{6000, 9};   // 仙品: 生命恢复 X 5min
-            case 3 -> new int[]{2000, 9};   // 极品: 生命恢复 X 100s
-            case 2 -> new int[]{300, 4};    // 上品: 生命恢复 V 15s
-            default -> new int[]{120, 4};   // 普通: 生命恢复 V 6s
+            case 4 -> new int[]{2400, 9};   // 仙品: 生命恢复 X 120s (匹配Lore)
+            case 3 -> new int[]{800, 9};    // 极品: 生命恢复 X 40s (匹配Lore)
+            case 2 -> new int[]{120, 4};    // 上品: 生命恢复 V 6s (匹配Lore)
+            default -> new int[]{60, 4};    // 普通: 生命恢复 V 3s (匹配Lore)
         };
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, effects[0], effects[1]));
 
@@ -96,17 +109,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onBandageUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, HemostaticBandageKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, HemostaticBandageKey)) return;
         Player player = event.getPlayer();
-
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
 
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
         double newHealth = Math.min(maxHealth, player.getHealth() + 6);
@@ -120,17 +124,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onBiscuitUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CompressedBiscuitKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, CompressedBiscuitKey)) return;
         Player player = event.getPlayer();
-
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
 
         player.setFoodLevel(20);
         player.setSaturation(20);
@@ -143,16 +138,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, JerkyKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, JerkyKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
         player.setSaturation(Math.min(20, player.getSaturation() + 7.2f));
         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
@@ -162,16 +149,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onPorkJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PorkJerkyKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PorkJerkyKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 7));
         player.setSaturation(Math.min(20, player.getSaturation() + 8.0f));
         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
@@ -181,16 +160,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onMuttonJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, MuttonJerkyKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, MuttonJerkyKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
         player.setSaturation(Math.min(20, player.getSaturation() + 6.0f));
         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
@@ -200,13 +171,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onBigAppleUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, BigAppleKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, BigAppleKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -215,13 +181,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onPlumUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PlumKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PlumKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -230,13 +191,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onHazelnutUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, HazelnutKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, HazelnutKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -245,13 +201,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onCoconutUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CoconutKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, CoconutKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -260,13 +211,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onPineappleUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PineappleKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PineappleKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
         player.setSaturation(Math.min(20f, player.getSaturation() + 5.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -275,13 +221,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onStrawberryUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, StrawberryKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, StrawberryKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
         player.setSaturation(Math.min(20f, player.getSaturation() + 1.5f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -290,13 +231,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onBlueberryUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, BlueberryKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, BlueberryKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
         player.setSaturation(Math.min(20f, player.getSaturation() + 1.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -305,13 +241,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onOrangeUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, OrangeKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, OrangeKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -320,13 +251,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onTangerineUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, TangerineKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, TangerineKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -335,13 +261,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onIceCubeUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, IceCubeKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, IceCubeKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 1));
         player.setSaturation(Math.min(20f, player.getSaturation() + 1.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -350,13 +271,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onFigUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, FigKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, FigKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -365,13 +281,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onDateUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, DateKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, DateKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -380,13 +291,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onPersimmonUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PersimmonKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PersimmonKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -395,13 +301,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onMangosteenUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, MangosteenKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, MangosteenKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
         player.setSaturation(Math.min(20f, player.getSaturation() + 4.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -410,13 +311,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onCherryTomatoUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CherryTomatoKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, CherryTomatoKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
         player.setSaturation(Math.min(20f, player.getSaturation() + 1.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -425,13 +321,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onTomatoUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, TomatoKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, TomatoKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.5f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -440,13 +331,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onGrapeUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, GrapeKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, GrapeKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -455,13 +341,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onPomegranateUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PomegranateKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PomegranateKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
         player.setSaturation(Math.min(20f, player.getSaturation() + 4.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -470,13 +351,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onChestnutUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, ChestnutKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, ChestnutKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 4.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -485,13 +361,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onKiwiUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, KiwiKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, KiwiKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -500,13 +371,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onLonganUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, LonganKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, LonganKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20f, player.getSaturation() + 2.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -515,13 +381,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onLycheeUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, LycheeKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, LycheeKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20f, player.getSaturation() + 3.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -530,13 +391,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onCherryUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CherryKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, CherryKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
         player.setSaturation(Math.min(20f, player.getSaturation() + 1.5f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -545,13 +401,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onPeachUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PeachKey) == 0) return;
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PeachKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
         player.setSaturation(Math.min(20f, player.getSaturation() + 4.0f));
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 1.0f, 1.0f);
@@ -605,7 +456,7 @@ public class FoodListeners implements Listener {
 
     private record SaplingData(Material saplingType, String displayName) {}
 
-    /** 判断是否为草本(直接种植为灌木，无需骨粉) */
+    // 判断是否为草本(直接种植为灌木，无需骨粉)
     static boolean isHerbaceous(NamespacedKey key) {
         return HERBACEOUS_KEYS.contains(key.getKey());
     }
@@ -652,16 +503,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onSweetBerryPieUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, SweetBerryPieKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, SweetBerryPieKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 9));
         player.setSaturation(Math.min(20, player.getSaturation() + 8f));
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 8, 0.3, 0.3, 0.3, 0.05);
@@ -671,16 +514,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onRottenJerkyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, RottenJerkyKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, RottenJerkyKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20, player.getSaturation() + 3f));
         player.getWorld().spawnParticle(Particle.CRIT, player.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.02);
@@ -690,16 +525,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onWineBarrelUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, WineBarrelKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, WineBarrelKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
 
         for (int i = 0; i < 9; i++) {
             double roll = RANDOM.nextDouble();
@@ -740,6 +567,13 @@ public class FoodListeners implements Listener {
                 player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
                 player.sendMessage("§6🍶 金樽清酒！力量 V 140秒！死亡可复活一次！");
                 player.setMetadata("WineRevive", new FixedMetadataValue(getplugin, true));
+                // 140秒后复活机会自动失效 (与力量持续时间一致)
+                Bukkit.getScheduler().runTaskLater(getplugin, () -> {
+                    if (player.hasMetadata("WineRevive")) {
+                        player.removeMetadata("WineRevive", getplugin);
+                        player.sendMessage("§7金樽清酒的复活效果已消失");
+                    }
+                }, 2800L);
                 break;
             case 2:
                 player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 900, 2));
@@ -756,21 +590,35 @@ public class FoodListeners implements Listener {
     }
 
     // ========================================================================
+    // 金樽清酒复活 (死亡时消耗一次复活机会)
+    // ========================================================================
+
+    // 玩家死亡时, 若身上有金樽清酒的复活标记则取消死亡并回满血
+    @EventHandler
+    public void onWineReviveDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        if (!player.hasMetadata("WineRevive")) return;
+
+        player.removeMetadata("WineRevive", getplugin); // 消耗一次复活机会
+        event.setCancelled(true);
+        player.setHealth(player.getMaxHealth());
+        player.setFoodLevel(20);
+        player.setFireTicks(0);
+
+        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,
+                player.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.5);
+        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 0.8f, 1.2f);
+        player.sendMessage("§6🍶 金樽清酒生效！你成功复活了一次！");
+    }
+
+    // ========================================================================
     // 15种新食物 (0.3I+)
     // ========================================================================
 
     @EventHandler
     public void onBurgerUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, BurgerKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, BurgerKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 8));
         player.setSaturation(Math.min(20, player.getSaturation() + 6.0f));
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 8, 0.3, 0.3, 0.3, 0);
@@ -780,16 +628,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onHotDogUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, HotDogKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, HotDogKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
         player.setSaturation(Math.min(20, player.getSaturation() + 5.0f));
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 6, 0.3, 0.3, 0.3, 0);
@@ -798,264 +638,9 @@ public class FoodListeners implements Listener {
     }
 
     @EventHandler
-    public void onPizzaUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PizzaKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 9));
-        player.setSaturation(Math.min(20, player.getSaturation() + 7.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 9, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用披萨");
-    }
-
-    @EventHandler
-    public void onFrenchFriesUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, FrenchFriesKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
-        player.setSaturation(Math.min(20, player.getSaturation() + 3.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 4, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用薯条");
-    }
-
-    @EventHandler
-    public void onDonutUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, DonutKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
-        player.setSaturation(Math.min(20, player.getSaturation() + 4.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用甜甜圈");
-    }
-
-    @EventHandler
-    public void onIceCreamUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, IceCreamKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
-        player.setSaturation(Math.min(20, player.getSaturation() + 2.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用冰淇淋");
-    }
-
-    @EventHandler
-    public void onPopcornUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PopcornKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
-        player.setSaturation(Math.min(20, player.getSaturation() + 2.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 4, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用爆米花");
-    }
-
-    @EventHandler
-    public void onCottonCandyUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CottonCandyKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
-        player.setSaturation(Math.min(20, player.getSaturation() + 4.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用棉花糖");
-    }
-
-    @EventHandler
-    public void onChocolateUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, ChocolateKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
-        player.setSaturation(Math.min(20, player.getSaturation() + 5.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用巧克力");
-    }
-
-    @EventHandler
-    public void onSushiUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, SushiKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 5));
-        player.setSaturation(Math.min(20, player.getSaturation() + 4.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用寿司");
-    }
-
-    @EventHandler
-    public void onRamenUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, RamenKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 8));
-        player.setSaturation(Math.min(20, player.getSaturation() + 6.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 8, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用拉面");
-    }
-
-    @EventHandler
-    public void onSandwichUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, SandwichKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 7));
-        player.setSaturation(Math.min(20, player.getSaturation() + 5.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 7, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用三明治");
-    }
-
-    @EventHandler
-    public void onDrumstickUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, DrumstickKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
-        player.setSaturation(Math.min(20, player.getSaturation() + 4.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 6, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用鸡腿");
-    }
-
-    @EventHandler
-    public void onCheeseUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CheeseKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
-        player.setSaturation(Math.min(20, player.getSaturation() + 5.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 4, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用奶酪");
-    }
-
-    @EventHandler
-    public void onPancakeUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PancakeKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 6));
-        player.setSaturation(Math.min(20, player.getSaturation() + 5.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 6, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已享用薄饼");
-    }
-
-    @EventHandler
     public void onChiliUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, ChiliKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, ChiliKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20, player.getSaturation() + 2.0f));
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0);
@@ -1065,16 +650,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onOnionUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, OnionKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, OnionKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 3));
         player.setSaturation(Math.min(20, player.getSaturation() + 2.0f));
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0);
@@ -1084,16 +661,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onCabbageUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, CabbageKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, CabbageKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 4));
         player.setSaturation(Math.min(20, player.getSaturation() + 3.0f));
         player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 4, 0.3, 0.3, 0.3, 0);
@@ -1102,36 +671,9 @@ public class FoodListeners implements Listener {
     }
 
     @EventHandler
-    public void onButterUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, ButterKey) == 0) return;
-
-        event.setCancelled(true);
-        Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
-        player.setFoodLevel(Math.min(20, player.getFoodLevel() + 2));
-        player.setSaturation(Math.min(20, player.getSaturation() + 3.0f));
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 1, 0), 2, 0.3, 0.3, 0.3, 0);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_GENERIC_EAT, 0.8f, 1.0f);
-        player.sendActionBar("§6已食用黄油");
-    }
-
-    @EventHandler
     public void onPoopUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, PoopKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, PoopKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.setFoodLevel(Math.min(20, player.getFoodLevel() + 1));
         player.setSaturation(Math.min(20, player.getSaturation() + 1.0f));
         player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HUNGER, 200, 0));
@@ -1142,16 +684,8 @@ public class FoodListeners implements Listener {
 
     @EventHandler
     public void onGoldShieldElixirUse(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        ItemStack item = event.getItem();
-        if (item == null || ArmsorEnchant.getEnchantLevel(item, GoldShieldElixirKey) == 0) return;
-
-        event.setCancelled(true);
+        if (!consumeIfFood(event, GoldShieldElixirKey)) return;
         Player player = event.getPlayer();
-        if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            item.setAmount(item.getAmount() - 1);
-        }
         player.addPotionEffect(new org.bukkit.potion.PotionEffect(
                 org.bukkit.potion.PotionEffectType.ABSORPTION, 12 * 20, 9, false, true));
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);

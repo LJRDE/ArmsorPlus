@@ -3,6 +3,7 @@ package Dim_LJR.armsorPlus.Command;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import Dim_LJR.armsorPlus.ArmsorPlusMenu;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,7 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
@@ -66,8 +69,9 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "SeaBoneSword", "SeaBoneKnife", "SpiritBoneSword", "SpiritBoneKnife",
             "SeaSpineSword", "SeaSpineKnife", "CorrodeBoneSword",
             "SpiritSpineSword", "SpiritSpineKnife", "SeaCrySword", "SeaCryKnife",
+            "IllusionBlade", "IllusionStaff",
             "GoldShieldElixir",
-            "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "RottenJerky",
+            "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "GoldWine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
     );
     private final List<String> args1_enchant = List.of(
@@ -83,6 +87,49 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "HerbGuard", "FireBlade", "FrostBlade", "ThunderBlade", "MagicBlade",
             "IceSpike", "Inferno", "HeavyArmor", "EarthFavor", "Ambush"
     );
+
+    // 附魔名 -> 附魔键 映射表 (供 getEnchantmentLevel / removeEnchant 共用, 消除重复switch)
+    private static final Map<String, NamespacedKey> ENCHANT_KEY_MAP = createEnchantMap();
+
+    private static Map<String, NamespacedKey> createEnchantMap() {
+        Map<String, NamespacedKey> map = new LinkedHashMap<>();
+        map.put("Dodge", Dodgekey);
+        map.put("Famine", Faminekey);
+        map.put("Ripples", RipplesProtectkey);
+        map.put("BloodSacrifice", BloodSacrificekey);
+        map.put("EffectClear", EffectClear);
+        map.put("Freeze", FreezeKey);
+        map.put("ShadowDodge", ShadowDodge);
+        map.put("Blocking", BlockingKey);
+        map.put("Withering", WitheringKey);
+        map.put("Survivor", SurvivorKey);
+        map.put("HealthBoost", HealthBoostKey);
+        map.put("Revenge", RevengeKey);
+        map.put("ExplosiveArrow", ExplosiveArrowKey);
+        map.put("Sniping", Sniping);
+        map.put("ArrowSpeed", ArrowSpeed);
+        map.put("DoubleHit", DoubleHitkey);
+        map.put("Feeding", Feedingkey);
+        map.put("QuickThrust", QuickThrustKey);
+        map.put("DiamondDrill", DiamondDrillKey);
+        map.put("Blindness", BlindnessKey);
+        map.put("Indestructible", IndestructibleKey);
+        map.put("Poison", PoisonKey);
+        map.put("SharpBlade", SharpBladeKey);
+        map.put("ThunderclapArrow", ThunderclapArrowKey);
+        map.put("DamageDispersal", DamageDispersalKey);
+        map.put("HerbGuard", HerbGuardKey);
+        map.put("FireBlade", FireBladeKey);
+        map.put("FrostBlade", FrostBladeKey);
+        map.put("ThunderBlade", ThunderBladeKey);
+        map.put("MagicBlade", MagicBladeKey);
+        map.put("IceSpike", IceSpikeKey);
+        map.put("Inferno", InfernoKey);
+        map.put("HeavyArmor", HeavyArmorKey);
+        map.put("EarthFavor", EarthFavorKey);
+        map.put("Ambush", AmbushKey);
+        return map;
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, @NotNull String[] args) {
@@ -450,6 +497,11 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(Wine(amount, tier));
                 sender.sendMessage("已获得 " + amount + " 瓶酒 (品级:" + tier + ")");
             }
+            case "GoldWine" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(Wine(amount, 3));
+                sender.sendMessage("已获得 " + amount + " 瓶金樽清酒 (力量V 140秒, 死亡可复活一次)");
+            }
             case "RottenJerky" -> {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(RottenJerky(amount));
@@ -584,25 +636,25 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = parseAmount(args, 2, 1);
                 int level = parseLevel(args, 3, 1);
                 player.getInventory().addItem(FireBlade_EnchantedBook(amount, level));
-                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.RED + "火刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.RED + "火印" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
             case "FrostBlade_EnchantedBook" -> {
                 int amount = parseAmount(args, 2, 1);
                 int level = parseLevel(args, 3, 1);
                 player.getInventory().addItem(FrostBlade_EnchantedBook(amount, level));
-                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.AQUA + "霜刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.AQUA + "霜印" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
             case "ThunderBlade_EnchantedBook" -> {
                 int amount = parseAmount(args, 2, 1);
                 int level = parseLevel(args, 3, 1);
                 player.getInventory().addItem(ThunderBlade_EnchantedBook(amount, level));
-                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.YELLOW + "雷刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.YELLOW + "雷印" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
             case "MagicBlade_EnchantedBook" -> {
                 int amount = parseAmount(args, 2, 1);
                 int level = parseLevel(args, 3, 1);
                 player.getInventory().addItem(MagicBlade_EnchantedBook(amount, level));
-                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_PURPLE + "魔刃" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_PURPLE + "魔印" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
             case "IceSpike_EnchantedBook" -> {
                 int amount = parseAmount(args, 2, 1);
@@ -730,6 +782,16 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(SeaCryKnife(amount));
                 sender.sendMessage(ChatColor.DARK_BLUE + "已获得 " + amount + " 把海哭刀");
             }
+            case "IllusionBlade" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(IllusionBlade(amount));
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "已获得 " + amount + " 把幻影之刃");
+            }
+            case "IllusionStaff" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(IllusionStaff(amount));
+                sender.sendMessage(ChatColor.AQUA + "已获得 " + amount + " 把幻惑法杖");
+            }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }
     }
@@ -757,92 +819,17 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.RED + "请手持要检查附魔的物品");
             return;
         }
-        int level = switch (args[1]) {
-            case "Dodge" -> ArmsorEnchant.getEnchantLevel(item, Dodgekey);
-            case "Famine" -> ArmsorEnchant.getEnchantLevel(item, Faminekey);
-            case "Ripples" -> ArmsorEnchant.getEnchantLevel(item, RipplesProtectkey);
-            case "BloodSacrifice" -> ArmsorEnchant.getEnchantLevel(item, BloodSacrificekey);
-            case "EffectClear" -> ArmsorEnchant.getEnchantLevel(item, EffectClear);
-            case "Freeze" -> ArmsorEnchant.getEnchantLevel(item, FreezeKey);
-            case "ShadowDodge" -> ArmsorEnchant.getEnchantLevel(item, ShadowDodge);
-            case "Blocking" -> ArmsorEnchant.getEnchantLevel(item, BlockingKey);
-            case "Withering" -> ArmsorEnchant.getEnchantLevel(item, WitheringKey);
-            case "Survivor" -> ArmsorEnchant.getEnchantLevel(item, SurvivorKey);
-            case "HealthBoost" -> ArmsorEnchant.getEnchantLevel(item, HealthBoostKey);
-            case "Revenge" -> ArmsorEnchant.getEnchantLevel(item, RevengeKey);
-            case "ExplosiveArrow" -> ArmsorEnchant.getEnchantLevel(item, ExplosiveArrowKey);
-            case "Sniping" -> ArmsorEnchant.getEnchantLevel(item, Sniping);
-            case "ArrowSpeed" -> ArmsorEnchant.getEnchantLevel(item, ArrowSpeed);
-            case "DoubleHit" -> ArmsorEnchant.getEnchantLevel(item, DoubleHitkey);
-            case "Feeding" -> ArmsorEnchant.getEnchantLevel(item, Feedingkey);
-            case "QuickThrust" -> ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
-            case "DiamondDrill" -> ArmsorEnchant.getEnchantLevel(item, DiamondDrillKey);
-            case "Blindness" -> ArmsorEnchant.getEnchantLevel(item, BlindnessKey);
-            case "Indestructible" -> ArmsorEnchant.getEnchantLevel(item, IndestructibleKey);
-            case "Poison" -> ArmsorEnchant.getEnchantLevel(item, PoisonKey);
-            case "SharpBlade" -> ArmsorEnchant.getEnchantLevel(item, SharpBladeKey);
-            case "ThunderclapArrow" -> ArmsorEnchant.getEnchantLevel(item, ThunderclapArrowKey);
-            case "DamageDispersal" -> ArmsorEnchant.getEnchantLevel(item, DamageDispersalKey);
-            case "HerbGuard" -> ArmsorEnchant.getEnchantLevel(item, HerbGuardKey);
-            case "FireBlade" -> ArmsorEnchant.getEnchantLevel(item, FireBladeKey);
-            case "FrostBlade" -> ArmsorEnchant.getEnchantLevel(item, FrostBladeKey);
-            case "ThunderBlade" -> ArmsorEnchant.getEnchantLevel(item, ThunderBladeKey);
-            case "MagicBlade" -> ArmsorEnchant.getEnchantLevel(item, MagicBladeKey);
-            case "IceSpike" -> ArmsorEnchant.getEnchantLevel(item, IceSpikeKey);
-            case "Inferno" -> ArmsorEnchant.getEnchantLevel(item, InfernoKey);
-            case "HeavyArmor" -> ArmsorEnchant.getEnchantLevel(item, HeavyArmorKey);
-            case "EarthFavor" -> ArmsorEnchant.getEnchantLevel(item, EarthFavorKey);
-            case "Ambush" -> ArmsorEnchant.getEnchantLevel(item, AmbushKey);
-            default -> -1;
-        };
-        if (level < 0) {
+        NamespacedKey key = ENCHANT_KEY_MAP.get(args[1]);
+        if (key == null) {
             sender.sendMessage(ChatColor.RED + "未知附魔: " + args[1]);
+            return;
+        }
+        int level = ArmsorEnchant.getEnchantLevel(item, key);
+        String displayName = ArmsorEnchant.getEnchantDisplayName(key);
+        if (displayName != null) {
+            sender.sendMessage(displayName + " 级别: " + level);
         } else {
-            String displayName = ArmsorEnchant.getEnchantDisplayName(
-                    switch (args[1]) {
-                        case "Dodge" -> Dodgekey;
-                        case "Famine" -> Faminekey;
-                        case "Ripples" -> RipplesProtectkey;
-                        case "BloodSacrifice" -> BloodSacrificekey;
-                        case "EffectClear" -> EffectClear;
-                        case "Freeze" -> FreezeKey;
-                        case "ShadowDodge" -> ShadowDodge;
-                        case "Blocking" -> BlockingKey;
-                        case "Withering" -> WitheringKey;
-                        case "Survivor" -> SurvivorKey;
-                        case "HealthBoost" -> HealthBoostKey;
-                        case "Revenge" -> RevengeKey;
-                        case "ExplosiveArrow" -> ExplosiveArrowKey;
-                        case "Sniping" -> Sniping;
-                        case "ArrowSpeed" -> ArrowSpeed;
-                        case "DoubleHit" -> DoubleHitkey;
-                        case "Feeding" -> Feedingkey;
-                        case "QuickThrust" -> QuickThrustKey;
-                        case "DiamondDrill" -> DiamondDrillKey;
-                        case "Blindness" -> BlindnessKey;
-                        case "Indestructible" -> IndestructibleKey;
-                        case "Poison" -> PoisonKey;
-                        case "SharpBlade" -> SharpBladeKey;
-                        case "ThunderclapArrow" -> ThunderclapArrowKey;
-                        case "DamageDispersal" -> DamageDispersalKey;
-                        case "HerbGuard" -> HerbGuardKey;
-                        case "FireBlade" -> FireBladeKey;
-                        case "FrostBlade" -> FrostBladeKey;
-                        case "ThunderBlade" -> ThunderBladeKey;
-                        case "MagicBlade" -> MagicBladeKey;
-                        case "IceSpike" -> IceSpikeKey;
-                        case "Inferno" -> InfernoKey;
-                        case "HeavyArmor" -> HeavyArmorKey;
-                        case "EarthFavor" -> EarthFavorKey;
-                        case "Ambush" -> AmbushKey;
-                        default -> null;
-                    }
-            );
-            if (displayName != null) {
-                sender.sendMessage(displayName + " 级别: " + level);
-            } else {
-                sender.sendMessage("附魔级别: " + level);
-            }
+            sender.sendMessage("附魔级别: " + level);
         }
     }
 
@@ -898,44 +885,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.GREEN + "已移除物品上的所有自定义附魔");
             return;
         }
-        var key = switch (args[1]) {
-            case "Dodge" -> Dodgekey;
-            case "Famine" -> Faminekey;
-            case "Ripples" -> RipplesProtectkey;
-            case "BloodSacrifice" -> BloodSacrificekey;
-            case "EffectClear" -> EffectClear;
-            case "Freeze" -> FreezeKey;
-            case "ShadowDodge" -> ShadowDodge;
-            case "Blocking" -> BlockingKey;
-            case "Withering" -> WitheringKey;
-            case "Survivor" -> SurvivorKey;
-            case "HealthBoost" -> HealthBoostKey;
-            case "Revenge" -> RevengeKey;
-            case "ExplosiveArrow" -> ExplosiveArrowKey;
-            case "Sniping" -> Sniping;
-            case "ArrowSpeed" -> ArrowSpeed;
-            case "DoubleHit" -> DoubleHitkey;
-            case "Feeding" -> Feedingkey;
-            case "QuickThrust" -> QuickThrustKey;
-            case "DiamondDrill" -> DiamondDrillKey;
-            case "Blindness" -> BlindnessKey;
-            case "Indestructible" -> IndestructibleKey;
-            case "Poison" -> PoisonKey;
-            case "SharpBlade" -> SharpBladeKey;
-            case "ThunderclapArrow" -> ThunderclapArrowKey;
-            case "DamageDispersal" -> DamageDispersalKey;
-            case "HerbGuard" -> HerbGuardKey;
-            case "FireBlade" -> FireBladeKey;
-            case "FrostBlade" -> FrostBladeKey;
-            case "ThunderBlade" -> ThunderBladeKey;
-            case "MagicBlade" -> MagicBladeKey;
-            case "IceSpike" -> IceSpikeKey;
-            case "Inferno" -> InfernoKey;
-            case "HeavyArmor" -> HeavyArmorKey;
-            case "EarthFavor" -> EarthFavorKey;
-            case "Ambush" -> AmbushKey;
-            default -> null;
-        };
+        NamespacedKey key = ENCHANT_KEY_MAP.get(args[1]);
         if (key == null) {
             sender.sendMessage(ChatColor.RED + "未知附魔: " + args[1]);
             return;
@@ -1012,7 +962,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    /** 安全解析数量参数 */
+    // 安全解析数量参数
     private int parseAmount(String[] args, int index, int defaultValue) {
         if (args.length > index && IsInt(args[index])) {
             return Math.max(1, Integer.parseInt(args[index]));
@@ -1020,7 +970,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         return defaultValue;
     }
 
-    /** 安全解析等级参数 */
+    // 安全解析等级参数
     private int parseLevel(String[] args, int index, int defaultValue) {
         if (args.length > index && IsInt(args[index])) {
             return Math.max(1, Integer.parseInt(args[index]));
@@ -1028,7 +978,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         return defaultValue;
     }
 
-    /** 判断物品名是否是需要等级参数的附魔书 */
+    // 判断物品名是否是需要等级参数的附魔书
     private boolean isEnchantedBook(String itemName) {
         return itemName.endsWith("_EnchantedBook") || "BasicStone".equals(itemName);
     }

@@ -1,0 +1,40 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "entries": [
+      {
+        "threshold": 20260515,
+        "model": {
+          "type": "minecraft:model",
+          "model": "armsorplus:item/star_trace_sword"
+        }
+      },
+      {
+        "threshold": 20260517,
+        "model": {
+          "type": "minecraft:model",
+          "model": "armsorplus:item/thunder_glow"
+        }
+      },
+      {
+        "threshold": 20260518,
+        "model": {
+          "type": "minecraft:model",
+          "model": "armsorplus:item/blazing_sun"
+        }
+      },
+      {
+        "threshold": 20260520,
+        "model": {
+          "type": "minecraft:model",
+          "model": "armsorplus:item/corpse_king"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/iron_sword"
+    }
+  }
+}

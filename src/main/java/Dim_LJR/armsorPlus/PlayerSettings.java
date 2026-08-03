@@ -11,9 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * 玩家个人设置管理 —— 持久化到 player_settings.yml。
- */
+// 玩家个人设置管理 —— 持久化到 player_settings.yml。
 public class PlayerSettings {
 
     private boolean enchantNotifications = true;
@@ -40,14 +38,14 @@ public class PlayerSettings {
         get(uuid).enchantNotifications = enabled;
     }
 
-    /** 仅当玩家开启了附魔通知时才发送聊天消息 */
+    // 仅当玩家开启了附魔通知时才发送聊天消息
     public static void notify(Entity entity, String message) {
         if (entity instanceof Player p && isNotificationEnabled(p.getUniqueId())) {
             p.sendMessage(message);
         }
     }
 
-    /** 仅当玩家开启了附魔通知时才发送ActionBar消息 */
+    // 仅当玩家开启了附魔通知时才发送ActionBar消息
     public static void notifyActionBar(Entity entity, String message) {
         if (entity instanceof Player p && isNotificationEnabled(p.getUniqueId())) {
             p.sendActionBar(message);

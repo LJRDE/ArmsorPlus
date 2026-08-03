@@ -3,27 +3,31 @@ package Dim_LJR.armsorPlus.OpenSea;
 import Dim_LJR.armsorPlus.ArmsorItem;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import org.bukkit.*;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
-/**
- * 公海宝藏抽奖系统。
- * <p>
- * 在公海世界右键点击宝箱触发抽奖 GUI，
- * 宝箱内物品会滚动动画后确定最终奖品。
- * 50%概率生成守卫者 (Skeleton) 攻击玩家。
- */
+import static Dim_LJR.armsorPlus.NamespaceKey.Keys.getplugin;
+
+// 公海宝藏抽奖系统。
+// 在公海世界右键点击宝箱触发抽奖 GUI，
+// 宝箱内物品会滚动动画后确定最终奖品。
+// 50%概率生成守卫者 (Skeleton) 攻击玩家。
 public class OpenSeaLottery implements Listener {
 
     private boolean percent(int x) {
@@ -97,10 +101,68 @@ public class OpenSeaLottery implements Listener {
     // 抽奖状态
     private final Map<Player, LotterySession> activeSessions = new HashMap<>();
 
-    /**
-     * 为玩家打开公海抽奖界面
-     * @param player 玩家
-     */
+    // 待领取奖品存储 (玩家登出时抽奖完成, 下次登录发放)
+    private final File pendingFile = new File(getplugin.getDataFolder(), "pending_prizes.yml");
+    private final YamlConfiguration pendingConfig = new YamlConfiguration();
+
+    public OpenSeaLottery() {
+        loadPendingPrizes();
+    }
+
+    // 加载待领取奖品
+    private void loadPendingPrizes() {
+        if (pendingFile.exists()) {
+            try {
+                pendingConfig.load(pendingFile);
+            } catch (Exception e) {
+                getplugin.getLogger().warning("加载待领取奖品失败: " + e.getMessage());
+            }
+        }
+    }
+
+    // 保存待领取奖品
+    private void savePendingPrizes() {
+        try {
+            pendingConfig.save(pendingFile);
+        } catch (IOException e) {
+            getplugin.getLogger().warning("保存待领取奖品失败: " + e.getMessage());
+        }
+    }
+
+    // 玩家登出: 不取消抽奖动画, 让其在后台完成; 若完成时玩家离线则奖品存入待领取
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        activeSessions.remove(player);
+    }
+
+    // 玩家登录: 发放登出前抽奖完成的待领取奖品
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        String path = player.getUniqueId().toString();
+        List<?> items = pendingConfig.getList(path, new ArrayList<>());
+        if (items.isEmpty()) return;
+        for (Object obj : items) {
+            if (obj instanceof Map<?, ?> map) {
+                ItemStack prize = ItemStack.deserialize((Map<String, Object>) map);
+                Map<Integer, ItemStack> leftOver = player.getInventory().addItem(prize);
+                if (!leftOver.isEmpty()) {
+                    for (ItemStack leftover : leftOver.values()) {
+                        player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+                    }
+                }
+                String prizeName = prize.hasItemMeta() && prize.getItemMeta().hasDisplayName()
+                        ? prize.getItemMeta().getDisplayName() : prize.getType().name();
+                player.sendMessage(ChatColor.GREEN + "你获得了登出前抽奖的奖品: " + prizeName);
+            }
+        }
+        pendingConfig.set(path, null);
+        savePendingPrizes();
+    }
+
+    // 为玩家打开公海抽奖界面
+    // @param player 玩家
     public void openLotteryGUI(Player player) {
         // 如果玩家已经有活跃的抽奖会话，先关闭
         if (activeSessions.containsKey(player)) {
@@ -126,10 +188,8 @@ public class OpenSeaLottery implements Listener {
         activeSessions.put(player, session);
     }
 
-    /**
-     * 关闭玩家的抽奖界面
-     * @param player 玩家
-     */
+    // 关闭玩家的抽奖界面
+    // @param player 玩家
     public void closeLotteryGUI(Player player) {
         if (activeSessions.containsKey(player)) {
             activeSessions.get(player).cancel();
@@ -138,10 +198,8 @@ public class OpenSeaLottery implements Listener {
         player.closeInventory();
     }
 
-    /**
-     * 填充GUI所有位置为随机颜色的玻璃板（中心除外）
-     * @param gui 抽奖GUI
-     */
+    // 填充GUI所有位置为随机颜色的玻璃板（中心除外）
+    // @param gui 抽奖GUI
     NamespacedKey CHEST = new NamespacedKey(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("ArmsorPlus")),"ArmsorPlus_CHEST");
     private ItemStack yellowGlassPlane()
     {
@@ -159,10 +217,8 @@ public class OpenSeaLottery implements Listener {
         }
         gui.setItem(0,yellowGlassPlane());
     }
-    /**
-     * 创建随机颜色的玻璃板
-     * @return 玻璃板物品
-     */
+    // 创建随机颜色的玻璃板
+    // @return 玻璃板物品
     private ItemStack createRandomGlass() {
         Material glassType = GLASS_COLORS[new Random().nextInt(GLASS_COLORS.length)];
         ItemStack glass = new ItemStack(glassType, 1);
@@ -175,18 +231,14 @@ public class OpenSeaLottery implements Listener {
 
         return glass;
     }
-    /**
-     * 获取随机奖品
-     * @return 随机奖品物品
-     */
+    // 获取随机奖品
+    // @return 随机奖品物品
     private ItemStack getRandomPrize() {
         return PRIZE_POOL.get(new Random().nextInt(PRIZE_POOL.size())).clone();
     }
 
-    /**
-     * 创建20种原版物品作为奖品池
-     * @return 奖品列表
-     */
+    // 创建20种原版物品作为奖品池
+    // @return 奖品列表
     private static List<ItemStack> createPrizePool() {
         List<ItemStack> prizes = new ArrayList<>();
 
@@ -223,13 +275,11 @@ public class OpenSeaLottery implements Listener {
         return prizes;
     }
 
-    /**
-     * 创建奖品物品
-     * @param material 物品材质
-     * @param name 显示名称
-     * @param lore 描述
-     * @return 奖品物品
-     */
+    // 创建奖品物品
+    // @param material 物品材质
+    // @param name 显示名称
+    // @param lore 描述
+    // @return 奖品物品
     private static ItemStack createPrizeItem(Material material, String name, String lore,int Amount) {
         ItemStack item = new ItemStack(material, Amount);
         ItemMeta meta = item.getItemMeta();
@@ -243,9 +293,7 @@ public class OpenSeaLottery implements Listener {
         return item;
     }
 
-    /**
-     * 抽奖会话类
-     */
+    // 抽奖会话类
     private class LotterySession {
         private final Player player;
         private final Inventory gui;
@@ -260,9 +308,7 @@ public class OpenSeaLottery implements Listener {
             this.maxSteps = new Random().nextInt(6) + 10; // 10-15次变化
         }
 
-        /**
-         * 开始抽奖动画
-         */
+        // 开始抽奖动画
         public void start() {
             // 播放开始音效
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
@@ -284,18 +330,18 @@ public class OpenSeaLottery implements Listener {
                     // 更新周围玻璃颜色
                     updateGlassColors();
 
-                    // 播放音效
-                    float pitch = 0.5f + (animationStep * 0.05f);
-                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, pitch);
+                    // 播放音效 (玩家离线时跳过, 抽奖动画仍继续)
+                    if (player.isOnline()) {
+                        float pitch = 0.5f + (animationStep * 0.05f);
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, pitch);
+                    }
 
                     animationStep++;
                 }
-            }.runTaskTimer(Bukkit.getPluginManager().getPlugins()[0], 0L, 4L); // 每0.2秒更新一次
+            }.runTaskTimer(getplugin, 0L, 4L); // 每0.2秒更新一次
         }
 
-        /**
-         * 更新周围玻璃颜色
-         */
+        // 更新周围玻璃颜色
         private void updateGlassColors() {
             // 随机更新部分玻璃颜色
             int changeCount = new Random().nextInt(10) + 5; // 每次更新5-15个玻璃
@@ -309,16 +355,16 @@ public class OpenSeaLottery implements Listener {
             }
         }
 
-        /**
-         * 完成抽奖
-         */
+        // 完成抽奖
         private void finishLottery() {
             // 确定最终奖品
             finalPrize = getRandomPrize();
             gui.setItem(CENTER_SLOT, finalPrize);
 
-            // 播放完成音效
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+            // 播放完成音效 (玩家离线时跳过)
+            if (player.isOnline()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+            }
 
             // 给予玩家奖品
             givePrizeToPlayer();
@@ -327,18 +373,22 @@ public class OpenSeaLottery implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    player.closeInventory();
+                    if (player.isOnline()) player.closeInventory();
                     activeSessions.remove(player);
                 }
-            }.runTaskLater(Bukkit.getPluginManager().getPlugins()[0], 20L); // 1秒后关闭
+            }.runTaskLater(getplugin, 20L); // 1秒后关闭
         }
 
-        /**
-         * 给予玩家奖品
-         */
+        // 给予玩家奖品
         private void givePrizeToPlayer() {
             // 复制奖品（避免修改原始奖品）
             ItemStack prize = finalPrize.clone();
+
+            // 玩家已登出: 奖品存入待领取, 下次登录发放
+            if (!player.isOnline()) {
+                savePendingPrize(player, prize);
+                return;
+            }
 
             // 给予玩家奖品
             Map<Integer, ItemStack> leftOver = player.getInventory().addItem(prize);
@@ -358,9 +408,22 @@ public class OpenSeaLottery implements Listener {
             player.sendMessage(ChatColor.GREEN + "恭喜你获得了: " + prizeName);
         }
 
-        /**
-         * 取消抽奖
-         */
+        // 保存待领取奖品 (玩家离线时)
+        private void savePendingPrize(Player player, ItemStack prize) {
+            String path = player.getUniqueId().toString();
+            List<Map<String, Object>> items = new ArrayList<>();
+            List<?> existing = pendingConfig.getList(path, new ArrayList<>());
+            for (Object obj : existing) {
+                if (obj instanceof Map<?, ?> map) {
+                    items.add((Map<String, Object>) map);
+                }
+            }
+            items.add(prize.serialize());
+            pendingConfig.set(path, items);
+            savePendingPrizes();
+        }
+
+        // 取消抽奖
         public void cancel() {
             if (animationTask != null) {
                 animationTask.cancel();

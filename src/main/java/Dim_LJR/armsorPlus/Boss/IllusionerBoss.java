@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static Dim_LJR.armsorPlus.Item.Materials.IllusionerBone;
+import static Dim_LJR.armsorPlus.Item.Materials.IllusionerScrap;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.getplugin;
 
 public class IllusionerBoss {
@@ -39,7 +41,7 @@ public class IllusionerBoss {
     public static boolean isAlive() { return bossAlive && bossEntity != null && !bossEntity.isDead(); }
     public static Location getBossLocation() { return bossEntity != null ? bossEntity.getLocation() : null; }
 
-    /** BossMenu 回调，记录当前攻击者用于卫道士索敌 */
+    // BossMenu 回调，记录当前攻击者用于卫道士索敌
     public static void updateTarget(Entity damager) {
         if (damager instanceof LivingEntity living) {
             currentTarget = living;
@@ -241,23 +243,15 @@ public class IllusionerBoss {
         world.spawnParticle(Particle.SOUL_FIRE_FLAME, loc, 50, 1, 1, 1, 0.1);
         world.playSound(loc, Sound.ENTITY_WITHER_DEATH, 1f, 0.5f);
 
-        // 掉落：幻术师的遗骨(骨头)、幻术师的遗骸(下界残骸)，每类0~2个
+        // 掉落：幻术师的遗骨(骨头)、幻术师的遗骸(下界残骸)，每类0~2个 (与原材料菜单同款物品)
         int boneCount = RANDOM.nextInt(3);
         int scrapCount = RANDOM.nextInt(3);
 
         if (boneCount > 0) {
-            ItemStack bone = new ItemStack(Material.BONE, boneCount);
-            ItemMeta boneMeta = bone.getItemMeta();
-            boneMeta.setDisplayName("§d幻术师的遗骨");
-            bone.setItemMeta(boneMeta);
-            world.dropItemNaturally(loc, bone);
+            world.dropItemNaturally(loc, IllusionerBone(boneCount));
         }
         if (scrapCount > 0) {
-            ItemStack scrap = new ItemStack(Material.NETHERITE_SCRAP, scrapCount);
-            ItemMeta scrapMeta = scrap.getItemMeta();
-            scrapMeta.setDisplayName("§d幻术师的遗骸");
-            scrap.setItemMeta(scrapMeta);
-            world.dropItemNaturally(loc, scrap);
+            world.dropItemNaturally(loc, IllusionerScrap(scrapCount));
         }
 
         Bukkit.broadcastMessage("§d◆ 幻术师已被彻底击败！");

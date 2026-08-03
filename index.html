@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArmsorPlus — Minecraft 武器装备强化插件</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-2: #111722;
+    --bg-3: #1a2332;
+    --card: rgba(255,255,255,.03);
+    --border: rgba(255,255,255,.08);
+    --text: #e6e9ef;
+    --muted: #9aa3b2;
+    --gold: #f0c674;
+    --purple: #b48ead;
+    --blue: #81a2be;
+    --green: #a3be8c;
+    --red: #cc6666;
+    --cyan: #8abeb7;
+    --radius: 14px;
+    --shadow: 0 10px 40px rgba(0,0,0,.5);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  /* 背景雾效 */
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(1000px 600px at 80% -10%, rgba(180,142,173,.14), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(129,162,190,.12), transparent 60%),
+      radial-gradient(600px 400px at 50% 40%, rgba(240,198,116,.05), transparent 60%),
+      var(--bg);
+  }
+  body::after {
+    content: "";
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='4' height='4' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  /* 顶部导航 */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11,14,20,.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  .brand { font-weight: 700; letter-spacing: .5px; color: var(--gold); }
+  .brand small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  nav ul { display: flex; gap: 4px; list-style: none; flex-wrap: wrap; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 13px;
+    padding: 6px 10px; border-radius: 8px; transition: all .2s;
+  }
+  nav a:hover { color: var(--text); background: var(--card); }
+
+  /* 首屏 */
+  .hero { padding: 90px 0 70px; text-align: center; position: relative; }
+  .hero .badge {
+    display: inline-block; font-size: 12px; letter-spacing: 1.5px;
+    color: var(--gold); border: 1px solid rgba(240,198,116,.3);
+    padding: 4px 14px; border-radius: 999px; margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 7vw, 68px); font-weight: 800;
+    background: linear-gradient(120deg, #f0c674, #b48ead, #81a2be);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    letter-spacing: 1px;
+  }
+  .hero p.tag { color: var(--muted); font-size: 18px; margin-top: 14px; }
+  .hero p.sub { color: var(--muted); font-size: 14px; margin-top: 6px; opacity: .8; }
+  .cta { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 28px; border-radius: 999px; text-decoration: none;
+    font-weight: 600; font-size: 15px; transition: all .2s; border: 1px solid transparent;
+  }
+  .btn.primary { background: linear-gradient(120deg, #d4a54c, #b48ead); color: #0b0e14; }
+  .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(180,142,173,.35); }
+  .btn.ghost { border-color: var(--border); color: var(--text); }
+  .btn.ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* 数据统计 */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px; margin-top: 60px;
+  }
+  .stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 12px; text-align: center;
+  }
+  .stat .num {
+    font-size: 34px; font-weight: 800; color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* 章节 */
+  section { padding: 64px 0; }
+  .section-title {
+    text-align: center; margin-bottom: 10px;
+    font-size: clamp(26px, 4vw, 34px); font-weight: 800;
+  }
+  .section-sub { text-align: center; color: var(--muted); margin-bottom: 44px; font-size: 15px; }
+
+  /* 卡片网格 */
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; transition: all .25s; position: relative; overflow: hidden;
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgba(240,198,116,.35); box-shadow: var(--shadow); }
+  .card h3 { font-size: 16px; margin-bottom: 6px; }
+  .card p { font-size: 13.5px; color: var(--muted); }
+  .card .tag {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px;
+    background: rgba(255,255,255,.06); color: var(--gold); margin-bottom: 8px;
+  }
+  .chip { color: var(--cyan); font-weight: 600; }
+
+  /* 附魔表格 */
+  .enchant-wrap { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 22px; }
+  .enchant-head {
+    padding: 14px 20px; font-weight: 700; cursor: pointer; user-select: none;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--bg-3);
+  }
+  .enchant-head .arrow { color: var(--gold); transition: transform .25s; }
+  .enchant-wrap.open .arrow { transform: rotate(180deg); }
+  .enchant-body { display: none; padding: 6px 20px 16px; }
+  .enchant-wrap.open .enchant-body { display: block; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 12px; font-size: 13.5px; border-bottom: 1px solid var(--border); }
+  th { color: var(--gold); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+  td:nth-child(2) { color: var(--muted); }
+
+  /* BOSS 卡片 */
+  .boss-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+  .boss-card h3 { color: var(--red); display: flex; align-items: center; gap: 8px; }
+  .boss-hp { font-size: 13px; color: var(--muted); margin: 6px 0 10px; }
+  .boss-hp b { color: var(--red); font-size: 15px; }
+  .boss-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.06); overflow: hidden; margin-bottom: 12px; }
+  .boss-bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #cc6666, #e0a060); }
+  .hp-500 i { width: 33%; } .hp-600 i { width: 40%; } .hp-700 i { width: 47%; }
+  .hp-750 i { width: 50%; } .hp-800 i { width: 53%; } .hp-1500 i { width: 100%; }
+
+  /* 武器列表 */
+  .weapon-group { margin-bottom: 30px; }
+  .weapon-group h3 { margin-bottom: 14px; color: var(--gold); font-size: 18px; }
+  .weapon-item {
+    display: flex; justify-content: space-between; gap: 14px; align-items: baseline;
+    padding: 10px 14px; border-radius: 10px; background: var(--card);
+    border: 1px solid var(--border); margin-bottom: 8px;
+  }
+  .weapon-item .name { font-weight: 600; }
+  .weapon-item .desc { color: var(--muted); font-size: 13px; text-align: right; }
+
+  /* 双栏 */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* 指令 */
+  code {
+    background: var(--bg-3); border: 1px solid var(--border); border-radius: 6px;
+    padding: 2px 8px; font-size: 13px; color: var(--cyan);
+    font-family: "SF Mono", Consolas, "Courier New", monospace;
+  }
+  .cmd { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+  .cmd-item { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; flex-wrap: wrap; }
+  .cmd-item:last-child { border-bottom: none; }
+  .cmd-item .c { color: var(--cyan); font-family: "SF Mono", Consolas, monospace; }
+  .cmd-item .d { color: var(--muted); }
+
+  /* 页脚 */
+  footer { border-top: 1px solid var(--border); padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  /* 滚动进入动画 */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.vis { opacity: 1; transform: none; }
+
+  @media (max-width: 640px) {
+    nav ul { display: none; }
+    .hero { padding: 60px 0 40px; }
+    .weapon-item { flex-direction: column; gap: 4px; }
+    .weapon-item .desc { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="brand">⛏ ArmsorPlus<small>v0.3-J</small></span>
+    <ul>
+      <li><a href="#features">特性</a></li>
+      <li><a href="#enchant">附魔</a></li>
+      <li><a href="#weapons">武器</a></li>
+      <li><a href="#boss">BOSS</a></li>
+      <li><a href="#stone">强化石</a></li>
+      <li><a href="#food">食物</a></li>
+      <li><a href="#cmd">指令</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- 首屏 -->
+  <header class="hero">
+    <span class="badge">PAPER / PURPUR · 1.21+ · 零依赖</span>
+    <h1>ArmsorPlus</h1>
+    <p class="tag">一体化的 RPG 装备强化插件</p>
+    <p class="sub">Weapon &amp; Armor Enhancement · Custom Enchants · Bosses · Food</p>
+    <div class="cta">
+      <a class="btn primary" href="#features">了解功能</a>
+      <a class="btn ghost" href="#cmd">指令速览</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">48</div><div class="lbl">自定义附魔</div></div>
+      <div class="stat"><div class="num">41</div><div class="lbl">武器 / 装备</div></div>
+      <div class="stat"><div class="num">9</div><div class="lbl">BOSS</div></div>
+      <div class="stat"><div class="num">70+</div><div class="lbl">食物 / 药品</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">前置依赖</div></div>
+    </div>
+  </header>
+
+  <!-- 特性 -->
+  <section id="features">
+    <h2 class="section-title">核心特性</h2>
+    <p class="section-sub">把「拖拽强化」「魔法武器」「BOSS 战斗」打包成一套开箱即用的插件</p>
+    <div class="grid g3">
+      <div class="card"><span class="tag">附魔</span><h3>PDC 自定义附魔</h3><p>48 种附魔基于 PersistentDataContainer 独立存储，不占用原版附魔槽，附魔书<span class="chip">拖到装备上</span>即生效。</p></div>
+      <div class="card"><span class="tag">强化</span><h3>拖拽强化石</h3><p>武器/护甲/弓箭强化石拖到装备上直接提升属性与附魔等级，成长直观。</p></div>
+      <div class="card"><span class="tag">抽奖</span><h3>魔法球抽奖</h3><p>经验值兑换魔法球，四档稀有度、多层保底，右键抽取随机附魔书。</p></div>
+      <div class="card"><span class="tag">战斗</span><h3>元素反应 BOSS</h3><p>9 个 BOSS 带躯干/核心弱点（3×/15×）与元素克制，团战体验。</p></div>
+      <div class="card"><span class="tag">世界</span><h3>公海世界</h3><p>独立地图 + 宝藏抽奖 + 地图保护 + 守护者挑战。</p></div>
+      <div class="card"><span class="tag">生活</span><h3>食物与植物</h3><p>70+ 料理、药品、水果与果树，甚至还有「大便」。</p></div>
+      <div class="card"><span class="tag">界面</span><h3>GUI 菜单</h3><p>向导书一键打开，魔法武器/附魔书/食物/材料/BOSS 全部可视化。</p></div>
+      <div class="card"><span class="tag">定制</span><h3>玩家设置</h3><p>附魔通知开关、管理员模式，按玩家独立存储。</p></div>
+      <div class="card"><span class="tag">资源包</span><h3>内置贴图</h3><p>自带资源包提供自定义物品贴图，支持服务器下发。</p></div>
+    </div>
+  </section>
+
+  <!-- 附魔 -->
+  <section id="enchant">
+    <h2 class="section-title">自定义附魔</h2>
+    <p class="section-sub">48 种 · 点击分类展开</p>
+
+    <div class="enchant-wrap open">
+      <div class="enchant-head" onclick="toggle(this)">⚔ 武器附魔 <span class="arrow">▾</span></div>
+      <div class="enchant-body">
+        <table>
+          <tr><th>附魔</th><th>效果</th></tr>
+          <tr><td>血祭</td><td>概率消耗自身生命造成多倍伤害</td></tr>
+          <tr><td>双重打击</td><td>20%/级概率双倍伤害</td></tr>
+          <tr><td>吸血</td><td>攻击吸取生命值</td></tr>
+          <tr><td>饥荒 / 凋零 / 寒冻 / 失明 / 剧毒</td><td>攻击附加 饥饿 / 凋零 / 缓慢 / 失明 / 中毒 效果</td></tr>
+          <tr><td>眩晕</td><td>剑；攻击造成反胃，0.7s/级，满级 V</td></tr>
+          <tr><td>暴击</td><td>斧；15%/级概率造成 25%/级额外伤害，满级 V</td></tr>
+          <tr><td>利刃</td><td>目标护甲越低伤害越高（护甲&gt;18 仅 +10%）</td></tr>
+          <tr><td>火刃 / 霜刃 / 雷刃 / 魔刃</td><td>攻击转化为 火焰/冰冻/雷电/魔法 伤害，元素印记系统，满级 III</td></tr>
+          <tr><td>冰刺 / 烈焰</td><td>额外 冰冻 / 火焰 伤害，满级 III</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="enchant-wrap">
+      <div class="enchant-head" onclick="toggle(this)">🛡 装备附魔 <span class="arrow">▾</span></div>
+      <div class="enchant-body">
+        <table>
+          <tr><th>附魔</th><th>槽位</th><th>效果</th></tr>
+          <tr><td>闪避 / 影避</td><td>靴子</td><td>8%/级概率闪避攻击 / 闪避所有伤害，满级 V</td></tr>
+          <tr><td>涟漪</td><td>靴子</td><td>受击减缓血量下降 20%/级，满级 III</td></tr>
+          <tr><td>熔岩行者</td><td>靴子</td><td>岩浆上行走时 5 格内岩浆变岩浆块</td></tr>
+          <tr><td>格挡</td><td>头盔</td><td>固定 10%/级伤害减免，满级 V</td></tr>
+          <tr><td>生命提升</td><td>胸甲</td><td>每级 +5 最大生命值</td></tr>
+          <tr><td>涤魂</td><td>胸甲</td><td>周期性解除负面效果</td></tr>
+          <tr><td>复仇</td><td>胸甲</td><td>20%/级概率反弹 50% 伤害</td></tr>
+          <tr><td>保护PRO</td><td>胸甲</td><td>每级额外 -6% 伤害，满级 V</td></tr>
+          <tr><td>傀儡守护者</td><td>胸甲</td><td>受伤召唤铁傀儡反击，冷却 300s，满级 V</td></tr>
+          <tr><td>卸力</td><td>胸甲</td><td>将单次高额伤害分解为多次，满级 V</td></tr>
+          <tr><td>百草</td><td>胸甲</td><td>减少 20%/级魔法伤害，满级 IV</td></tr>
+          <tr><td>重甲</td><td>胸甲</td><td>缓慢 II + 抗性提升 II</td></tr>
+          <tr><td>幸存</td><td>护腿</td><td>致命伤 10%/级概率复活</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="enchant-wrap">
+      <div class="enchant-head" onclick="toggle(this)">⛏ 工具附魔 <span class="arrow">▾</span></div>
+      <div class="enchant-body">
+        <table>
+          <tr><th>附魔</th><th>工具</th><th>效果</th></tr>
+          <tr><td>金刚钻</td><td>镐</td><td>挖黑曜石 20%/级概率瞬间挖掉，满级 V</td></tr>
+          <tr><td>丰收</td><td>锄</td><td>30%/级概率多倍收获，满级 III</td></tr>
+          <tr><td>自动种植</td><td>锄</td><td>采集作物时自动补种副手种子</td></tr>
+          <tr><td>地之眷顾</td><td>铲</td><td>挖泥土概率掉落矿粒</td></tr>
+          <tr><td>疾刺</td><td>三叉戟/长矛</td><td>右键获得 10%/级速度提升</td></tr>
+          <tr><td>唤雷</td><td>三叉戟</td><td>无视天气召唤 level 道雷，满级 III</td></tr>
+          <tr><td>强风暴</td><td>重锤</td><td>无需下落即可触发风暴</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="enchant-wrap">
+      <div class="enchant-head" onclick="toggle(this)">🏹 远程附魔 <span class="arrow">▾</span></div>
+      <div class="enchant-body">
+        <table>
+          <tr><th>附魔</th><th>武器</th><th>效果</th></tr>
+          <tr><td>蓄爆</td><td>弓/弩</td><td>箭矢替换为烟花火箭，命中范围爆炸</td></tr>
+          <tr><td>弹道</td><td>弓/弩</td><td>箭速每级翻倍</td></tr>
+          <tr><td>狙击</td><td>弓/弩</td><td>箭速每级 ×5（需弹道前置）</td></tr>
+          <tr><td>穿甲</td><td>弓/弩</td><td>概率使盾牌进入冷却，命中附加 5 点穿透伤害</td></tr>
+          <tr><td>千重射击</td><td>弩</td><td>额外射出 level 支箭，满级 III</td></tr>
+          <tr><td>追踪</td><td>弓</td><td>箭矢追踪 450 格内指向的目标</td></tr>
+          <tr><td>惊雷</td><td>弓</td><td>命中/未命中召唤 level 道雷，满级 III</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="enchant-wrap">
+      <div class="enchant-head" onclick="toggle(this)">🛡 盾牌 &amp; 特殊附魔 <span class="arrow">▾</span></div>
+      <div class="enchant-body">
+        <table>
+          <tr><th>附魔</th><th>槽位</th><th>效果</th></tr>
+          <tr><td>全息</td><td>盾牌</td><td>持盾防御扩展到全角度</td></tr>
+          <tr><td>伏击</td><td>盾牌</td><td>收起盾牌后短时间增伤，满级 III</td></tr>
+          <tr><td>不灭</td><td>任意</td><td>致命伤免疫死亡并回满状态（仅管理员指令获取）</td></tr>
+        </table>
+        <p style="color:var(--muted);font-size:13px;margin-top:10px">※ 蓄爆 与 弹道/狙击 互斥，不可共存。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 武器 -->
+  <section id="weapons">
+    <h2 class="section-title">武器与装备</h2>
+    <p class="section-sub">21 把魔法武器 · 15 把鱼骨系列 · 5 件钢装备</p>
+
+    <div class="weapon-group">
+      <h3>⚡ 魔法武器</h3>
+      <div class="weapon-item"><span class="name">血祭之剑</span><span class="desc">自带血祭 V</span></div>
+      <div class="weapon-item"><span class="name">重剑</span><span class="desc">攻击 7.5</span></div>
+      <div class="weapon-item"><span class="name">尸王</span><span class="desc">9 伤害 + 饥荒 II + 剧毒 II</span></div>
+      <div class="weapon-item"><span class="name">星痕剑</span><span class="desc">夜晚伤害 +100%</span></div>
+      <div class="weapon-item"><span class="name">玄武剑</span><span class="desc">每累积 200 伤害 +1，上限 +8</span></div>
+      <div class="weapon-item"><span class="name">噬生剑</span><span class="desc">击杀成长，积累伤害</span></div>
+      <div class="weapon-item"><span class="name">匕首</span><span class="desc">额外 5 点真实伤害</span></div>
+      <div class="weapon-item"><span class="name">飞斧</span><span class="desc">右键蓄力 3 秒掷出，20 伤害</span></div>
+      <div class="weapon-item"><span class="name">骷髅权杖</span><span class="desc">右键箭雨，10s 冷却</span></div>
+      <div class="weapon-item"><span class="name">寒冰弓</span><span class="desc">3 支箭，缓慢 + 冻结</span></div>
+      <div class="weapon-item"><span class="name">火焰戟</span><span class="desc">近战 +30 火焰伤害，可投掷</span></div>
+      <div class="weapon-item"><span class="name">雨御前</span><span class="desc">右键 3s 隐身无敌，Shift 瞬移</span></div>
+      <div class="weapon-item"><span class="name">飞天御剑</span><span class="desc">悬空飞行 8m/s</span></div>
+      <div class="weapon-item"><span class="name">瞬步刃</span><span class="desc">瞬移至目标身后造成 15 伤害</span></div>
+      <div class="weapon-item"><span class="name">魔法杖</span><span class="desc">左键发射魔法球</span></div>
+      <div class="weapon-item"><span class="name">寒冰剑</span><span class="desc">攻击施加缓慢 II 3s</span></div>
+      <div class="weapon-item"><span class="name">盘丝弓</span><span class="desc">命中生成蜘蛛网（9 次损坏）</span></div>
+      <div class="weapon-item"><span class="name">爆炸弓</span><span class="desc">命中爆炸（9 次损坏）</span></div>
+      <div class="weapon-item"><span class="name">雷光</span><span class="desc">铁剑 +8，雷雨天 +25%</span></div>
+      <div class="weapon-item"><span class="name">烈阳</span><span class="desc">铁剑 +8，白天 +4 + 火焰附加 V</span></div>
+      <div class="weapon-item"><span class="name">桃木剑</span><span class="desc">亡灵杀手 V</span></div>
+    </div>
+
+    <div class="weapon-group">
+      <h3>🐟 鱼骨系列（0.3-J 新增）</h3>
+      <div class="weapon-item"><span class="name">Lv1 鱼骨剑 / 鱼骨刀</span><span class="desc">伤害 5.0 · 鲑鱼/鳕鱼 + 骨头合成</span></div>
+      <div class="weapon-item"><span class="name">Lv2 鱼刺剑 / 鱼刺刀</span><span class="desc">伤害 6.5 · 骨块 + 海晶沙粒升级</span></div>
+      <div class="weapon-item"><span class="name">Lv3 海骨剑 / 海骨刀</span><span class="desc">伤害 7.5 · 水中增伤 / 加速</span></div>
+      <div class="weapon-item"><span class="name">Lv4 灵骨剑 / 灵骨刀</span><span class="desc">伤害 8.0 · 光灵 + 水中概率穿透/双倍</span></div>
+      <div class="weapon-item"><span class="name">Lv5 海刺剑 / 海刺刀</span><span class="desc">伤害 10.0 / 12.0 · 水中/雨天增幅 + 水下呼吸</span></div>
+      <div class="weapon-item"><span class="name">分支 蚀骨剑</span><span class="desc">伤害 13.0 · 自带凋零 III</span></div>
+      <div class="weapon-item"><span class="name">Lv6 灵刺剑 / 灵刺刀</span><span class="desc">伤害 13.0 / 14.0 · 穿透 / 增伤</span></div>
+      <div class="weapon-item"><span class="name">Lv7 海哭剑 / 海哭刀</span><span class="desc">伤害 16.0 · 被动 3 药水 + 发光 + 水中倍率</span></div>
+    </div>
+
+    <div class="weapon-group">
+      <h3>🔩 钢装备</h3>
+      <div class="weapon-item"><span class="name">钢剑</span><span class="desc">攻击 7</span></div>
+      <div class="weapon-item"><span class="name">钢头盔</span><span class="desc">2 护甲 / 1 韧性</span></div>
+      <div class="weapon-item"><span class="name">钢胸甲</span><span class="desc">7 护甲 / 2 韧性</span></div>
+      <div class="weapon-item"><span class="name">钢护腿</span><span class="desc">6 护甲 / 2 韧性</span></div>
+      <div class="weapon-item"><span class="name">钢靴子</span><span class="desc">3 护甲 / 1 韧性</span></div>
+    </div>
+  </section>
+
+  <!-- BOSS -->
+  <section id="boss">
+    <h2 class="section-title">BOSS 系统</h2>
+    <p class="section-sub">躯干 3× 伤害 · 核心 15× 伤害 · 元素反应 50% 概率暴露核心</p>
+    <div class="grid g3">
+      <div class="boss-card"><h3>❄ 急冻树</h3><div class="boss-hp"><b>700</b> HP</div><div class="boss-bar hp-700"><i></i></div><p>冰元素，火 / 雷触发双倍伤害。</p></div>
+      <div class="boss-card"><h3>🔥 爆炎树</h3><div class="boss-hp"><b>700</b> HP</div><div class="boss-bar hp-700"><i></i></div><p>火元素，雷 / 冰触发双倍伤害。</p></div>
+      <div class="boss-card"><h3>🟢 史莱姆王</h3><div class="boss-hp"><b>750</b> HP</div><div class="boss-bar hp-750"><i></i></div><p>跳跃粉碎攻击，半血分裂激怒。</p></div>
+      <div class="boss-card"><h3>🧟 僵尸巨人</h3><div class="boss-hp"><b>1500</b> HP</div><div class="boss-bar hp-1500"><i></i></div><p>攻击 80，附带缓慢与击退。</p></div>
+      <div class="boss-card"><h3>👶 小僵尸Double</h3><div class="boss-hp"><b>600×2</b> HP</div><div class="boss-bar hp-600"><i></i></div><p>两只保护 IV 下界合金套小僵尸。</p></div>
+      <div class="boss-card"><h3>💰 宝藏守护者</h3><div class="boss-hp"><b>250</b> HP</div><div class="boss-bar hp-500"><i></i></div><p>守护深海宝藏的神秘骷髅。</p></div>
+      <div class="boss-card"><h3>💀 骷髅王</h3><div class="boss-hp"><b>600</b> HP</div><div class="boss-bar hp-600"><i></i></div><p>力量 X 神弓，每 10 秒召唤箭雨。</p></div>
+      <div class="boss-card"><h3>👻 虚空幽魂</h3><div class="boss-hp"><b>800</b> HP</div><div class="boss-bar hp-800"><i></i></div><p>来自虚空的远古凋灵骷髅。</p></div>
+      <div class="boss-card"><h3>🎭 幻术师</h3><div class="boss-hp"><b>500</b> HP</div><div class="boss-bar hp-500"><i></i></div><p>幻影分身；40% 血召唤护卫；20% 血降下箭雨；首次死亡复活并复制攻击者装备。</p></div>
+    </div>
+  </section>
+
+  <!-- 强化石 -->
+  <section id="stone">
+    <h2 class="section-title">强化石</h2>
+    <p class="section-sub">拖动到装备上即生效</p>
+    <div class="grid g3">
+      <div class="card"><span class="tag">基础</span><h3>基础强化石</h3><p>4×钻石块合成，右键随机获得一种强化石。</p></div>
+      <div class="card"><span class="tag">武器 I</span><h3>武器强化石</h3><p>锋利 +1</p></div>
+      <div class="card"><span class="tag">武器 II</span><h3>武器强化石</h3><p>攻击伤害 +1</p></div>
+      <div class="card"><span class="tag">护甲 I</span><h3>护甲强化石</h3><p>保护 +1</p></div>
+      <div class="card"><span class="tag">护甲 II</span><h3>护甲强化石</h3><p>护甲 / 韧性 / 击退抗性各 +1</p></div>
+      <div class="card"><span class="tag">弓</span><h3>弓箭强化石</h3><p>力量 +1</p></div>
+      <div class="card"><span class="tag">精炼</span><h3>精炼金刚石</h3><p>9×钻石块合成，无限耐久。</p></div>
+    </div>
+  </section>
+
+  <!-- 食物 -->
+  <section id="food">
+    <h2 class="section-title">食物与药品</h2>
+    <p class="section-sub">回春散 · 金盾丹 · 酒 · 22 种水果 · 快餐与树苗</p>
+    <div class="two-col">
+      <div class="grid g2">
+        <div class="card"><span class="tag">药品</span><h3>回春散</h3><p>生命恢复 V，10% 上品 / 1% 极品 / 0.1% 仙品。</p></div>
+        <div class="card"><span class="tag">药品</span><h3>止血绷带</h3><p>瞬间恢复 6 HP。</p></div>
+        <div class="card"><span class="tag">药品</span><h3>金盾丹</h3><p>抗性提升 X 12 秒。</p></div>
+        <div class="card"><span class="tag">料理</span><h3>酒桶</h3><p>90% 酒 / 9.9% 佳酿 / 0.1% 金樽清酒（死亡可复活）。</p></div>
+        <div class="card"><span class="tag">料理</span><h3>快餐</h3><p>汉堡、热狗、披萨、薄饼……</p></div>
+        <div class="card"><span class="tag">水果</span><h3>22 种水果</h3><p>草莓、蓝莓、荔枝、龙眼……各有树苗，果树会长果子。</p></div>
+        <div class="card"><span class="tag">材料</span><h3>食材</h3><p>辣椒、洋葱、卷心菜、黄油，还有「大便」。</p></div>
+      </div>
+      <div class="cmd">
+        <div class="cmd-item"><span class="c">配置 EnablePlants</span><span class="d">水果 / 树苗系统开关</span></div>
+        <div class="cmd-item"><span class="c">配置 ResourcePackUrl</span><span class="d">资源包下载地址</span></div>
+        <div class="cmd-item"><span class="c">config.yml</span><span class="d">OpenSea 世界、重置、地图名</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 指令 -->
+  <section id="cmd">
+    <h2 class="section-title">指令</h2>
+    <p class="section-sub">权限 <code>ArmsorPlus.op</code>（默认 OP）</p>
+    <div class="cmd">
+      <div class="cmd-item"><span class="c">/ArmsorPlus help</span><span class="d">查看帮助</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus info</span><span class="d">插件信息</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus guide</span><span class="d">获得向导书</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus give &lt;item&gt; [amount] [level]</span><span class="d">给予物品 / 附魔书</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus spawn &lt;boss&gt;</span><span class="d">召唤 BOSS</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus getEnchantmentLevel &lt;enchant&gt;</span><span class="d">查看附魔等级</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus removeEnchant &lt;enchant|all&gt;</span><span class="d">移除附魔</span></div>
+      <div class="cmd-item"><span class="c">/ArmsorPlus reloadmap</span><span class="d">重载公海地图</span></div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>ArmsorPlus v0.3-J · 作者 Dim_LJR · 源码开放，不可用于商业用途</p>
+  <p><a href="https://github.com/LJRDE">GitHub</a> · Paper / Purpur 1.21+ · 零前置依赖</p>
+</footer>
+
+<script>
+  // 附魔分类折叠
+  function toggle(head) {
+    head.parentElement.classList.toggle('open');
+  }
+
+  // 滚动进入动画
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.card, .boss-card, .enchant-wrap, .weapon-group, .section-title, .stat, .cmd').forEach(el => {
+    el.classList.add('reveal');
+    io.observe(el);
+  });
+</script>
+
+</body>
+</html>

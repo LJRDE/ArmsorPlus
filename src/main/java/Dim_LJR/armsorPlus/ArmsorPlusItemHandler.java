@@ -3,15 +3,19 @@ package Dim_LJR.armsorPlus;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import org.bukkit.*;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -30,9 +34,7 @@ import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static Dim_LJR.armsorPlus.Food.FoodItems.*;
 import static org.bukkit.Material.*;
 
-/**
- * 处理所有自定义武器/物品的特殊效果。
- */
+// 处理所有自定义武器/物品的特殊效果。
 public class ArmsorPlusItemHandler implements Listener {
 
     private static final Map<UUID, Long> axeChargeStart = new HashMap<>();
@@ -44,19 +46,36 @@ public class ArmsorPlusItemHandler implements Listener {
     private static final Map<UUID, Integer> magicStickCooldown = new HashMap<>();
     private static final Random RANDOM = new Random();
 
+    // 玩家登出时清理冷却/状态, 防止 Map 泄漏
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        Integer task = axeChargeTask.remove(uuid);
+        if (task != null) Bukkit.getScheduler().cancelTask(task); // 取消飞斧蓄力任务
+        axeChargeStart.remove(uuid);
+        scepterCooldown.remove(uuid);
+        rainSwordCooldown.remove(uuid);
+        flashStepBladeCooldown.remove(uuid);
+        magicStickCooldown.remove(uuid);
+        flyingSwordActive.remove(uuid);
+    }
+
     // ========================================================================
     // 匕首: 保证额外5点伤害 (已通过属性修饰符实现，此处处理真实伤害)
     // ========================================================================
 
     @EventHandler
     public void onDaggerAttack(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, DaggerKey) == 0) return;
 
-        // 匕首固定额外5点"真实"伤害
+        // 匕首固定额外5点"真实"伤害 (计入玩家击杀, 前后检查目标是否死亡)
         if (event.getEntity() instanceof LivingEntity target) {
-            target.damage(5);
+            if (target.isDead()) return;
+            target.damage(5, player);
+            if (target.isDead()) return;
             target.getWorld().spawnParticle(Particle.SWEEP_ATTACK,
                     target.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0);
         }
@@ -69,6 +88,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onThrowingAxeClick(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, ThrowingAxeKey) == 0) return;
         Player player = event.getPlayer();
@@ -139,15 +159,17 @@ public class ArmsorPlusItemHandler implements Listener {
         player.sendActionBar("§6飞斧已掷出！");
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 1.2f);
 
-        // 消耗耐久
+        // 消耗耐久 (meta 可能为 null, 加保护)
         if (player.getGameMode() != org.bukkit.GameMode.CREATIVE) {
-            Damageable meta = (Damageable) axe.getItemMeta();
-            meta.setDamage(meta.getDamage() + 1);
-            if (meta.getDamage() >= axe.getType().getMaxDurability()) {
-                axe.setAmount(0);
-                player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
-            } else {
-                axe.setItemMeta(meta);
+            ItemMeta axeMeta = axe.getItemMeta();
+            if (axeMeta instanceof Damageable meta) {
+                meta.setDamage(meta.getDamage() + 1);
+                if (meta.getDamage() >= axe.getType().getMaxDurability()) {
+                    axe.setAmount(0);
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                } else {
+                    axe.setItemMeta(meta);
+                }
             }
         }
 
@@ -169,8 +191,13 @@ public class ArmsorPlusItemHandler implements Listener {
                 loc.getWorld().spawnParticle(Particle.SWEEP_ATTACK, loc, 1, 0.3, 0, 0.3, 0);
 
                 for (Entity entity : loc.getWorld().getNearbyEntities(loc, 1.5, 1.5, 1.5)) {
-                    if (entity instanceof LivingEntity target && target != player) {
+                    if (entity instanceof LivingEntity target && target != player && !target.isDead()) {
                         target.damage(20, player);
+                        if (target.isDead()) { // 目标已被飞斧击杀, 直接结束
+                            projectile.remove();
+                            cancel();
+                            return;
+                        }
                         loc.getWorld().spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0);
                         loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.0f);
                         projectile.remove();
@@ -198,11 +225,15 @@ public class ArmsorPlusItemHandler implements Listener {
 
         int cd = scepterCooldown.getOrDefault(uuid, 0);
         if (cd > 0) {
-            player.sendActionBar("§c权杖冷却中... " + cd / 20 + "秒");
+            player.sendActionBar("§c权杖冷却中... " + (cd + 19) / 20 + "秒"); // 向上取整, 避免显示0秒
             return;
         }
 
-        Location target = player.getTargetBlock(null, 30).getLocation().add(0.5, 1, 0.5);
+        // 瞄准天空/虚空时 getTargetBlock 可能返回 null, 回退为面前方向10格
+        Block targetBlock = player.getTargetBlock(null, 30);
+        Location target = (targetBlock != null ? targetBlock.getLocation()
+                : player.getLocation().add(player.getEyeLocation().getDirection().multiply(10)))
+                .add(0.5, 1, 0.5);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_SHOOT, 1.0f, 0.5f);
 
         new BukkitRunnable() {
@@ -240,8 +271,12 @@ public class ArmsorPlusItemHandler implements Listener {
             @Override
             public void run() {
                 remaining--;
-                scepterCooldown.put(uuid, Math.max(0, remaining));
-                if (remaining <= 0) cancel();
+                if (remaining <= 0) {
+                    scepterCooldown.remove(uuid); // 冷却结束移除条目, 避免 Map 泄漏
+                    cancel();
+                } else {
+                    scepterCooldown.put(uuid, remaining);
+                }
             }
         }.runTaskTimer(getplugin, 1L, 1L);
     }
@@ -263,9 +298,9 @@ public class ArmsorPlusItemHandler implements Listener {
         UUID uuid = player.getUniqueId();
 
         int cd = magicStickCooldown.getOrDefault(uuid, 0);
-        //if (cd > 0) {
-        //    return; // 冷却中,静默阻止
-        //}
+        if (cd > 0) {
+            return; // 冷却中,静默阻止
+        }
 
         // 发射魔法球 (SmallFireball直射)
         SmallFireball fireball = player.launchProjectile(SmallFireball.class);
@@ -299,8 +334,12 @@ public class ArmsorPlusItemHandler implements Listener {
             @Override
             public void run() {
                 remaining--;
-                magicStickCooldown.put(uuid, Math.max(0, remaining));
-                if (remaining <= 0) cancel();
+                if (remaining <= 0) {
+                    magicStickCooldown.remove(uuid); // 冷却结束移除条目, 避免 Map 泄漏
+                    cancel();
+                } else {
+                    magicStickCooldown.put(uuid, remaining);
+                }
             }
         }.runTaskTimer(getplugin, 1L, 1L);
     }
@@ -449,20 +488,30 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onQuickThrustUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null) return;
-        if (item.getType() != TRIDENT && ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) == 0) return;
+        // 疾刺仅对三叉戟/长矛(火焰戟同为三叉戟材质)生效
+        if (item.getType() != TRIDENT) return;
 
         int level = ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
         if (level == 0) return;
 
         event.setCancelled(true);
         Player player = event.getPlayer();
-        double speedBoost = level * 0.1; // 10% * level
         int duration = 60 + level * 20; // 基础60 ticks + 每级20 ticks
 
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration,
-                (int) (speedBoost / 0.2) - 1, false, false));
+        // 疾刺: 移动速度提升 level*10% (ADD_SCALAR 真实百分比修饰符)
+        org.bukkit.attribute.AttributeInstance speedAttr = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MOVEMENT_SPEED);
+        if (speedAttr != null) {
+            org.bukkit.attribute.AttributeModifier speedMod = new org.bukkit.attribute.AttributeModifier(
+                    new NamespacedKey(getplugin, "ArmsorPlus_QuickThrustSpeed"),
+                    0.1 * level, org.bukkit.attribute.AttributeModifier.Operation.ADD_SCALAR,
+                    org.bukkit.inventory.EquipmentSlotGroup.HAND);
+            speedAttr.addTransientModifier(speedMod);
+            Bukkit.getScheduler().runTaskLater(getplugin, () -> speedAttr.removeTransientModifier(speedMod), duration);
+        }
+
         player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 10, 0.3, 0.1, 0.3, 0.05);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 0.5f, 1.8f);
         player.sendActionBar("§e⚡ 疾刺！速度提升 " + (level * 10) + "%");
@@ -489,12 +538,13 @@ public class ArmsorPlusItemHandler implements Listener {
     }
 
     // ========================================================================
-    // 雨御前: 右键3秒隐身+无敌+周围生物缓慢255/挖掘疲劳3秒 (冷却15s)
+    // 雨御前: 右键3秒隐身+无敌+周围生物缓慢255/挖掘疲劳3秒 (冷却10s)
     // ========================================================================
 
     @EventHandler
     public void onRainSwordUse(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null || ArmsorEnchant.getEnchantLevel(item, RainSwordKey) == 0) return;
 
@@ -504,7 +554,7 @@ public class ArmsorPlusItemHandler implements Listener {
 
         int cd = rainSwordCooldown.getOrDefault(uuid, 0);
         if (cd > 0) {
-            player.sendActionBar("§c雨御前冷却中... " + cd / 20 + "秒");
+            player.sendActionBar("§c雨御前冷却中... " + (cd + 19) / 20 + "秒");
             return;
         }
 
@@ -533,14 +583,18 @@ public class ArmsorPlusItemHandler implements Listener {
             }
         }.runTaskLater(getplugin, 60L);
 
-        rainSwordCooldown.put(uuid, 300); // 15秒冷却
+        rainSwordCooldown.put(uuid, 200); // 10秒冷却
         new BukkitRunnable() {
-            int remaining = 300;
+            int remaining = 200;
             @Override
             public void run() {
                 remaining--;
-                rainSwordCooldown.put(uuid, Math.max(0, remaining));
-                if (remaining <= 0) cancel();
+                if (remaining <= 0) {
+                    rainSwordCooldown.remove(uuid); // 冷却结束移除条目, 避免 Map 泄漏
+                    cancel();
+                } else {
+                    rainSwordCooldown.put(uuid, remaining);
+                }
             }
         }.runTaskTimer(getplugin, 1L, 1L);
     }
@@ -562,7 +616,7 @@ public class ArmsorPlusItemHandler implements Listener {
         Boolean active = flyingSwordActive.getOrDefault(uuid, false);
         if (active) {
             // 停止飞行
-            flyingSwordActive.put(uuid, false);
+            flyingSwordActive.remove(uuid); // 移除状态条目, 避免 Map 泄漏
             player.setFlying(false);
             player.setAllowFlight(false);
             player.setFlySpeed(0.1f);
@@ -581,19 +635,20 @@ public class ArmsorPlusItemHandler implements Listener {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if (!flyingSwordActive.getOrDefault(uuid, false) || !player.isOnline()) {
-                        if (player.isOnline()) {
+                    if (!flyingSwordActive.getOrDefault(uuid, false) || !player.isOnline() || player.isDead()) {
+                        if (player.isOnline() && !player.isDead()) {
                             player.setFlying(false);
                             player.setAllowFlight(false);
                             player.setFlySpeed(0.1f);
                         }
+                        flyingSwordActive.remove(uuid);
                         cancel();
                         return;
                     }
                     // 切物品自动取消飞行
                     ItemStack currentItem = player.getInventory().getItemInMainHand();
                     if (ArmsorEnchant.getEnchantLevel(currentItem, FlyingSwordKey) == 0) {
-                        flyingSwordActive.put(uuid, false);
+                        flyingSwordActive.remove(uuid); // 移除状态条目
                         player.setFlying(false);
                         player.setAllowFlight(false);
                         player.setFlySpeed(0.1f);
@@ -631,7 +686,7 @@ public class ArmsorPlusItemHandler implements Listener {
 
         int cd = flashStepBladeCooldown.getOrDefault(uuid, 0);
         if (cd > 0) {
-            player.sendActionBar("§c瞬步刃冷却中... " + cd / 20 + "秒");
+            player.sendActionBar("§c瞬步刃冷却中... " + (cd + 19) / 20 + "秒");
             return;
         }
 
@@ -659,7 +714,9 @@ public class ArmsorPlusItemHandler implements Listener {
             if (safeLoc != null) {
                 player.teleport(safeLoc);
             }
+            if (target.isDead()) return; // 目标已死亡则跳过
             target.damage(15, player);
+            if (target.isDead()) return; // 目标被击杀则停止后续特效
             target.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, target.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
             target.getWorld().playSound(target.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
             player.sendActionBar("§5瞬步！已闪至目标身后");
@@ -683,15 +740,17 @@ public class ArmsorPlusItemHandler implements Listener {
             @Override
             public void run() {
                 remaining--;
-                flashStepBladeCooldown.put(uuid, Math.max(0, remaining));
-                if (remaining <= 0) cancel();
+                if (remaining <= 0) {
+                    flashStepBladeCooldown.remove(uuid); // 冷却结束移除条目, 避免 Map 泄漏
+                    cancel();
+                } else {
+                    flashStepBladeCooldown.put(uuid, remaining);
+                }
             }
         }.runTaskTimer(getplugin, 1L, 1L);
     }
 
-    /**
-     * 更新武器Lore中的剩余次数显示
-     */
+    // 更新武器Lore中的剩余次数显示
     private static void updateUsesLore(ItemStack item, int uses) {
         if (item == null || !item.hasItemMeta()) return;
         ItemMeta meta = item.getItemMeta();
@@ -707,9 +766,7 @@ public class ArmsorPlusItemHandler implements Listener {
         item.setItemMeta(meta);
     }
 
-    /**
-     * 寻找安全传送位置: 向上搜索5格寻找双脚和头部均可通行的位置
-     */
+    // 寻找安全传送位置: 向上搜索5格寻找双脚和头部均可通行的位置
     private static Location findSafeTeleportLocation(Location base) {
         for (int yOffset = 0; yOffset <= 5; yOffset++) {
             Location check = base.clone().add(0, yOffset, 0);
@@ -746,6 +803,8 @@ public class ArmsorPlusItemHandler implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         ItemStack bow = event.getBow();
         if (bow == null || ArmsorEnchant.getEnchantLevel(bow, WebBowKey) == 0) return;
+        // 给箭打标记, 命中时不再依赖主手判断
+        event.getProjectile().setMetadata("WebBow", new FixedMetadataValue(getplugin, true));
 
         // PDC使用次数管理
         int uses = ArmsorEnchant.getEnchantLevel(bow, WebBowUsesKey);
@@ -764,8 +823,8 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onWebBowHit(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Arrow arrow)) return;
+        if (!arrow.hasMetadata("WebBow")) return;
         if (!(arrow.getShooter() instanceof Player player)) return;
-        if (ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInMainHand(), WebBowKey) == 0) return;
 
         Location loc = event.getEntity().getLocation();
         World world = loc.getWorld();
@@ -795,6 +854,8 @@ public class ArmsorPlusItemHandler implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         ItemStack bow = event.getBow();
         if (bow == null || ArmsorEnchant.getEnchantLevel(bow, ExplosionBowKey) == 0) return;
+        // 给箭打标记, 命中时不再依赖主手判断
+        event.getProjectile().setMetadata("ExplosionBow", new FixedMetadataValue(getplugin, true));
 
         // PDC使用次数管理
         int uses = ArmsorEnchant.getEnchantLevel(bow, ExplosionBowUsesKey);
@@ -813,8 +874,8 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onExplosionBowHit(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Arrow arrow)) return;
+        if (!arrow.hasMetadata("ExplosionBow")) return;
         if (!(arrow.getShooter() instanceof Player player)) return;
-        if (ArmsorEnchant.getEnchantLevel(player.getInventory().getItemInMainHand(), ExplosionBowKey) == 0) return;
 
         Location loc = event.getEntity().getLocation();
         loc.getWorld().createExplosion(loc, 2.0f, false, false);
@@ -825,14 +886,14 @@ public class ArmsorPlusItemHandler implements Listener {
     // 鱼骨系列武器特效
     // ========================================================================
 
-    /** 检查玩家是否露天（用于雨天判定） */
+    // 检查玩家是否露天（用于雨天判定）
     private boolean isExposedToRain(Player player) {
         if (!player.getWorld().hasStorm()) return false;
         Location loc = player.getLocation();
         return loc.getWorld().getHighestBlockYAt(loc) <= loc.getBlockY();
     }
 
-    /** 检查玩家是否处于雨天环境 */
+    // 检查玩家是否处于雨天环境
     private boolean isInRain(Player player) {
         return player.getWorld().hasStorm() && isExposedToRain(player);
     }
@@ -866,6 +927,7 @@ public class ArmsorPlusItemHandler implements Listener {
 
     @EventHandler
     public void onSpiritBoneSwordAttack(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SpiritBoneSwordKey) == 0) return;
@@ -873,7 +935,9 @@ public class ArmsorPlusItemHandler implements Listener {
 
         target.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, false, false));
         if ((player.isInWater() || isInRain(player)) && RANDOM.nextDouble() < 0.15) {
+            if (target.isDead()) return; // 前: 目标已死亡则跳过
             target.damage(6.0, player);
+            if (target.isDead()) return; // 后: 目标被击杀则停止特效
             target.getWorld().spawnParticle(Particle.SOUL,
                     target.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.05);
         }
@@ -945,14 +1009,18 @@ public class ArmsorPlusItemHandler implements Listener {
 
     @EventHandler
     public void onSpiritSpineSwordAttack(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SpiritSpineSwordKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
 
+        if (target.isDead()) return; // 前: 目标已死亡则跳过
         target.damage(1.0, player);
+        if (target.isDead()) return; // 后: 目标被第一段伤害击杀则停止
         if (player.isInWater() || isInRain(player)) {
             target.damage(2.0, player);
+            if (target.isDead()) return; // 后: 目标被第二段伤害击杀则停止
         }
         target.getWorld().spawnParticle(Particle.CRIT,
                 target.getLocation().add(0, 1, 0), 5, 0.2, 0.2, 0.2, 0);
@@ -1040,9 +1108,7 @@ public class ArmsorPlusItemHandler implements Listener {
 
     // ---- 鱼骨武器升级配方: 附魔后仍可通过PDC识别原料 ----
 
-    /**
-     * 当 ExactChoice 无法匹配附魔后的武器时，手动检测合成矩阵并设置结果。
-     */
+    // 当 ExactChoice 无法匹配附魔后的武器时，手动检测合成矩阵并设置结果。
     @EventHandler
     public void onFishBoneUpgradeCraft(PrepareItemCraftEvent event) {
         ItemStack[] m = event.getInventory().getMatrix();
@@ -1060,7 +1126,7 @@ public class ArmsorPlusItemHandler implements Listener {
         }
     }
 
-    /** 尝试匹配鱼骨升级配方，返回结果物品或 null */
+    // 尝试匹配鱼骨升级配方，返回结果物品或 null
     private ItemStack tryBuildUpgrade(ItemStack[] m, ItemStack center) {
         // 鱼刺剑: 4骨块(角)+4海晶沙粒(边)+鱼骨剑(中心)
         if (hasKey(center, FishBoneSwordKey)
@@ -1120,19 +1186,19 @@ public class ArmsorPlusItemHandler implements Listener {
         return ArmsorEnchant.getEnchantLevel(item, key) > 0;
     }
 
-    /** 检查四角(A=0, C=2, G=6, I=8)是否全为指定材质 */
+    // 检查四角(A=0, C=2, G=6, I=8)是否全为指定材质
     private boolean isCorners(ItemStack[] m, Material mat) {
         return isMat(m[0], mat) && isMat(m[2], mat)
                 && isMat(m[6], mat) && isMat(m[8], mat);
     }
 
-    /** 检查四边(B=1, D=3, F=5, H=7)是否全为指定材质 */
+    // 检查四边(B=1, D=3, F=5, H=7)是否全为指定材质
     private boolean isEdges(ItemStack[] m, Material mat) {
         return isMat(m[1], mat) && isMat(m[3], mat)
                 && isMat(m[5], mat) && isMat(m[7], mat);
     }
 
-    /** 检查除中心外的8格是否全为指定材质 */
+    // 检查除中心外的8格是否全为指定材质
     private boolean isAllSurrounding(ItemStack[] m, Material mat) {
         for (int i = 0; i < 9; i++) {
             if (i == 4) continue;
@@ -1141,7 +1207,7 @@ public class ArmsorPlusItemHandler implements Listener {
         return true;
     }
 
-    /** 检查除中心和指定位置外的7格是否全为指定材质 */
+    // 检查除中心和指定位置外的7格是否全为指定材质
     private boolean isAllExcept(ItemStack[] m, int except, Material mat) {
         for (int i = 0; i < 9; i++) {
             if (i == 4 || i == except) continue;
@@ -1152,5 +1218,115 @@ public class ArmsorPlusItemHandler implements Listener {
 
     private boolean isMat(ItemStack item, Material mat) {
         return item != null && item.getType() == mat;
+    }
+
+    // ========================================================================
+    // 幻影之刃 —— 幻影分身 / 幻影假身
+    // ========================================================================
+
+    // 攻击时35%召唤幻影分身, 额外3点真实伤害
+    @EventHandler
+    public void onIllusionBladeAttack(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) return;
+        if (!(event.getDamager() instanceof Player player)) return;
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (ArmsorEnchant.getEnchantLevel(weapon, IllusionBladeKey) == 0) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        if (RANDOM.nextInt(100) < 35) {
+            if (target.isDead()) return;
+            target.damage(3, player); // 幻影分身真实伤害
+            target.getWorld().spawnParticle(Particle.PORTAL,
+                    target.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.1);
+            player.sendActionBar("§d⚔ 幻影分身！额外 3 点真实伤害");
+        }
+    }
+
+    // 击杀时25%生成幻影假身吸引附近怪物
+    @EventHandler
+    public void onIllusionBladeKill(EntityDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (entity instanceof Player) return;
+        Entity killer = entity.getKiller();
+        if (!(killer instanceof Player player)) return;
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (ArmsorEnchant.getEnchantLevel(weapon, IllusionBladeKey) == 0) return;
+
+        if (RANDOM.nextInt(100) >= 25) return;
+        Location loc = entity.getLocation();
+        World world = loc.getWorld();
+        // 生成幻影假身 (盔甲架标记, 5秒后消失)
+        ArmorStand clone = world.spawn(loc, ArmorStand.class, s -> {
+            s.setVisible(false);
+            s.setGravity(false);
+            s.setInvulnerable(true);
+            s.setMarker(true);
+            s.setMetadata("ArmsorPlus_IllusionClone", new FixedMetadataValue(getplugin, player.getUniqueId().toString()));
+        });
+        // 附近怪物把假身当目标
+        for (Entity e : world.getNearbyEntities(loc, 10, 10, 10)) {
+            if (e instanceof Mob mob && !(e instanceof Player)) {
+                mob.setTarget(clone);
+            }
+        }
+        world.spawnParticle(Particle.PORTAL, loc.add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.2);
+        player.sendActionBar("§d🫥 幻影假身！附近怪物被迷惑了");
+        Bukkit.getScheduler().runTaskLater(getplugin, clone::remove, 100L);
+    }
+
+    // ========================================================================
+    // 幻惑法杖 —— 失明攻击 / 幻术飞弹
+    // ========================================================================
+
+    // 近战攻击30%使目标失明
+    @EventHandler
+    public void onIllusionStaffAttack(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()) return;
+        if (!(event.getDamager() instanceof Player player)) return;
+        ItemStack weapon = player.getInventory().getItemInMainHand();
+        if (ArmsorEnchant.getEnchantLevel(weapon, IllusionStaffKey) == 0) return;
+        if (!(event.getEntity() instanceof LivingEntity target)) return;
+
+        if (RANDOM.nextInt(100) < 30) {
+            target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, false, true));
+            target.getWorld().spawnParticle(Particle.WITCH,
+                    target.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.1);
+            player.sendActionBar("§b🌀 幻惑！目标陷入失明");
+        }
+    }
+
+    // 右键发射幻术飞弹
+    @EventHandler
+    public void onIllusionStaffRightClick(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, IllusionStaffKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        Snowball missile = player.launchProjectile(Snowball.class);
+        missile.setMetadata("ArmsorPlus_IllusionStaff", new FixedMetadataValue(getplugin, true));
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_EVOKER_CAST_SPELL, 1.0f, 1.0f);
+        player.getWorld().spawnParticle(Particle.WITCH, player.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.1);
+    }
+
+    // 幻术飞弹命中: 10点魔法伤害 + 反胃 + 失明
+    @EventHandler
+    public void onIllusionStaffHit(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Snowball snowball)) return;
+        if (!snowball.hasMetadata("ArmsorPlus_IllusionStaff")) return;
+
+        if (event.getHitEntity() instanceof LivingEntity target
+                && snowball.getShooter() instanceof Player player) {
+            if (target.isDead()) return;
+            target.damage(10, player);
+            target.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, false, true));
+            target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0, false, true));
+            target.getWorld().spawnParticle(Particle.WITCH,
+                    target.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.1);
+            player.sendActionBar("§b🌀 幻术飞弹命中！");
+        }
+        snowball.remove();
     }
 }

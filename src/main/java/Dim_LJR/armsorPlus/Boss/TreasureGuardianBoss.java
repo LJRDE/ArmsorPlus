@@ -19,12 +19,9 @@ import org.bukkit.util.Vector;
 
 import java.util.Random;
 
-/**
- * 宝藏守护者 —— BOSS版本
- * <p>
- * 骷髅战士，手持重剑，拥有冰冻能力和极高移速。
- * BOSS版本血量250，公海版本血量不变(60)。
- */
+// 宝藏守护者 —— BOSS版本
+// 骷髅战士，手持重剑，拥有冰冻能力和极高移速。
+// BOSS版本血量250，公海版本血量不变(60)。
 public class TreasureGuardianBoss {
 
     private static final double MAX_HEALTH = 250;
@@ -129,10 +126,11 @@ public class TreasureGuardianBoss {
                     return;
                 }
 
+                // 薄封装: 同步原生血量, 原版骷髅AI负责追击/近战
+                BossMenu.syncBossHealth(BossMenu.BossType.TREASURE_GUARDIAN,
+                        bossEntity.getHealth(),
+                        bossEntity.getAttribute(Attribute.MAX_HEALTH).getValue());
                 BossMenu.updateBossBar(BossMenu.BossType.TREASURE_GUARDIAN);
-
-                double hpPercent = BossMenu.getBossHealth(BossMenu.BossType.TREASURE_GUARDIAN) / MAX_HEALTH;
-                bossBar.setProgress(Math.max(0, hpPercent));
 
                 Player target = findNearestPlayer();
                 if (target == null) {
@@ -143,16 +141,13 @@ public class TreasureGuardianBoss {
                     return;
                 }
                 tick = 0;
+                bossEntity.setTarget(target); // 原生AI索敌
 
-                // 看向并追击目标
-                lookAtTarget(target.getLocation());
-                bossEntity.setTarget(target);
-
+                // 周期性技能触发 (冰冻斩/冰霜领域/冲撞)
                 if (attackCooldown > 0) {
                     attackCooldown--;
                     return;
                 }
-
                 int r = RANDOM.nextInt(4);
                 switch (r) {
                     case 0 -> iceSlash(target);
@@ -160,7 +155,6 @@ public class TreasureGuardianBoss {
                     case 2 -> chargeAttack(target);
                     case 3 -> iceSlash(target);
                 }
-
                 attackCooldown = 4 + RANDOM.nextInt(4);
             }
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 10L);
@@ -403,12 +397,6 @@ public class TreasureGuardianBoss {
         return nearest;
     }
 
-    private static void lookAtTarget(Location target) {
-        if (bossEntity == null) return;
-        Location loc = bossEntity.getLocation().clone();
-        loc.setDirection(target.toVector().subtract(loc.toVector()));
-        bossEntity.teleport(loc);
-    }
 
     public static boolean isAlive() { return bossAlive; }
 

@@ -4,20 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- * 插件全局 NamespacedKey 注册表。
- * <p>
- * 所有自定义附魔、强化石、标记等使用的 PDC 键在此统一注册和管理。
- * 必须在插件启动时先调用 {@link Keys#regkey(JavaPlugin)} 初始化。
- */
+// 插件全局 NamespacedKey 注册表。
+// 所有自定义附魔、强化石、标记等使用的 PDC 键在此统一注册和管理。
+// 必须在插件启动时先调用 {@link Keys#regkey(JavaPlugin)} 初始化。
 public class NamespaceKey {
 
-    /**
-     * 所有 NamespacedKey 的静态声明与初始化。
-     * <p>
-     * 使用方式: 在 Main 类的 onEnable 中调用 {@code NamespaceKey.Keys.regkey(this)}，
-     * 然后全局通过 {@code NamespaceKey.Keys.xxxkey} 访问。
-     */
+    // 所有 NamespacedKey 的静态声明与初始化。
+    // 使用方式: 在 Main 类的 onEnable 中调用 {@code NamespaceKey.Keys.regkey(this)}，
+    // 然后全局通过 {@code NamespaceKey.Keys.xxxkey} 访问。
     public static class Keys {
         public static JavaPlugin getplugin;
 
@@ -191,25 +185,11 @@ public class NamespaceKey {
         // ---- 新食物键 (0.3I+) ----
         public static NamespacedKey BurgerKey;
         public static NamespacedKey HotDogKey;
-        public static NamespacedKey PizzaKey;
-        public static NamespacedKey FrenchFriesKey;
-        public static NamespacedKey DonutKey;
-        public static NamespacedKey IceCreamKey;
-        public static NamespacedKey PopcornKey;
-        public static NamespacedKey CottonCandyKey;
-        public static NamespacedKey ChocolateKey;
-        public static NamespacedKey SushiKey;
-        public static NamespacedKey RamenKey;
-        public static NamespacedKey SandwichKey;
-        public static NamespacedKey DrumstickKey;
-        public static NamespacedKey CheeseKey;
-        public static NamespacedKey PancakeKey;
 
         // ---- 新食材/物品键 ----
         public static NamespacedKey ChiliKey;
         public static NamespacedKey OnionKey;
         public static NamespacedKey CabbageKey;
-        public static NamespacedKey ButterKey;
         public static NamespacedKey PoopKey;
         public static NamespacedKey GoldShieldElixirKey;
 
@@ -240,7 +220,7 @@ public class NamespaceKey {
         public static NamespacedKey SteelChestplateKey;
         public static NamespacedKey SteelLeggingsKey;
         public static NamespacedKey SteelBootsKey;
-        public static NamespacedKey SkeletonKingBowKey;
+
         public static NamespacedKey AmbushKey;
         public static NamespacedKey FireMarkKey;
         public static NamespacedKey FrostMarkKey;
@@ -249,9 +229,12 @@ public class NamespaceKey {
 
         // ---- 物品键 ----
         public static NamespacedKey SaltKey;
-        public static NamespacedKey EndCoreKey;
+        public static NamespacedKey IllusionerBoneKey;
+        public static NamespacedKey IllusionerScrapKey;
+        public static NamespacedKey IllusionBladeKey;
+        public static NamespacedKey IllusionStaffKey;
 
-        /** 初始化所有键 — 必须在插件 onEnable 中调用 */
+        // 初始化所有键 — 必须在插件 onEnable 中调用
         public static void regkey(JavaPlugin plugin) {
             getplugin = plugin;
             ScoreKey = new NamespacedKey(plugin,"ArmsorPlus_Score");
@@ -267,7 +250,7 @@ public class NamespaceKey {
             Bowkey = new NamespacedKey(plugin, "ArmsorPlus_Bow");
             DiamondPluskey = new NamespacedKey(plugin, "ArmsorPlus_DiamondPlus");
             GuideBookKey = new NamespacedKey(plugin, "ArmsorPlus_GuideBook");
-            BasicStone = new NamespacedKey(plugin, "ArmsorPlus_BasicStons");
+            BasicStone = new NamespacedKey(plugin, "ArmsorPlus_BasicStone");
 
             Feedingkey = new NamespacedKey(plugin, "ArmsorPlus_Feeding");
             MagicBallKey = new NamespacedKey(plugin, "ArmsorPlus_MagicBall");
@@ -362,24 +345,10 @@ public class NamespaceKey {
             // 0.3I+ 新食物
             BurgerKey = new NamespacedKey(plugin, "ArmsorPlus_Burger");
             HotDogKey = new NamespacedKey(plugin, "ArmsorPlus_HotDog");
-            PizzaKey = new NamespacedKey(plugin, "ArmsorPlus_Pizza");
-            FrenchFriesKey = new NamespacedKey(plugin, "ArmsorPlus_FrenchFries");
-            DonutKey = new NamespacedKey(plugin, "ArmsorPlus_Donut");
-            IceCreamKey = new NamespacedKey(plugin, "ArmsorPlus_IceCream");
-            PopcornKey = new NamespacedKey(plugin, "ArmsorPlus_Popcorn");
-            CottonCandyKey = new NamespacedKey(plugin, "ArmsorPlus_CottonCandy");
-            ChocolateKey = new NamespacedKey(plugin, "ArmsorPlus_Chocolate");
-            SushiKey = new NamespacedKey(plugin, "ArmsorPlus_Sushi");
-            RamenKey = new NamespacedKey(plugin, "ArmsorPlus_Ramen");
-            SandwichKey = new NamespacedKey(plugin, "ArmsorPlus_Sandwich");
-            DrumstickKey = new NamespacedKey(plugin, "ArmsorPlus_Drumstick");
-            CheeseKey = new NamespacedKey(plugin, "ArmsorPlus_Cheese");
-            PancakeKey = new NamespacedKey(plugin, "ArmsorPlus_Pancake");
 
             ChiliKey = new NamespacedKey(plugin, "ArmsorPlus_Chili");
             OnionKey = new NamespacedKey(plugin, "ArmsorPlus_Onion");
             CabbageKey = new NamespacedKey(plugin, "ArmsorPlus_Cabbage");
-            ButterKey = new NamespacedKey(plugin, "ArmsorPlus_Butter");
             PoopKey = new NamespacedKey(plugin, "ArmsorPlus_Poop");
             GoldShieldElixirKey = new NamespacedKey(plugin, "ArmsorPlus_GoldShieldElixir");
 
@@ -402,7 +371,10 @@ public class NamespaceKey {
             IceCoreKey = new NamespacedKey(plugin, "ArmsorPlus_IceCore");
             FireCoreKey = new NamespacedKey(plugin, "ArmsorPlus_FireCore");
             CorpseKingKey = new NamespacedKey(plugin, "ArmsorPlus_CorpseKing");
-            EndCoreKey = new NamespacedKey(plugin, "ArmsorPlus_EndCore");
+            IllusionerBoneKey = new NamespacedKey(plugin, "ArmsorPlus_IllusionerBone");
+            IllusionerScrapKey = new NamespacedKey(plugin, "ArmsorPlus_IllusionerScrap");
+            IllusionBladeKey = new NamespacedKey(plugin, "ArmsorPlus_IllusionBlade");
+            IllusionStaffKey = new NamespacedKey(plugin, "ArmsorPlus_IllusionStaff");
             RawSteelKey = new NamespacedKey(plugin, "ArmsorPlus_RawSteel");
             SteelIngotKey = new NamespacedKey(plugin, "ArmsorPlus_SteelIngot");
             SteelSwordKey = new NamespacedKey(plugin, "ArmsorPlus_SteelSword");
@@ -410,7 +382,7 @@ public class NamespaceKey {
             SteelChestplateKey = new NamespacedKey(plugin, "ArmsorPlus_SteelChestplate");
             SteelLeggingsKey = new NamespacedKey(plugin, "ArmsorPlus_SteelLeggings");
             SteelBootsKey = new NamespacedKey(plugin, "ArmsorPlus_SteelBoots");
-            SkeletonKingBowKey = new NamespacedKey(plugin, "ArmsorPlus_SkeletonKingBow");
+
             AmbushKey = new NamespacedKey(plugin, "ArmsorPlus_Ambush");
             FireMarkKey = new NamespacedKey(plugin, "ArmsorPlus_FireMark");
             FrostMarkKey = new NamespacedKey(plugin, "ArmsorPlus_FrostMark");
@@ -475,7 +447,7 @@ public class NamespaceKey {
         }
     }
 
-    /** 打印插件启动横幅 (ASCII Art) */
+    // 打印插件启动横幅 (ASCII Art)
     public static void banner() {
         Bukkit.getLogger().info(" █████╗ ██████╗ ███╗   ███╗███████╗ ██████╗ ██████╗ ");
         Bukkit.getLogger().info("██╔══██╗██╔══██╗████╗ ████║██╔════╝██╔═══██╗██╔══██╗");

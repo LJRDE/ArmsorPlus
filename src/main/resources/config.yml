@@ -2,3 +2,7 @@ OpenSeaName: OpenSea
 MapZipName: OpenSea.zip
 SpawnOpenSea: true
 AutoResetOpenSeaMap: true
+# 是否启用插件植物系统 (水果/树苗) — 关闭后在向导书中不显示相关物品
+EnablePlants: false已修复的
+# 资源包下载地址 (需为可直连的 .zip 文件 URL) — 设置后玩家可在设置菜单点击下载
+ResourcePackUrl: "https://github.com/LJRDE/ArmsorPlus/releases/download/0.3-J+/ArmsorPlusResourcesPack.zip"

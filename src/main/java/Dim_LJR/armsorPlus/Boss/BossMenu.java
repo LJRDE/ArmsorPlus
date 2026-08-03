@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -18,11 +19,8 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.*;
 
-/**
- * BOSS清单 GUI + 全局BOSS战斗系统。
- * <p>
- * 管理BOSS召唤界面、躯干部位伤害重定向、元素反应逻辑。
- */
+// BOSS清单 GUI + 全局BOSS战斗系统。
+// 管理BOSS召唤界面、躯干部位伤害重定向、元素反应逻辑。
 public class BossMenu implements Listener {
 
     private static Inventory bossList;
@@ -31,11 +29,11 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, ZOMBIE_GIANT, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, VOID_WRAITH, ILLUSIONER }
+    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER }
 
-    /** 身体部位实体 -> BOSS类型 */
+    // 身体部位实体 -> BOSS类型
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
-    /** 核心部位实体 -> BOSS类型 */
+    // 核心部位实体 -> BOSS类型
     public static final Map<UUID, BossType> BOSS_CORE_PARTS = new HashMap<>();
 
     private static final Map<BossType, Double> bossHealth = new HashMap<>();
@@ -49,7 +47,7 @@ public class BossMenu implements Listener {
     // 注册 / 注销 API
     // ========================================================================
 
-    /** 注册BOSS实体与血条 */
+    // 注册BOSS实体与血条
     public static void registerBoss(BossType type, LivingEntity entity, double maxHp, BossBar bar) {
         bossEntities.put(type, entity);
         bossMaxHealth.put(type, maxHp);
@@ -62,47 +60,52 @@ public class BossMenu implements Listener {
         }
     }
 
-    /** 注册身体部位实体 */
+    // 注册身体部位实体
     public static void registerBodyStand(BossType type, UUID entityId) {
         BOSS_BODY_PARTS.put(entityId, type);
         bossAllStands.computeIfAbsent(type, k -> new HashSet<>()).add(entityId);
     }
 
-    /** 注册核心部位实体 */
+    // 注册核心部位实体
     public static void registerCoreStand(BossType type, UUID entityId) {
         BOSS_CORE_PARTS.put(entityId, type);
         bossAllStands.computeIfAbsent(type, k -> new HashSet<>()).add(entityId);
     }
 
-    /** 将核心实体从核心降级为普通身体部位 */
+    // 将核心实体从核心降级为普通身体部位
     public static void downgradeCoreToBody(BossType type, UUID entityId) {
         BOSS_CORE_PARTS.remove(entityId);
         BOSS_BODY_PARTS.put(entityId, type);
     }
 
-    /** 将实体从普通身体升级为核心 */
+    // 将实体从普通身体升级为核心
     public static void upgradeBodyToCore(BossType type, UUID entityId) {
         BOSS_BODY_PARTS.remove(entityId);
         BOSS_CORE_PARTS.put(entityId, type);
     }
 
-    /** 获取BOSS当前血量 */
+    // 获取BOSS当前血量
     public static double getBossHealth(BossType type) {
         return bossHealth.getOrDefault(type, 0.0);
     }
 
-    /** 获取BOSS最大血量 */
+    // 获取BOSS最大血量
     public static double getBossMaxHealth(BossType type) {
         return bossMaxHealth.getOrDefault(type, 1.0);
     }
 
-    /** 同步实体实际血量到追踪系统 (幻术师等使用原生血量的Boss) */
+    // 同步实体实际血量到追踪系统 (幻术师等使用原生血量的Boss)
     public static void syncBossHealth(BossType type, double health, double maxHealth) {
         bossHealth.put(type, health);
         bossMaxHealth.put(type, maxHealth);
     }
 
-    /** 对BOSS造成伤害 (返回true表示BOSS死亡) */
+    // 更新Boss追踪的主实体 (双实体Boss在坐骑死亡后切换到骑士)
+    public static void setBossEntity(BossType type, LivingEntity entity) {
+        bossEntities.put(type, entity);
+    }
+
+    // 对BOSS造成伤害 (返回true表示BOSS死亡)
     public static boolean damageBoss(BossType type, double damage, Entity damager) {
         Double current = bossHealth.get(type);
         Double maxHp = bossMaxHealth.get(type);
@@ -139,11 +142,9 @@ public class BossMenu implements Listener {
                 case CRYO -> CryoRegisvine.onDeath();
                 case PYRO -> PyroRegisvine.onDeath();
                 case SLIME -> SlimeBoss.onDeath();
-                case ZOMBIE_GIANT -> ZombieGiantBoss.onDeath();
                 case BABY_ZOMBIE_DOUBLE -> BabyZombieDoubleBoss.onDeath();
                 case TREASURE_GUARDIAN -> TreasureGuardianBoss.onDeath();
                 case SKELETON_KING -> SkeletonKing.onDeath();
-                case VOID_WRAITH -> VoidWraith.onDeath();
                 case ILLUSIONER -> IllusionerBoss.onDeath();
             }
             return true;
@@ -151,7 +152,7 @@ public class BossMenu implements Listener {
         return false;
     }
 
-    /** 清理BOSS所有跟踪数据 */
+    // 清理BOSS所有跟踪数据
     public static void unregisterBoss(BossType type) {
         Set<UUID> stands = bossAllStands.remove(type);
         if (stands != null) {
@@ -167,7 +168,7 @@ public class BossMenu implements Listener {
         bossEntities.remove(type);
     }
 
-    /** 更新BOSS血条可见范围 (150格) */
+    // 更新BOSS血条可见范围 (150格)
     public static void updateBossBar(BossType type) {
         BossBar bar = bossBars.get(type);
         LivingEntity entity = bossEntities.get(type);
@@ -211,6 +212,10 @@ public class BossMenu implements Listener {
         if (type == BossType.SKELETON_KING) {
             return; // 原版伤害，AI循环读实体血量
         }
+        // 原生实体薄封装: 史莱姆王/小僵尸Double/宝藏守护者 使用原生血量+原生AI, 不重定向伤害
+        if (type == BossType.SLIME || type == BossType.BABY_ZOMBIE_DOUBLE || type == BossType.TREASURE_GUARDIAN) {
+            return;
+        }
 
         // 无条件取消伤害 —— 防止实体实际血量被非玩家来源扣除致死
         event.setCancelled(true);
@@ -241,7 +246,7 @@ public class BossMenu implements Listener {
             if (damager instanceof Player player) {
                 player.sendMessage("§c✦ 命中核心！造成大量伤害！");
             }
-            damageBoss(type, dmg, damager);
+            damageBoss(type, dmg * 2.0, damager);
             return;
         }
 
@@ -279,6 +284,21 @@ public class BossMenu implements Listener {
     }
 
     // ========================================================================
+    // 传送门拦截 (BOSS不能穿过下界/末地传送门)
+    // ========================================================================
+
+    @EventHandler
+    public void onBossPortal(EntityPortalEvent event) {
+        Entity entity = event.getEntity();
+        // 拦截所有已追踪的BOSS本体/身体部位/核心实体传送
+        if (BOSS_BODY_PARTS.containsKey(entity.getUniqueId())
+                || BOSS_CORE_PARTS.containsKey(entity.getUniqueId())
+                || findBossTypeByEntity(entity.getUniqueId()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    // ========================================================================
     // BOSS清单界面
     // ========================================================================
 
@@ -310,7 +330,6 @@ public class BossMenu implements Listener {
                 "§c❤ 生命值: 700",
                 "§b❄ 核心: 雪人",
                 "§e✦ 攻击树状盔甲架转移伤害至核心",
-                "§6⚡ 火焰/雷电伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",
                 "§7(请在空旷处召唤)"
@@ -334,7 +353,7 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         slime.setItemMeta(slimeMeta);
-        bossList.setItem(12, slime);
+        bossList.setItem(11, slime);
 
         ItemStack pyro = new ItemStack(Material.MAGMA_BLOCK);
         ItemMeta pyroMeta = pyro.getItemMeta();
@@ -344,32 +363,15 @@ public class BossMenu implements Listener {
                 "§7拥有操控火元素的力量。",
                 "",
                 "§c❤ 生命值: 700",
-                "§c❄ 核心: 烈焰人",
+                "§c🔥 核心: 烈焰人",
                 "§e✦ 攻击树状盔甲架转移伤害至核心",
-                "§b❄ 雷电/冰冻伤害触发元素反应: 双倍伤害+50%暴露核心",
                 "",
                 "§a▼ 点击召唤BOSS",
                 "§7(请在空旷处召唤)"
         ));
         pyro.setItemMeta(pyroMeta);
-        bossList.setItem(14, pyro);
+        bossList.setItem(12, pyro);
 
-        ItemStack giant = new ItemStack(Material.ZOMBIE_HEAD);
-        ItemMeta giantMeta = giant.getItemMeta();
-        giantMeta.setDisplayName("§4■ 僵尸巨人");
-        giantMeta.setLore(Arrays.asList(
-                "§7沉睡了千年的巨型僵尸，",
-                "§7每一步都能让大地颤抖。",
-                "",
-                "§c❤ 生命值: 1500",
-                "§4⚔ 攻击伤害: 80",
-                "§e✦ 范围击退+缓慢效果",
-                "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
-        ));
-        giant.setItemMeta(giantMeta);
-        bossList.setItem(16, giant);
 
         ItemStack treasure = new ItemStack(Material.SKELETON_SKULL);
         ItemMeta treasureMeta = treasure.getItemMeta();
@@ -386,7 +388,7 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         treasure.setItemMeta(treasureMeta);
-        bossList.setItem(30, treasure);
+        bossList.setItem(13, treasure);
 
         ItemStack doubleZombie = new ItemStack(Material.ZOMBIE_SPAWN_EGG);
         ItemMeta doubleMeta = doubleZombie.getItemMeta();
@@ -403,33 +405,15 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         doubleZombie.setItemMeta(doubleMeta);
-        bossList.setItem(28, doubleZombie);
+        bossList.setItem(14, doubleZombie);
 
         ItemStack skKing = new ItemStack(Material.BOW);
         ItemMeta skMeta = skKing.getItemMeta();
         skMeta.setDisplayName("§8■ 骷髅王");
         skMeta.setLore(Arrays.asList("§7手持力量X神弓的骷髅王者，", "§7每隔10秒召唤箭雨。", "", "§c❤ 生命值: 600", "§8⚔ 箭雨伤害: 6/箭", "§e✦ 弓箭无法掉落", "", "§a▼ 点击召唤BOSS", "§7(请在空旷处召唤)"));
         skKing.setItemMeta(skMeta);
-        bossList.setItem(32, skKing);
+        bossList.setItem(15, skKing);
 
-        ItemStack wraith = new ItemStack(Material.ENDER_EYE);
-        ItemMeta wraithMeta = wraith.getItemMeta();
-        wraithMeta.setDisplayName("§5■ 虚空幽魂");
-        wraithMeta.setLore(Arrays.asList(
-                "§7来自虚空的远古凋灵骷髅，",
-                "§7掌控着末地传送门的力量。",
-                "",
-                "§c❤ 生命值: 800",
-                "§5✦ 双阶段战斗 (50%进入P2)",
-                "§5✦ 6种攻击技能: 虚空弹/末影脉冲/虚空裂隙/暗影分身/终末裁决/虚空吸取",
-                "§5✦ 每7.5-12.5秒随机传送",
-                "§e⚡ 火焰/雷电触发元素反应: 双倍伤害+50%暴露核心",
-                "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
-        ));
-        wraith.setItemMeta(wraithMeta);
-        bossList.setItem(34, wraith);
 
         ItemStack illusioner = new ItemStack(Material.AMETHYST_SHARD);
         ItemMeta illusionerMeta = illusioner.getItemMeta();
@@ -446,7 +430,7 @@ public class BossMenu implements Listener {
                 "§7(请在空旷处召唤)"
         ));
         illusioner.setItemMeta(illusionerMeta);
-        bossList.setItem(22, illusioner);
+        bossList.setItem(16, illusioner);
     }
 
     // ========================================================================
@@ -510,19 +494,6 @@ public class BossMenu implements Listener {
             player.closeInventory();
             player.sendMessage("§a◆ 史莱姆王已降临！");
             SlimeBoss.spawnBoss(player);
-        } else if (name.contains("僵尸巨人")) {
-            if (ZombieGiantBoss.isAlive()) {
-                Location loc = ZombieGiantBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e僵尸巨人尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
-            player.sendMessage("§4◆ 僵尸巨人苏醒了！");
-            ZombieGiantBoss.spawnBoss(player);
         } else if (name.contains("小僵尸Double")) {
             if (BabyZombieDoubleBoss.isAlive()) {
                 Location loc = BabyZombieDoubleBoss.getBossLocation();
@@ -552,19 +523,16 @@ public class BossMenu implements Listener {
         } else if (name.contains("骷髅王")) {
             if (SkeletonKing.isAlive()) {
                 Location loc = SkeletonKing.getBossLocation();
-                if (loc != null) { player.teleport(loc); return; }
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e骷髅王尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
             }
             player.closeInventory();
             SkeletonKing.spawnBoss(player);
             player.sendMessage("§6◆ 骷髅王出现了！");
-        } else if (name.contains("虚空幽魂")) {
-            if (VoidWraith.isAlive()) {
-                Location loc = VoidWraith.getBossLocation();
-                if (loc != null) { player.teleport(loc); return; }
-            }
-            player.closeInventory();
-            VoidWraith.spawnBoss(player);
-            player.sendMessage("§5◆ 虚空幽魂从虚空中降临！");
         } else if (name.contains("幻术师")) {
             if (IllusionerBoss.isAlive()) {
                 Location loc = IllusionerBoss.getBossLocation();

@@ -3,7 +3,7 @@ package Dim_LJR.armsorPlus.Boss;
 import Dim_LJR.armsorPlus.ArmsorItem;
 import Dim_LJR.armsorPlus.NamespaceKey;
 import static Dim_LJR.armsorPlus.Food.FoodItems.IceCore;
-import static Dim_LJR.armsorPlus.Food.FoodItems.FireCore;
+
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
@@ -21,12 +21,9 @@ import java.util.*;
 
 import static org.bukkit.Material.*;
 
-/**
- * 雪人王 —— 冰元素BOSS (原神: 雪人王)
- * <p>
- * 核心为雪人，树状结构由盔甲架佩戴方块构成。
- * 对盔甲架的伤害转移至核心，元素反应造成双倍伤害。
- */
+// 雪人王 —— 冰元素BOSS (原神: 雪人王)
+// 核心为雪人，树状结构由盔甲架佩戴方块构成。
+// 对盔甲架的伤害转移至核心，元素反应造成双倍伤害。
 public class CryoRegisvine {
 
     private static final double MAX_HEALTH = 700;
@@ -220,7 +217,7 @@ public class CryoRegisvine {
         BossMenu.registerBodyStand(BossMenu.BossType.CRYO, stand.getUniqueId());
     }
 
-    /** 生成浮空盔甲架，佩戴指定方块作为头盔 */
+    // 生成浮空盔甲架，佩戴指定方块作为头盔
     private static ArmorStand spawnTreeArmorStand(Location center, double x, double y, double z, Material head) {
         Location loc = center.clone().add(x, y, z);
         ArmorStand stand = center.getWorld().spawn(loc, ArmorStand.class);

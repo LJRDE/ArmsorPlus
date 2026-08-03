@@ -12,12 +12,10 @@ import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static org.bukkit.Material.IRON_INGOT;
 import static org.bukkit.Material.RAW_IRON;
 
-/**
- * 基础材料 —— 非食物类的合成材料。
- */
+// 基础材料 —— 非食物类的合成材料。
 public class Materials {
 
-    /** 生钢: 铁锭+煤炭合成, 熔炉烧制后成钢 */
+    // 生钢: 铁锭+煤炭合成, 熔炉烧制后成钢
     public static ItemStack RawSteel(int amount) {
         ItemStack item = new ItemStack(RAW_IRON);
         ItemMeta meta = item.getItemMeta();
@@ -29,7 +27,7 @@ public class Materials {
         return item;
     }
 
-    /** 钢: 熔炉烧制生钢获得 */
+    // 钢: 熔炉烧制生钢获得
     public static ItemStack SteelIngot(int amount) {
         ItemStack item = new ItemStack(IRON_INGOT);
         ItemMeta meta = item.getItemMeta();
@@ -43,16 +41,26 @@ public class Materials {
         return item;
     }
 
-    /** 末影核心: 虚空幽魂掉落物 */
-    public static ItemStack EndCore(int amount) {
-        ItemStack item = new ItemStack(Material.ENDER_EYE);
+    // 幻术师的遗骨: 幻术师BOSS掉落物
+    public static ItemStack IllusionerBone(int amount) {
+        ItemStack item = new ItemStack(Material.BONE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_PURPLE + "末影核心");
-        meta.setLore(Arrays.asList(
-                ChatColor.LIGHT_PURPLE + "虚空幽魂的核心能量体",
-                ChatColor.GRAY + "蕴含纯粹的虚空之力，可用于合成高阶装备"));
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "幻术师的遗骨");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "幻术师BOSS掉落的珍贵遗骨"));
         item.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(item, EndCoreKey, 1);
+        ArmsorEnchant.addEnchant(item, IllusionerBoneKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // 幻术师的遗骸: 幻术师BOSS掉落物
+    public static ItemStack IllusionerScrap(int amount) {
+        ItemStack item = new ItemStack(Material.NETHERITE_SCRAP);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "幻术师的遗骸");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "幻术师BOSS掉落的珍贵遗骸"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, IllusionerScrapKey, 1);
         item.setAmount(amount);
         return item;
     }

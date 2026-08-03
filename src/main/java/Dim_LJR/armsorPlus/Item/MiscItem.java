@@ -8,14 +8,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 
-/**
- * 其他物品 —— 包括向导书、菜单标记等不属于其他分类的物品。
- */
+// 其他物品 —— 包括向导书、菜单标记等不属于其他分类的物品。
 public class MiscItem {
 
     public static final String GUIDE_BOOK = ChatColor.GOLD + "高级附魔向导";
 
-    /** 高级附魔向导书: 右键打开菜单 */
+    // 高级附魔向导书: 右键打开菜单
     public static ItemStack GuideBook(int amount) {
         ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta meta = item.getItemMeta();
@@ -26,7 +24,7 @@ public class MiscItem {
         return item;
     }
 
-    /** 菜单边框标记 (用于GUI的玻璃板装饰) */
+    // 菜单边框标记 (用于GUI的玻璃板装饰)
     public static ItemStack MenuMark(int amount, Material material) {
         ItemStack item = new ItemStack(material);
         ArmsorEnchant.addEnchant(item, MenuMark, 1);

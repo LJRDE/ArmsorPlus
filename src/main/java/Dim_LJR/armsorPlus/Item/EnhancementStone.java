@@ -13,9 +13,7 @@ import java.util.Collections;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static org.bukkit.Material.*;
 
-/**
- * 强化石 —— 通过拖动到装备上使用。
- */
+// 强化石 —— 通过拖动到装备上使用。
 public class EnhancementStone {
 
     public static final String ARMS_I_NAME = ChatColor.RED + "武器强化石Ⅰ";
@@ -25,7 +23,7 @@ public class EnhancementStone {
     public static final String BOW_I_NAME = ChatColor.DARK_RED + "弓箭强化石";
     public static final String DIAMONDPLUS = ChatColor.GOLD + "精炼金刚石";
 
-    /** 一级武器强化石: 使锋利等级+1 */
+    // 一级武器强化石: 使锋利等级+1
     public static ItemStack ArmsPlusCreateI(int amount) {
         ItemStack item = new ItemStack(DIAMOND);
         ItemMeta meta = item.getItemMeta();
@@ -37,7 +35,7 @@ public class EnhancementStone {
         return item;
     }
 
-    /** 二级武器强化石: 伤害直接+1 (通过属性修饰符) */
+    // 二级武器强化石: 伤害直接+1 (通过属性修饰符)
     public static ItemStack ArmsPlusCreateII(int amount) {
         ItemStack item = new ItemStack(DIAMOND_ORE);
         ItemMeta meta = item.getItemMeta();
@@ -49,7 +47,7 @@ public class EnhancementStone {
         return item;
     }
 
-    /** 一级护甲强化石: 使保护等级+1 */
+    // 一级护甲强化石: 使保护等级+1
     public static ItemStack ArmorPlusCreate(int amount) {
         ItemStack item = new ItemStack(IRON_INGOT);
         ItemMeta meta = item.getItemMeta();
@@ -61,7 +59,7 @@ public class EnhancementStone {
         return item;
     }
 
-    /** 二级护甲强化石: 护甲值+1 (通过属性修饰符) */
+    // 二级护甲强化石: 护甲值+1 (通过属性修饰符)
     public static ItemStack ArmorPlusCreateII(int amount) {
         ItemStack item = new ItemStack(IRON_ORE);
         ItemMeta meta = item.getItemMeta();
@@ -73,7 +71,7 @@ public class EnhancementStone {
         return item;
     }
 
-    /** 弓箭强化石: 使力量等级+1 */
+    // 弓箭强化石: 使力量等级+1
     public static ItemStack BowPlusCreate(int amount) {
         ItemStack item = new ItemStack(OAK_LOG);
         ItemMeta meta = item.getItemMeta();
@@ -85,7 +83,7 @@ public class EnhancementStone {
         return item;
     }
 
-    /** 基础强化石: 右键随机获得一种强化石 */
+    // 基础强化石: 右键随机获得一种强化石
     public static ItemStack BasicStone(int amount) {
         ItemStack item = new ItemStack(STONE);
         ItemMeta meta = item.getItemMeta();
@@ -99,7 +97,7 @@ public class EnhancementStone {
         return item;
     }
 
-    /** 精炼金刚石: 拖动到装备上获得无限耐久 */
+    // 精炼金刚石: 拖动到装备上获得无限耐久
     public static ItemStack DIAMONDPLUSCreate(int amount) {
         ItemStack item = new ItemStack(DIAMOND);
         ItemMeta meta = item.getItemMeta();

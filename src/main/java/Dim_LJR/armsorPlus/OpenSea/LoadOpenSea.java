@@ -7,15 +7,12 @@ import java.nio.file.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/**
- * 公海世界 (OpenSea) 的地图加载与解压。
- * <p>
- * 插件启动时从 jar 包内读取 OpenSea.zip 并解压到服务端世界目录下，
- * 然后创建 / 加载该世界。支持自动重置模式 (AutoResetOpenSeaMap)。
- */
+// 公海世界 (OpenSea) 的地图加载与解压。
+// 插件启动时从 jar 包内读取 OpenSea.zip 并解压到服务端世界目录下，
+// 然后创建 / 加载该世界。支持自动重置模式 (AutoResetOpenSeaMap)。
 public class LoadOpenSea {
 
-    /** 公海世界的 World 实例 */
+    // 公海世界的 World 实例
     public static World world;
 
     private static InputStream rezip;
@@ -23,15 +20,13 @@ public class LoadOpenSea {
     private static String getMapName;
     private static String getMapZipName;
 
-    /**
-     * 加载公海世界: 验证/解压世界文件 → 创建/加载世界。
-     *
-     * @param folderPath  服务端世界目录路径
-     * @param zip         地图压缩包输入流 (从jar资源读取)
-     * @param autoReset   是否每次重启自动重置地图
-     * @param worldName   世界文件夹名
-     * @param zipFileName 压缩包文件名
-     */
+    // 加载公海世界: 验证/解压世界文件 → 创建/加载世界。
+    //
+    // @param folderPath  服务端世界目录路径
+    // @param zip         地图压缩包输入流 (从jar资源读取)
+    // @param autoReset   是否每次重启自动重置地图
+    // @param worldName   世界文件夹名
+    // @param zipFileName 压缩包文件名
     @SuppressWarnings("removal")
     public static void loadMap(Path folderPath, InputStream zip, boolean autoReset,
                                 String worldName, String zipFileName) {
@@ -71,7 +66,7 @@ public class LoadOpenSea {
         }
     }
 
-    /** 重新解压覆盖公海世界 (用于 /ArmsorPlus reloadmap) */
+    // 重新解压覆盖公海世界 (用于 /ArmsorPlus reloadmap)
     public static void reloadmap() {
         try {
             unzipFromStream(rezip, repath.resolve(getMapName));
@@ -80,7 +75,7 @@ public class LoadOpenSea {
         }
     }
 
-    /** 验证指定路径是否为有效的 Minecraft 世界文件夹 (含 level.dat 和 region 目录) */
+    // 验证指定路径是否为有效的 Minecraft 世界文件夹 (含 level.dat 和 region 目录)
     private static boolean isValidWorldFolder(Path folderPath) {
         return Files.exists(folderPath)
                 && Files.isDirectory(folderPath)
@@ -88,7 +83,7 @@ public class LoadOpenSea {
                 && Files.exists(folderPath.resolve("region"));
     }
 
-    /** 递归删除文件夹 */
+    // 递归删除文件夹
     private static void deleteFolder(File folder) {
         if (!folder.exists()) return;
         File[] files = folder.listFiles();
@@ -100,7 +95,7 @@ public class LoadOpenSea {
         folder.delete();
     }
 
-    /** 将压缩包流解压到目标路径 */
+    // 将压缩包流解压到目标路径
     public static void unzipFromStream(InputStream zipInputStream, Path targetPath) throws IOException {
         // 删除已存在的目标
         if (targetPath.toFile().exists()) {

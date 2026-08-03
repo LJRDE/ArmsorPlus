@@ -3,7 +3,6 @@ package Dim_LJR.armsorPlus.ArmsorPlusEnchant;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -14,28 +13,24 @@ import java.util.List;
 
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 
-/**
- * 自定义附魔系统 —— 基于 PersistentDataContainer (PDC) 存储。
- * <p>
- * 所有自定义附魔不依赖原版附魔系统，而是通过 PDC 将附魔等级直接写入物品的
- * PersistentDataContainer，从而实现与原版附魔完全独立的自定义附魔体系。
- * <p>
- * 核心方法:
- * - {@link #addEnchant(ItemStack, NamespacedKey, int)} — 写入附魔
- * - {@link #getEnchantLevel(ItemStack, NamespacedKey)} — 读取附魔等级
- * - {@link #addEnchantLore(ItemStack, String, int, NamespacedKey)} — 添加Lore显示
- * - {@link #getEnchantDisplayName(NamespacedKey)} — 获取附魔中文名
- */
-public class ArmsorEnchant implements Listener {
+// 自定义附魔系统 —— 基于 PersistentDataContainer (PDC) 存储。
+// 所有自定义附魔不依赖原版附魔系统，而是通过 PDC 将附魔等级直接写入物品的
+// PersistentDataContainer，从而实现与原版附魔完全独立的自定义附魔体系。
+// 核心方法:
+// - addEnchant(ItemStack, NamespacedKey, int) — 写入附魔
+// - getEnchantLevel(ItemStack, NamespacedKey) — 读取附魔等级
+// - addEnchantLore(ItemStack, String, int, NamespacedKey) — 添加Lore显示
+// - getEnchantDisplayName(NamespacedKey) — 获取附魔中文名
+public class ArmsorEnchant {
 
-    /** 向物品写入自定义附魔等级 (PDC) */
+    // 向物品写入自定义附魔等级 (PDC)
     public static ItemStack addEnchant(ItemStack item, NamespacedKey key, int level) {
         item.editMeta(meta -> meta.getPersistentDataContainer()
                 .set(key, PersistentDataType.INTEGER, level));
         return item;
     }
 
-    /** 读取物品上指定自定义附魔的等级 (0=无此附魔) */
+    // 读取物品上指定自定义附魔的等级 (0=无此附魔)
     public static int getEnchantLevel(ItemStack item, NamespacedKey key) {
         if (item == null || !item.hasItemMeta()) return 0;
         PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
@@ -45,7 +40,7 @@ public class ArmsorEnchant implements Listener {
         return 0;
     }
 
-    /** 为物品添加附魔 Lore 显示行 (自动去重) */
+    // 为物品添加附魔 Lore 显示行 (自动去重)
     public static ItemStack addEnchantLore(ItemStack item, String lore, int level, NamespacedKey key) {
         if (item == null || item.getType() == Material.AIR) return item;
         removeEnchantLore(item, key);
@@ -62,7 +57,7 @@ public class ArmsorEnchant implements Listener {
         return item;
     }
 
-    /** 根据关键字删除Lore行 */
+    // 根据关键字删除Lore行
     public static boolean removeLoreLine(ItemStack item, String keyword) {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
@@ -88,13 +83,13 @@ public class ArmsorEnchant implements Listener {
         return false;
     }
 
-    /** 移除指定附魔的 Lore 显示 */
+    // 移除指定附魔的 Lore 显示
     public static void removeEnchantLore(ItemStack item, NamespacedKey key) {
         String name = getEnchantDisplayName(key);
         if (name != null) removeLoreLine(item, name);
     }
 
-    /** 生成带罗马数字等级的附魔 Lore 文本 */
+    // 生成带罗马数字等级的附魔 Lore 文本
     public static String generateEnchantLore(String baseLore, int level) {
         return baseLore + switch (level) {
             case 1 -> "I";
@@ -111,7 +106,7 @@ public class ArmsorEnchant implements Listener {
         };
     }
 
-    /** 通过 NamespacedKey 获取附魔的中文显示名称 */
+    // 通过 NamespacedKey 获取附魔的中文显示名称
     public static String getEnchantDisplayName(NamespacedKey key) {
         if (key.equals(FreezeKey))           return "寒冻";
         if (key.equals(Faminekey))           return "饥荒";
@@ -152,10 +147,10 @@ public class ArmsorEnchant implements Listener {
         if (key.equals(ThunderclapArrowKey)) return "惊雷";
         if (key.equals(DamageDispersalKey))  return "卸力";
         if (key.equals(HerbGuardKey))        return "百草";
-        if (key.equals(FireBladeKey))        return "火刃";
-        if (key.equals(FrostBladeKey))       return "霜刃";
-        if (key.equals(ThunderBladeKey))     return "雷刃";
-        if (key.equals(MagicBladeKey))       return "魔刃";
+        if (key.equals(FireBladeKey))        return "火印";
+        if (key.equals(FrostBladeKey))       return "霜印";
+        if (key.equals(ThunderBladeKey))     return "雷印";
+        if (key.equals(MagicBladeKey))       return "魔印";
         if (key.equals(IceSpikeKey))         return "冰刺";
         if (key.equals(InfernoKey))          return "烈焰";
         if (key.equals(HeavyArmorKey))       return "重甲";

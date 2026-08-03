@@ -18,9 +18,7 @@ import java.util.Collections;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 import static org.bukkit.Material.*;
 
-/**
- * 武器 —— 自定义武器和法杖等战斗用品。
- */
+// 武器 —— 自定义武器和法杖等战斗用品。
 public class Weapon {
 
     private static final String BLOOD_SWORD_NAME = ChatColor.RED + "血祭之剑";
@@ -37,22 +35,22 @@ public class Weapon {
     private static final String WEB_BOW_NAME = ChatColor.WHITE + "盘丝弓";
     private static final String EXPLOSION_BOW_NAME = ChatColor.RED + "爆炸弓";
 
-    /** 血祭之剑: 攻击时概率消耗生命造成多倍伤害 */
+    // 血祭之剑: 攻击时概率消耗生命造成多倍伤害
     public static ItemStack BloodSword(int amount) {
         ItemStack item = new ItemStack(GOLDEN_SWORD);
         ItemMeta meta = item.getItemMeta();
         meta.addEnchant(Enchantment.SHARPNESS, 5, true);
         meta.setDisplayName(BLOOD_SWORD_NAME);
         meta.setLore(Collections.singletonList(
-                ChatColor.DARK_RED + "血祭V: 攻击时有100%概率消耗15点生命值造成2~6倍伤害"));
-        meta.setCustomModelData(20260511);
+                ChatColor.DARK_RED + "血祭V: 攻击时有100%概率消耗10点生命值造成2~6倍伤害"));
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:blood_sword"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, BloodSacrificekey, 5);
         item.setAmount(amount);
         return item;
     }
 
-    /** 重剑: 基础攻击+7.5的铁剑 */
+    // 重剑: 基础攻击+7.5的铁剑
     public static ItemStack Iron_Epee(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -68,7 +66,7 @@ public class Weapon {
         return item;
     }
 
-    /** 尸王: 基础+9伤害, 饥荒II+剧毒II */
+    // 尸王: 基础+9伤害, 饥荒II+剧毒II
     public static ItemStack CorpseKing(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -79,7 +77,7 @@ public class Weapon {
         meta.setLore(Arrays.asList(
                 ChatColor.DARK_GREEN + "饥荒 II · 剧毒 II",
                 ChatColor.GRAY + "尸王之力，腐蚀生灵"));
-        meta.setCustomModelData(20260520);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:corpse_king"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, CorpseKingKey, 1);
         ArmsorEnchant.addEnchant(item, Faminekey, 2);
@@ -88,7 +86,7 @@ public class Weapon {
         return item;
     }
 
-    /** 钢剑: 攻击力7 */
+    // 钢剑: 攻击力7
     public static ItemStack SteelSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -103,19 +101,19 @@ public class Weapon {
         return item;
     }
 
-    /** 钢头盔: 2护甲 1韧性 */
+    // 钢头盔: 2护甲 1韧性
     public static ItemStack SteelHelmet(int amount) {
         return createSteelArmor(IRON_HELMET, ChatColor.GRAY + "钢头盔", 2.0, 1.0, SteelHelmetKey, "armsorplus:steel_helmet", amount);
     }
-    /** 钢胸甲: 7护甲 2韧性 */
+    // 钢胸甲: 7护甲 2韧性
     public static ItemStack SteelChestplate(int amount) {
         return createSteelArmor(IRON_CHESTPLATE, ChatColor.GRAY + "钢胸甲", 7.0, 2.0, SteelChestplateKey, "armsorplus:steel_chest", amount);
     }
-    /** 钢护腿: 6护甲 2韧性 */
+    // 钢护腿: 6护甲 2韧性
     public static ItemStack SteelLeggings(int amount) {
         return createSteelArmor(IRON_LEGGINGS, ChatColor.GRAY + "钢护腿", 6.0, 2.0, SteelLeggingsKey, "armsorplus:steel_legs", amount);
     }
-    /** 钢靴子: 3护甲 1韧性 */
+    // 钢靴子: 3护甲 1韧性
     public static ItemStack SteelBoots(int amount) {
         return createSteelArmor(IRON_BOOTS, ChatColor.GRAY + "钢靴子", 3.0, 1.0, SteelBootsKey, "armsorplus:steel_boots", amount);
     }
@@ -143,7 +141,7 @@ public class Weapon {
         return EquipmentSlotGroup.FEET;
     }
 
-    /** 桃木剑: 亡灵杀手V */
+    // 桃木剑: 亡灵杀手V
     public static ItemStack PeachWoodSword(int amount) {
         ItemStack item = new ItemStack(WOODEN_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -154,14 +152,14 @@ public class Weapon {
                         5.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Collections.singletonList(
                 ChatColor.DARK_GREEN + "桃木镇邪，亡灵克星"));
-        meta.setCustomModelData(20260519);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:peach_wood_sword"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, PeachWoodSwordKey, 1);
         item.setAmount(amount);
         return item;
     }
 
-    /** 烈阳: 基础+8, 白天额外+4, 火焰附加V */
+    // 烈阳: 基础+8, 白天额外+4, 火焰附加V
     public static ItemStack BlazingSun(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -171,17 +169,18 @@ public class Weapon {
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:blazing_sun_damage"),
                         10.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
-                ChatColor.GOLD + "白天时额外造成6点伤害",
+                ChatColor.GOLD + "白天时额外造成8点伤害",
                 ChatColor.RED + "火焰附加 V",
                 ChatColor.GRAY + "骄阳烈焰"));
-        meta.setCustomModelData(20260518);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:blazing_sun"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, BlazingSunKey, 1);
+        ArmsorEnchant.addEnchant(item, FireBladeKey, 1); // 合成自带火印
         item.setAmount(amount);
         return item;
     }
 
-    /** 雷光: 基础伤害8点, 雷雨天伤害提升25% */
+    // 雷光: 基础伤害8点, 雷雨天伤害提升25%
     public static ItemStack ThunderGlow(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -192,14 +191,15 @@ public class Weapon {
         meta.setLore(Arrays.asList(
                 ChatColor.YELLOW + "雷雨天时伤害提升25%",
                 ChatColor.GRAY + "闪耀雷电之力"));
-        meta.setCustomModelData(20260517);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:thunder_glow"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, ThunderGlowKey, 1);
+        ArmsorEnchant.addEnchant(item, ThunderBladeKey, 1); // 合成自带雷印
         item.setAmount(amount);
         return item;
     }
 
-    /** 玄武剑: 每造成200点伤害伤害+1，上限+8 */
+    // 玄武剑: 每造成200点伤害伤害+1，上限+8
     public static ItemStack BlackTortoiseSword(int amount) {
         ItemStack item = new ItemStack(STONE_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -210,14 +210,14 @@ public class Weapon {
                 ChatColor.DARK_GREEN + "当前加成: 0/8",
                 ChatColor.GRAY + "累计伤害: 0/200"));
         meta.getPersistentDataContainer().set(TortoiseAccumulatedKey, PersistentDataType.DOUBLE, 0.0);
-        meta.setCustomModelData(20260516);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:black_tortoise_sword"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, BlackTortoiseSwordKey, 1);
         item.setAmount(amount);
         return item;
     }
 
-    /** 星痕剑: 夜晚造成伤害时伤害提升100% */
+    // 星痕剑: 夜晚造成伤害时伤害提升100%
     public static ItemStack StarTraceSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -227,18 +227,19 @@ public class Weapon {
                 ChatColor.AQUA + "夜晚时伤害提升100%",
                 ChatColor.DARK_AQUA + "由七颗珍珠点缀而成，对应北斗七星"));
         meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
-                new AttributeModifier(NamespacedKey.fromString("armsorplus:thunder_glow_damage"),
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:star_trace_sword_damage"),
                         8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
 
-        meta.setCustomModelData(20260515);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:star_trace_sword"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, StarTraceSwordKey, 1);
         ArmsorEnchant.addEnchant(item,FreezeKey,2);
+        ArmsorEnchant.addEnchant(item, FrostBladeKey, 1); // 合成自带霜印
         item.setAmount(amount);
         return item;
     }
 
-    /** 噬生: 造成伤害时随机扣除对方或者自生血量提升伤害*/
+    // 噬生: 造成伤害时随机扣除对方或者自生血量提升伤害
     public static ItemStack DevourLifeSword(int amount) {
         ItemStack item = new ItemStack(NETHERITE_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -257,14 +258,15 @@ public class Weapon {
         meta.getPersistentDataContainer().set(DevourLifeBloodTimestamps,
                 PersistentDataType.STRING,
                 "");
-        meta.setCustomModelData(20260514);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:devour_life_sword"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, DevourLifeSwordKey, 5);
+        ArmsorEnchant.addEnchant(item, MagicBladeKey, 1); // 合成自带魔印
         item.setAmount(amount);
         return item;
     }
 
-    /** 匕首: 每次攻击必定造成5点额外伤害 */
+    // 匕首: 每次攻击必定造成5点额外伤害
     public static ItemStack Dagger(int amount) {
         ItemStack item = new ItemStack(NETHERITE_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -282,7 +284,7 @@ public class Weapon {
         return item;
     }
 
-    /** 飞斧: 右键蓄力3s飞出，对沿途生物造成20点伤害 */
+    // 飞斧: 右键蓄力3s飞出，对沿途生物造成20点伤害
     public static ItemStack ThrowingAxe(int amount) {
         ItemStack item = new ItemStack(NETHERITE_AXE);
         ItemMeta meta = item.getItemMeta();
@@ -297,7 +299,7 @@ public class Weapon {
         return item;
     }
 
-    /** 骷髅权杖: 使用时降下箭雨 */
+    // 骷髅权杖: 使用时降下箭雨
     public static ItemStack SkeletonScepter(int amount) {
         ItemStack item = new ItemStack(BONE);
         ItemMeta meta = item.getItemMeta();
@@ -311,7 +313,7 @@ public class Weapon {
         return item;
     }
 
-    /** 寒冰弓: 射出时额外发射2支寒冰箭 */
+    // 寒冰弓: 射出时额外发射2支寒冰箭
     public static ItemStack FrostBow(int amount) {
         ItemStack item = new ItemStack(BOW);
         ItemMeta meta = item.getItemMeta();
@@ -326,7 +328,7 @@ public class Weapon {
         return item;
     }
 
-    /** 火焰戟: 攻击额外造成30火焰伤害，射出时灼烧沿途3×3 */
+    // 火焰戟: 攻击额外造成30火焰伤害，射出时灼烧沿途3×3
     public static ItemStack FlameHalberd(int amount) {
         ItemStack item = new ItemStack(TRIDENT);
         ItemMeta meta = item.getItemMeta();
@@ -341,7 +343,7 @@ public class Weapon {
         return item;
     }
 
-    /** 雨御前: 右键3秒隐身+无敌+冰霜领域，冷却15s */
+    // 雨御前: 右键3秒隐身+无敌+冰霜领域，冷却10s
     public static ItemStack RainSword(int amount) {
         ItemStack item = new ItemStack(DIAMOND_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -349,7 +351,7 @@ public class Weapon {
         meta.setLore(Arrays.asList(
                 ChatColor.AQUA + "右键: 3秒隐身+免疫伤害",
                 ChatColor.AQUA + "释放冰霜领域: 周围生物缓慢255+挖掘疲劳3秒",
-                ChatColor.DARK_AQUA + "冷却时间: 15秒",
+                ChatColor.DARK_AQUA + "冷却时间: 10秒",
                 ChatColor.GRAY + "冰霜之剑"));
         meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
                 new AttributeModifier(new NamespacedKey(getplugin, "rain_sword_damage"),
@@ -361,7 +363,7 @@ public class Weapon {
         return item;
     }
 
-    /** 飞天御剑: 右键悬空飞行+脚下飞剑，沿指向方向飞行 */
+    // 飞天御剑: 右键悬空飞行+脚下飞剑，沿指向方向飞行
     public static ItemStack FlyingSword(int amount) {
         ItemStack item = new ItemStack(GOLDEN_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -381,7 +383,7 @@ public class Weapon {
         return item;
     }
 
-    /** 瞬步刃: 右键瞬移，指向目标则瞬移到身后并造成伤害 */
+    // 瞬步刃: 右键瞬移，指向目标则瞬移到身后并造成伤害
     public static ItemStack FlashStepBlade(int amount) {
         ItemStack item = new ItemStack(NETHERITE_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -400,7 +402,7 @@ public class Weapon {
         return item;
     }
 
-    /** 法杖: 左键发射魔法球，命中造成20伤害+着火3秒 */
+    // 法杖: 左键发射魔法球，命中造成20伤害+着火3秒
     public static ItemStack MagicStick(int amount) {
         ItemStack item = new ItemStack(BLAZE_ROD);
         ItemMeta meta = item.getItemMeta();
@@ -416,7 +418,7 @@ public class Weapon {
         return item;
     }
 
-    /** 寒冰剑: 攻击时对敌方造成缓慢II 3秒 */
+    // 寒冰剑: 攻击时对敌方造成缓慢II 3秒
     public static ItemStack IceSword(int amount) {
         ItemStack item = new ItemStack(DIAMOND_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -434,7 +436,7 @@ public class Weapon {
         return item;
     }
 
-    /** 盘丝弓: 击中目标时生成蜘蛛网30秒，PDC计数9次后损坏 */
+    // 盘丝弓: 击中目标时生成蜘蛛网30秒，PDC计数9次后损坏
     public static ItemStack WebBow(int amount) {
         ItemStack item = new ItemStack(BOW);
         ItemMeta meta = item.getItemMeta();
@@ -451,7 +453,7 @@ public class Weapon {
         return item;
     }
 
-    /** 爆炸弓: 击中目标时产生爆炸，PDC计数9次后损坏 */
+    // 爆炸弓: 击中目标时产生爆炸，PDC计数9次后损坏
     public static ItemStack ExplosionBow(int amount) {
         ItemStack item = new ItemStack(BOW);
         ItemMeta meta = item.getItemMeta();
@@ -488,7 +490,7 @@ public class Weapon {
     private static final String SEA_CRY_SWORD_NAME = ChatColor.DARK_BLUE + "海哭剑";
     private static final String SEA_CRY_KNIFE_NAME = ChatColor.DARK_BLUE + "海哭刀";
 
-    /** 鱼骨剑: 伤害5.0, 2鲑鱼+1骨头合成 */
+    // 鱼骨剑: 伤害5.0, 2鲑鱼+1骨头合成
     public static ItemStack FishBoneSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -504,7 +506,7 @@ public class Weapon {
         return item;
     }
 
-    /** 鱼骨刀: 伤害5.0, 2鳕鱼+1骨头合成 */
+    // 鱼骨刀: 伤害5.0, 2鳕鱼+1骨头合成
     public static ItemStack FishBoneKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -520,7 +522,7 @@ public class Weapon {
         return item;
     }
 
-    /** 鱼刺剑: 伤害6.5, 4骨块+4海晶沙粒+鱼骨剑合成 */
+    // 鱼刺剑: 伤害6.5, 4骨块+4海晶沙粒+鱼骨剑合成
     public static ItemStack FishSpineSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -536,7 +538,7 @@ public class Weapon {
         return item;
     }
 
-    /** 鱼刺刀: 伤害6.5, 4骨块+4海晶沙粒+鱼骨刀合成 */
+    // 鱼刺刀: 伤害6.5, 4骨块+4海晶沙粒+鱼骨刀合成
     public static ItemStack FishSpineKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -552,7 +554,7 @@ public class Weapon {
         return item;
     }
 
-    /** 海骨剑: 伤害7.5, 水中+10%伤害+10%移速 */
+    // 海骨剑: 伤害7.5, 水中+10%伤害+10%移速
     public static ItemStack SeaBoneSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -561,7 +563,7 @@ public class Weapon {
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_bone_sword"),
                         7.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
-                ChatColor.AQUA + "在水中时 伤害+10% 移速+10%",
+                ChatColor.AQUA + "在水中/雨天时 伤害+10% 移速+10%",
                 ChatColor.GRAY + "海绵孕育的海洋之剑"));
         meta.setItemModel(NamespacedKey.fromString("armsorplus:sea_bone_sword"));
         item.setItemMeta(meta);
@@ -570,7 +572,7 @@ public class Weapon {
         return item;
     }
 
-    /** 海骨刀: 伤害7.5, 水中+16%伤害 */
+    // 海骨刀: 伤害7.5, 水中+16%伤害
     public static ItemStack SeaBoneKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -579,7 +581,7 @@ public class Weapon {
                 new AttributeModifier(NamespacedKey.fromString("armsorplus:sea_bone_knife"),
                         7.5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
-                ChatColor.AQUA + "在水中时 伤害+16%",
+                ChatColor.AQUA + "在水中/雨天时 伤害+16%",
                 ChatColor.GRAY + "海绵孕育的海洋之刀"));
         meta.setItemModel(NamespacedKey.fromString("armsorplus:sea_bone_knife"));
         item.setItemMeta(meta);
@@ -588,7 +590,7 @@ public class Weapon {
         return item;
     }
 
-    /** 灵骨剑: 伤害8.0, 光灵3s+水中15%穿透6点 */
+    // 灵骨剑: 伤害8.0, 光灵3s+水中15%穿透6点
     public static ItemStack SpiritBoneSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -598,7 +600,7 @@ public class Weapon {
                         8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
                 ChatColor.LIGHT_PURPLE + "攻击施加光灵效果3秒",
-                ChatColor.AQUA + "在水中15%概率造成6点穿透伤害",
+                ChatColor.AQUA + "在水中/雨天15%概率造成6点穿透伤害",
                 ChatColor.GRAY + "灵魂沙淬炼的亡灵之剑"));
         meta.setItemModel(NamespacedKey.fromString("armsorplus:spirit_bone_sword"));
         item.setItemMeta(meta);
@@ -607,7 +609,7 @@ public class Weapon {
         return item;
     }
 
-    /** 灵骨刀: 伤害8.0, 光灵3s+水中15%双倍伤害 */
+    // 灵骨刀: 伤害8.0, 光灵3s+水中15%双倍伤害
     public static ItemStack SpiritBoneKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -617,7 +619,7 @@ public class Weapon {
                         8.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
                 ChatColor.LIGHT_PURPLE + "攻击施加光灵效果3秒",
-                ChatColor.AQUA + "在水中15%概率造成双倍伤害",
+                ChatColor.AQUA + "在水中/雨天15%概率造成双倍伤害",
                 ChatColor.GRAY + "灵魂沙淬炼的亡灵之刀"));
         meta.setItemModel(NamespacedKey.fromString("armsorplus:spirit_bone_knife"));
         item.setItemMeta(meta);
@@ -626,7 +628,7 @@ public class Weapon {
         return item;
     }
 
-    /** 海刺剑: 伤害10.0, 水中/雨天+40%伤害+水下呼吸 */
+    // 海刺剑: 伤害10.0, 水中/雨天+40%伤害+水下呼吸
     public static ItemStack SeaSpineSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -645,7 +647,7 @@ public class Weapon {
         return item;
     }
 
-    /** 海刺刀: 伤害12.0, 水中/雨天-40%受伤+水下呼吸 */
+    // 海刺刀: 伤害12.0, 水中/雨天-40%受伤+水下呼吸
     public static ItemStack SeaSpineKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -664,7 +666,7 @@ public class Weapon {
         return item;
     }
 
-    /** 蚀骨剑: 伤害13.0, 自带凋零III */
+    // 蚀骨剑: 伤害13.0, 自带凋零III
     public static ItemStack CorrodeBoneSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -683,7 +685,7 @@ public class Weapon {
         return item;
     }
 
-    /** 灵刺剑: 伤害13.0, 攻击必穿透1点+水中额外穿透2点 */
+    // 灵刺剑: 伤害13.0, 攻击必穿透1点+水中额外穿透2点
     public static ItemStack SpiritSpineSword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -693,7 +695,7 @@ public class Weapon {
                         13.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setLore(Arrays.asList(
                 ChatColor.DARK_PURPLE + "攻击时必定造成1点穿透伤害",
-                ChatColor.AQUA + "在水中额外造成2点穿透伤害",
+                ChatColor.AQUA + "在水中/雨天额外造成2点穿透伤害",
                 ChatColor.GRAY + "潮涌核心与恶魂之泪淬炼的灵刺"));
         meta.setItemModel(NamespacedKey.fromString("armsorplus:spirit_spine_sword"));
         item.setItemMeta(meta);
@@ -702,7 +704,7 @@ public class Weapon {
         return item;
     }
 
-    /** 灵刺刀: 伤害14.0, 水中/雨天伤害+5 */
+    // 灵刺刀: 伤害14.0, 水中/雨天伤害+5
     public static ItemStack SpiritSpineKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -720,7 +722,7 @@ public class Weapon {
         return item;
     }
 
-    /** 海哭剑: 伤害16.0, 被动3药水+发光+疲劳+伤害增幅 */
+    // 海哭剑: 伤害16.0, 被动3药水+发光+疲劳+伤害增幅
     public static ItemStack SeaCrySword(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -740,7 +742,7 @@ public class Weapon {
         return item;
     }
 
-    /** 海哭刀: 伤害16.0, 被动3药水+发光+疲劳+伤害增幅 */
+    // 海哭刀: 伤害16.0, 被动3药水+发光+疲劳+伤害增幅
     public static ItemStack SeaCryKnife(int amount) {
         ItemStack item = new ItemStack(IRON_SWORD);
         ItemMeta meta = item.getItemMeta();
@@ -756,6 +758,44 @@ public class Weapon {
         meta.setItemModel(NamespacedKey.fromString("armsorplus:sea_cry_knife"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, SeaCryKnifeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // 幻影之刃: 幻术师的遗骸锻造, 攻击召唤幻影分身, 击杀生成幻影假身
+    public static ItemStack IllusionBlade(int amount) {
+        ItemStack item = new ItemStack(DIAMOND_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "幻影之刃");
+        meta.setLore(Arrays.asList(
+                ChatColor.LIGHT_PURPLE + "攻击时35%召唤幻影分身, 额外3点真实伤害",
+                ChatColor.DARK_PURPLE + "击杀时25%生成幻影假身吸引附近怪物",
+                ChatColor.GRAY + "由幻术师的遗骸锻造"));
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:illusion_blade_damage"),
+                        10.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:illusion_blade"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, IllusionBladeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // 幻惑法杖: 幻术师的遗骨制作, 攻击概率失明, 右键发射幻术飞弹
+    public static ItemStack IllusionStaff(int amount) {
+        ItemStack item = new ItemStack(BLAZE_ROD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + "幻惑法杖");
+        meta.setLore(Arrays.asList(
+                ChatColor.AQUA + "攻击时30%使目标失明",
+                ChatColor.LIGHT_PURPLE + "右键发射幻术飞弹: 命中10点魔法伤害+反胃+失明",
+                ChatColor.GRAY + "由幻术师的遗骨制作"));
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(NamespacedKey.fromString("armsorplus:illusion_staff_damage"),
+                        6.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:illusion_staff"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, IllusionStaffKey, 1);
         item.setAmount(amount);
         return item;
     }

@@ -18,10 +18,8 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.Arrays;
 import java.util.Random;
 
-/**
- * 小僵尸Double —— 小僵尸骑小僵尸的二人组BOSS。
- * 两只小僵尸均穿保护IV下界合金套（不可掉落），一只拿长矛一只拿下界合金剑。
- */
+// 小僵尸Double —— 小僵尸骑小僵尸的二人组BOSS。
+// 两只小僵尸均穿保护IV下界合金套（不可掉落），一只拿长矛一只拿下界合金剑。
 public class BabyZombieDoubleBoss {
 
     private static final double MAX_HEALTH = 600;
@@ -104,8 +102,6 @@ public class BabyZombieDoubleBoss {
         bossBar.setProgress(1.0);
 
         BossMenu.registerBoss(BossMenu.BossType.BABY_ZOMBIE_DOUBLE, mountZombie, MAX_HEALTH * 2, bossBar);
-        BossMenu.registerBodyStand(BossMenu.BossType.BABY_ZOMBIE_DOUBLE, mountZombie.getUniqueId());
-        BossMenu.registerBodyStand(BossMenu.BossType.BABY_ZOMBIE_DOUBLE, riderZombie.getUniqueId());
 
         Location bossLoc = mountZombie.getLocation();
         bossLoc.getWorld().strikeLightningEffect(bossLoc);
@@ -149,7 +145,6 @@ public class BabyZombieDoubleBoss {
     private static void startAI() {
         aiTask = new BukkitRunnable() {
             int tick = 0;
-            int attackCooldown = 0;
 
             @Override
             public void run() {
@@ -164,40 +159,24 @@ public class BabyZombieDoubleBoss {
                     return;
                 }
 
-                // 如果坐骑死了但骑士还活着，骑士下来继续战斗
-                if (mountDead && !riderDead) {
-                    onDeath();
-                    cancel();
-                    return;
+                // 薄封装: 同步两只僵尸的原生血量, 原版僵尸AI负责移动/攻击
+                if (mountDead) {
+                    BossMenu.setBossEntity(BossMenu.BossType.BABY_ZOMBIE_DOUBLE, riderZombie);
+                    BossMenu.syncBossHealth(BossMenu.BossType.BABY_ZOMBIE_DOUBLE,
+                            riderZombie.getHealth(), MAX_HEALTH);
+                } else if (riderDead) {
+                    BossMenu.syncBossHealth(BossMenu.BossType.BABY_ZOMBIE_DOUBLE,
+                            mountZombie.getHealth(), MAX_HEALTH);
+                } else {
+                    BossMenu.syncBossHealth(BossMenu.BossType.BABY_ZOMBIE_DOUBLE,
+                            mountZombie.getHealth() + riderZombie.getHealth(), MAX_HEALTH * 2);
                 }
-
                 BossMenu.updateBossBar(BossMenu.BossType.BABY_ZOMBIE_DOUBLE);
 
-                LivingEntity active = mountZombie;
-                if (active == null || active.isDead()) active = riderZombie;
-
-                Player target = findNearestPlayer();
-                if (target == null) {
-                    if (tick > 600) {
-                        despawn();
-                        cancel();
-                    }
-                    return;
-                }
-                tick = 0;
-
-                if (attackCooldown > 0) {
-                    attackCooldown--;
-                    return;
-                }
-
-                double dist = active.getLocation().distance(target.getLocation());
-                if (dist <= 4) {
-                    target.damage(ATTACK_DAMAGE, active);
-                    if (RANDOM.nextBoolean() && riderZombie != null && !riderZombie.isDead()) {
-                        target.damage(ATTACK_DAMAGE * 0.5, riderZombie);
-                    }
-                    attackCooldown = 10;
+                // 无人应战则消失
+                if (findNearestPlayer() == null && tick > 600) {
+                    despawn();
+                    cancel();
                 }
             }
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 10L);

@@ -19,13 +19,10 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-/**
- * 史莱姆王 —— 持有满级附魔重锤的巨型史莱姆BOSS。
- * <p>
- * 巨型史莱姆携带 Density V / Breach IV / Wind Burst III 重锤，
- * 通过超高跳跃触发重锤粉碎攻击，对落点周围造成巨额伤害。
- * 半血以下分裂小史莱姆并进入激怒状态。
- */
+// 史莱姆王 —— 持有满级附魔重锤的巨型史莱姆BOSS。
+// 巨型史莱姆携带 Density V / Breach IV / Wind Burst III 重锤，
+// 通过超高跳跃触发重锤粉碎攻击，对落点周围造成巨额伤害。
+// 半血以下分裂小史莱姆并进入激怒状态。
 public class SlimeBoss {
 
     private static final double MAX_HEALTH = 750;
@@ -84,7 +81,6 @@ public class SlimeBoss {
         bossBar.setProgress(1.0);
 
         BossMenu.registerBoss(BossMenu.BossType.SLIME, bossSlime, MAX_HEALTH, bossBar);
-        BossMenu.registerBodyStand(BossMenu.BossType.SLIME, bossSlime.getUniqueId());
 
         // ---- 召唤特效 ----
         Location bossLoc = bossSlime.getLocation();
@@ -149,10 +145,8 @@ public class SlimeBoss {
 
     private static void startAI() {
         aiTask = new BukkitRunnable() {
-            int attackCooldown = 0;
             int tick = 0;
             boolean phase2 = false;
-            boolean minionsSpawned = false;
 
             @Override
             public void run() {
@@ -164,16 +158,20 @@ public class SlimeBoss {
                     return;
                 }
 
+                // 薄封装: 同步实体原生血量, 由原版史莱姆AI负责移动和接触伤害
+                BossMenu.syncBossHealth(BossMenu.BossType.SLIME,
+                        bossSlime.getHealth(),
+                        bossSlime.getAttribute(Attribute.MAX_HEALTH).getValue());
                 BossMenu.updateBossBar(BossMenu.BossType.SLIME);
 
-                double hpPercent = BossMenu.getBossHealth(BossMenu.BossType.SLIME) / MAX_HEALTH;
-                if (hpPercent < 0.5 && !phase2) {
+                // 阶段检测: 原生血量 50% 激怒 + 分裂小史莱姆
+                if (bossSlime.getHealth() / MAX_HEALTH < 0.5 && !phase2) {
                     phase2 = true;
                     bossBar.setColor(BarColor.YELLOW);
                     enrage();
                 }
 
-                // 追踪摔落高度
+                // 重锤粉碎: 原生跳跃/落地高度差触发范围伤害
                 double currentY = bossSlime.getLocation().getY();
                 double fallDist = lastY - currentY;
                 if (fallDist > 3 && bossSlime.isOnGround()) {
@@ -186,33 +184,11 @@ public class SlimeBoss {
                 bossLoc.getWorld().spawnParticle(Particle.ITEM_SLIME,
                         bossLoc.clone().add(0, 0.5, 0), 2, 0.5, 0.3, 0.5, 0);
 
-                Player target = findNearestPlayer();
-                if (target == null) {
-                    if (tick > 600) {
-                        despawn();
-                        cancel();
-                    }
-                    return;
+                // 无人应战则消失
+                if (findNearestPlayer() == null && tick > 600) {
+                    despawn();
+                    cancel();
                 }
-                tick = 0;
-
-                if (attackCooldown > 0) {
-                    attackCooldown--;
-                    // 移动向目标
-                    moveToward(target);
-                    return;
-                }
-
-                int r = RANDOM.nextInt(phase2 ? 5 : 4);
-                switch (r) {
-                    case 0 -> superJumpAttack(target);
-                    case 1 -> slimeRain(target);
-                    case 2 -> groundPound(target);
-                    case 3 -> chargeAttack(target);
-                    case 4 -> splitMinions(); // 只在二阶段
-                }
-
-                attackCooldown = phase2 ? 6 : 10;
             }
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 10L);
     }
@@ -221,24 +197,7 @@ public class SlimeBoss {
     // 攻击技能
     // ========================================================================
 
-    /** 超级跳跃 — 跃起后砸向目标，触发重锤粉碎 */
-    private static void superJumpAttack(Player target) {
-        Location loc = bossSlime.getLocation();
-        World world = loc.getWorld();
-
-        // 瞄准目标方向起跳
-        Vector toTarget = target.getLocation().toVector().subtract(loc.toVector());
-        toTarget.setY(0);
-        toTarget.normalize();
-        Vector jumpVel = toTarget.multiply(1.2).setY(1.5);
-        bossSlime.setVelocity(jumpVel);
-
-        world.spawnParticle(Particle.ITEM_SLIME, loc, 30, 1, 0.5, 1, 0.1);
-        world.playSound(loc, Sound.ENTITY_SLIME_JUMP, 2.0f, 0.5f);
-        target.sendActionBar("§a⚠ 史莱姆王起跳！快躲开！");
-    }
-
-    /** 重锤落地 — 从高处落下时触发范围伤害 */
+    // 重锤落地 — 从高处落下时触发范围伤害
     private static void maceSmashLanding(double fallDist) {
         Location loc = bossSlime.getLocation();
         World world = loc.getWorld();
@@ -259,118 +218,6 @@ public class SlimeBoss {
                 p.sendActionBar("§c💥 重锤粉碎！");
             }
         }
-    }
-
-    /** 粘液雨 — 从天而降 */
-    private static void slimeRain(Player target) {
-        Location targetLoc = target.getLocation();
-        World world = targetLoc.getWorld();
-
-        world.playSound(targetLoc, Sound.ENTITY_SLIME_SQUISH, 1.0f, 0.3f);
-        target.sendActionBar("§a☁ 粘液雨！");
-
-        new BukkitRunnable() {
-            int wave = 0;
-
-            @Override
-            public void run() {
-                if (bossSlime == null || bossSlime.isDead()) {
-                    cancel();
-                    return;
-                }
-                wave++;
-                if (wave > 4) {
-                    cancel();
-                    return;
-                }
-
-                for (int i = 0; i < 5; i++) {
-                    double xOff = (RANDOM.nextDouble() - 0.5) * 8;
-                    double zOff = (RANDOM.nextDouble() - 0.5) * 8;
-                    Location from = targetLoc.clone().add(xOff, 12, zOff);
-                    Location hit = targetLoc.clone().add(xOff, 0, zOff);
-
-                    world.spawnParticle(Particle.ITEM_SLIME, from, 3, 0.2, 0.2, 0.2, 0);
-                    world.spawnParticle(Particle.ITEM_SLIME, hit, 10, 0.6, 0.3, 0.6, 0.1);
-
-                    for (Entity e : world.getNearbyEntities(hit, 1.5, 3, 1.5)) {
-                        if (e instanceof Player p && !p.isDead() && isTarget(p)) {
-                            p.damage(8, bossSlime);
-                            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1));
-                        }
-                    }
-                }
-                world.playSound(targetLoc, Sound.ENTITY_SLIME_SQUISH, 0.6f, 0.8f);
-            }
-        }.runTaskTimer(NamespaceKey.Keys.getplugin, 0L, 10L);
-    }
-
-    /** 震地 — 范围AOE */
-    private static void groundPound(Player target) {
-        Location loc = bossSlime.getLocation();
-        World world = loc.getWorld();
-
-        bossSlime.setVelocity(new Vector(0, 0.8, 0));
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (bossSlime == null || bossSlime.isDead()) return;
-
-                Location hitLoc = bossSlime.getLocation();
-                world.spawnParticle(Particle.EXPLOSION, hitLoc.clone().add(0, 0.3, 0), 2, 1, 0.3, 1, 0);
-                world.spawnParticle(Particle.ITEM_SLIME, hitLoc, 40, 2, 0.5, 2, 0.2);
-                world.playSound(hitLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.6f);
-
-                for (Entity e : world.getNearbyEntities(hitLoc, 4, 2, 4)) {
-                    if (e instanceof Player p && !p.isDead() && isTarget(p)) {
-                        p.damage(18, bossSlime);
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 2));
-                        p.setVelocity(new Vector(0, 0.6, 0));
-                    }
-                }
-            }
-        }.runTaskLater(NamespaceKey.Keys.getplugin, 10L);
-    }
-
-    /** 冲撞 — 向目标弹射 */
-    private static void chargeAttack(Player target) {
-        Location loc = bossSlime.getLocation();
-        World world = loc.getWorld();
-
-        Vector dir = target.getLocation().toVector().subtract(loc.toVector());
-        dir.setY(0.3);
-        dir.normalize().multiply(2.5);
-        bossSlime.setVelocity(dir);
-
-        world.spawnParticle(Particle.ITEM_SLIME, loc, 20, 0.5, 0.5, 0.5, 0.1);
-        world.playSound(loc, Sound.ENTITY_SLIME_JUMP, 1.5f, 0.7f);
-
-        // 追踪冲撞路径
-        new BukkitRunnable() {
-            int tick = 0;
-
-            @Override
-            public void run() {
-                tick++;
-                if (bossSlime == null || bossSlime.isDead() || bossSlime.isOnGround() || tick > 30) {
-                    cancel();
-                    return;
-                }
-
-                Location cur = bossSlime.getLocation();
-                world.spawnParticle(Particle.ITEM_SLIME, cur, 5, 0.5, 0.5, 0.5, 0);
-
-                for (Entity e : world.getNearbyEntities(cur, 2, 2, 2)) {
-                    if (e instanceof Player p && !p.isDead() && isTarget(p)) {
-                        p.damage(22, bossSlime);
-                        p.setVelocity(bossSlime.getVelocity().clone().setY(0.5));
-                        cancel();
-                        return;
-                    }
-                }
-            }
-        }.runTaskTimer(NamespaceKey.Keys.getplugin, 0L, 2L);
     }
 
     // ========================================================================
@@ -429,19 +276,6 @@ public class SlimeBoss {
     // ========================================================================
     // 移动
     // ========================================================================
-
-    private static void moveToward(Player target) {
-        if (bossSlime == null || bossSlime.isDead()) return;
-
-        Location loc = bossSlime.getLocation();
-        Location targetLoc = target.getLocation();
-        Vector dir = targetLoc.toVector().subtract(loc.toVector());
-        dir.setY(0);
-        if (dir.length() > 15) {
-            dir.normalize().multiply(0.3);
-            bossSlime.setVelocity(dir.setY(bossSlime.getVelocity().getY()));
-        }
-    }
 
     // ========================================================================
     // 死亡 & 消失

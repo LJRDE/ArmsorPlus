@@ -8,18 +8,15 @@ import Dim_LJR.armsorPlus.Item.Weapon;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * 自定义物品的外观类 (Facade)。
- * <p>
- * 所有方法委托到 {@link Dim_LJR.armsorPlus.Item} 包下对应的子类。
- * 保留此类以保证旧有 {@code import static Dim_LJR.armsorPlus.ArmsorItem.*} 兼容。
- *
- * @see EnhancementStone
- * @see MagicBall
- * @see EnchantedBook
- * @see Weapon
- * @see MiscItem
- */
+// 自定义物品的外观类 (Facade)。
+// 所有方法委托到 {@link Dim_LJR.armsorPlus.Item} 包下对应的子类。
+// 保留此类以保证旧有 {@code import static Dim_LJR.armsorPlus.ArmsorItem.*} 兼容。
+//
+// @see EnhancementStone
+// @see MagicBall
+// @see EnchantedBook
+// @see Weapon
+// @see MiscItem
 public final class ArmsorItem {
 
     // ========================================================================
@@ -400,5 +397,17 @@ public final class ArmsorItem {
 
     public static ItemStack MenuMark(int amount, Material material) {
         return MiscItem.MenuMark(amount, material);
+    }
+
+    // ========================================================================
+    // 幻术师武器 (委托至 Weapon)
+    // ========================================================================
+
+    public static ItemStack IllusionBlade(int amount) {
+        return Weapon.IllusionBlade(amount);
+    }
+
+    public static ItemStack IllusionStaff(int amount) {
+        return Weapon.IllusionStaff(amount);
     }
 }
