@@ -116,7 +116,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         player.setMetadata("ArmsorPlus_AmbushCD", new FixedMetadataValue(getplugin, true));
 
         // 伏击: 伤害提升 level*15% (ADD_SCALAR 真实百分比修饰符)
-        AttributeInstance atkAttr = player.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        AttributeInstance atkAttr = player.getAttribute(Attribute.ATTACK_DAMAGE);
         if (atkAttr != null) {
             AttributeModifier ambushMod = new AttributeModifier(
                     new NamespacedKey(getplugin, "ArmsorPlus_AmbushDamage"),
@@ -124,7 +124,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                     org.bukkit.inventory.EquipmentSlotGroup.HAND);
             atkAttr.addTransientModifier(ambushMod);
             Bukkit.getScheduler().runTaskLater(getplugin,
-                    () -> atkAttr.removeTransientModifier(ambushMod), duration);
+                    () -> atkAttr.removeModifier(ambushMod), duration);
         }
 
         Bukkit.getScheduler().runTaskLater(getplugin,

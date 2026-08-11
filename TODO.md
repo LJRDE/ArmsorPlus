@@ -50,6 +50,36 @@
 - [x] ~~元素之刃 flag 泄漏窗口~~ — 加 try-finally 确保 flag 清除
 - [x] ~~OpenSeaLottery onPlayerQuit 动画任务~~ — 设计如此（后台完成，奖品存待领取）
 
+## 🔴 第二轮扫描（2026-08-11 遗漏检查，共 ~20 项）
+
+## 🔴 第二轮扫描（2026-08-11 遗漏检查，共 ~20 项）
+
+- [x] ~~疾刺附魔适配 1.21+ 长矛/重锤~~ — `isSpearOrTrident` 和右键处理器加 `_SPEAR`/`MACE` 支持
+
+### 🔥 严重 BUG
+
+- [ ] **SkeletonKing 空指针检查顺序颠倒**（`SkeletonKing.java:87-96`）`bossEntity.isDead()` 在 `== null` 判断前 9 行执行，并发清理时 NPE
+- [ ] **18 个伤害 handler 缺 isCancelled 检查** 其他插件取消伤害事件后，这些 handler 照常执行
+
+#### ArmsorPlusItemHandler.java（15 个）
+- [ ] onMagicStickHit、onFrostArrowHit、onFlameHalberdAttack、onFlameHalberdHit
+- [ ] onIceSwordAttack、onWebBowHit、onExplosionBowHit
+- [ ] onSeaBoneSwordAttack、onSeaBoneKnifeAttack、onSpiritBoneKnifeAttack
+- [ ] onSeaSpineSwordAttack、onSeaSpineKnifeDefend、onSpiritSpineKnifeAttack
+- [ ] onSeaCrySwordAttack、onSeaCryKnifeAttack
+
+#### ArmsorPlusEnchantEventHandler.java（~10 个）
+- [ ] AmbushHandler、RevengeHandler、WitheringHandler、Dodge(OnBeaten)
+- [ ] RipplesHandler、GolemGuardianHandler、PiercingHandler、HolographicHandler、StrongBurstHandler
+- [ ] MergedDamageHandler 内全部附魔（血祭/锋刃/双斩/星痕/雷光/暴击/烈阳/冰刺/地狱火/吞生/吸血/剧毒/寒冻/饥荒/失明/眩晕）
+
+### 🟡 中低 BUG
+
+- [ ] WineRevive 元数据玩家退服未清理（热重载时残留）
+- [ ] SkeletonKing:109 `getAttribute().getValue()` 缺 null 保护
+- [ ] OpenSeaLottery:207 `getItemMeta()` 缺 null 检查
+- [ ] FoodListeners:115 `getAttribute().getValue()` 未判空
+
 ## 💡 体系建议
 
 ### 平衡

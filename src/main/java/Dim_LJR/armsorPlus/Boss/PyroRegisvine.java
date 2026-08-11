@@ -240,7 +240,7 @@ public class PyroRegisvine {
         World world = targetLoc.getWorld();
 
         world.playSound(targetLoc, Sound.ENTITY_BLAZE_SHOOT, 1.0f, 0.5f);
-        target.sendActionBar("§c❄ 火焰弹来了，快躲开！");
+        target.sendActionBar("§c🔥 火焰弹来了，快躲开！");
 
         new BukkitRunnable() {
             int wave = 0;
@@ -500,7 +500,7 @@ public class PyroRegisvine {
                     if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
                         p.damage(12, bossEntity);
                         p.setFireTicks(80);
-                        p.sendActionBar("§c❄ 你受到了火球灼烧");
+                        p.sendActionBar("§c🔥 你受到了火球灼烧");
                     }
                 }
             }
@@ -519,7 +519,7 @@ public class PyroRegisvine {
             if (entity instanceof Player p && !p.isDead() && isTarget(p)) {
                 p.damage(15, bossEntity);
                 p.setFireTicks(120);
-                p.sendActionBar("§c❄ 烈焰领域正在灼烧你");
+                p.sendActionBar("§c🔥 烈焰领域正在灼烧你");
             }
         }
     }
@@ -549,7 +549,7 @@ public class PyroRegisvine {
                 p.damage(20, bossEntity);
                 p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 120, 2));
                 p.setFireTicks(120);
-                p.sendActionBar("§c❄ 熔岩吐息！");
+                p.sendActionBar("§c🔥 熔岩吐息！");
             }
         }
     }

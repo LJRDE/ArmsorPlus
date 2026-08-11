@@ -491,8 +491,9 @@ public class ArmsorPlusItemHandler implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         ItemStack item = event.getItem();
         if (item == null) return;
-        // 疾刺仅对三叉戟/长矛(火焰戟同为三叉戟材质)生效
-        if (item.getType() != TRIDENT) return;
+        // 疾刺对三叉戟/长矛生效 (1.21+ 新增 SPEAR 类型)
+        Material type = item.getType();
+        if (type != TRIDENT && !type.name().endsWith("_SPEAR")) return;
 
         int level = ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
         if (level == 0) return;
@@ -502,14 +503,14 @@ public class ArmsorPlusItemHandler implements Listener {
         int duration = 60 + level * 20; // 基础60 ticks + 每级20 ticks
 
         // 疾刺: 移动速度提升 level*10% (ADD_SCALAR 真实百分比修饰符)
-        org.bukkit.attribute.AttributeInstance speedAttr = player.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MOVEMENT_SPEED);
+        org.bukkit.attribute.AttributeInstance speedAttr = player.getAttribute(org.bukkit.attribute.Attribute.MOVEMENT_SPEED);
         if (speedAttr != null) {
             org.bukkit.attribute.AttributeModifier speedMod = new org.bukkit.attribute.AttributeModifier(
                     new NamespacedKey(getplugin, "ArmsorPlus_QuickThrustSpeed"),
                     0.1 * level, org.bukkit.attribute.AttributeModifier.Operation.ADD_SCALAR,
                     org.bukkit.inventory.EquipmentSlotGroup.HAND);
             speedAttr.addTransientModifier(speedMod);
-            Bukkit.getScheduler().runTaskLater(getplugin, () -> speedAttr.removeTransientModifier(speedMod), duration);
+            Bukkit.getScheduler().runTaskLater(getplugin, () -> speedAttr.removeModifier(speedMod), duration);
         }
 
         player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 10, 0.3, 0.1, 0.3, 0.05);

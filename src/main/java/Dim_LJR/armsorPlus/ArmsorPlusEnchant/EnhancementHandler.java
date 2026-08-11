@@ -76,7 +76,9 @@ public class EnhancementHandler implements Listener {
     }
 
     private boolean isSpearOrTrident(ItemStack item) {
-        return item.getType() == TRIDENT || ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) > 0;
+        Material type = item.getType();
+        return type == TRIDENT || type.name().endsWith("_SPEAR")
+                || ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) > 0;
     }
 
     private boolean isAxe(ItemStack item) {
