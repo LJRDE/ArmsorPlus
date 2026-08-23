@@ -56,6 +56,7 @@ public class EnchantedBook {
     private static final String THUNDERCLAP_ARROW_BOOK = ChatColor.YELLOW + "惊雷";
     private static final String DAMAGE_DISPERSAL_BOOK = ChatColor.DARK_GREEN + "卸力";
     private static final String HERB_GUARD_BOOK = ChatColor.GREEN + "百草";
+    private static final String PIERCE_BOOK = ChatColor.DARK_PURPLE + "贯穿";
     private static final String FIRE_BLADE_BOOK = ChatColor.RED + "火印";
     private static final String FROST_BLADE_BOOK = ChatColor.AQUA + "霜印";
     private static final String THUNDER_BLADE_BOOK = ChatColor.YELLOW + "雷印";
@@ -91,10 +92,10 @@ public class EnchantedBook {
                 "倍率为2~" + (level + 1) + "倍");
     }
 
-    // 涤魂附魔书: 胸甲 - 周期性免疫魔法伤害
+    // 涤魂附魔书: 胸甲 - 获得负面效果时概率免除, 满级III
     public static ItemStack EffectClear_EnchantdeBook(int amount, int level) {
         return createEnchantedBook(amount, level, EffectClear, EFFECTCLEAR_BOOK,
-                "可用装备:胸甲", "每隔一段时间免疫一次魔法伤害");
+                "可用装备:胸甲", "获得负面效果时有" + (level * 25) + "%概率免除", "满级III (75%)");
     }
 
     // 寒冻附魔书: 武器 - 造成减速效果
@@ -290,16 +291,22 @@ public class EnchantedBook {
                 "可用装备:弓", "命中目标时召唤" + level + "道雷", "未命中(击中方块)召唤1道雷", "满级III");
     }
 
-    // 卸力附魔书: 胸甲 - 减少单次伤害，满级V
+    // 卸力附魔书: 胸甲 - 受到100+伤害时拆分为多段，满级V
     public static ItemStack DamageDispersal_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, DamageDispersalKey, DAMAGE_DISPERSAL_BOOK,
-                "可用装备:胸甲", "每级减少1点受到的伤害", "最多减免95%");
+                "可用装备:胸甲", "受到100+伤害时拆分为" + (level + 1) + "段", "每段间隔4tick");
     }
 
-    // 百草附魔书: 胸甲 - 减少魔法伤害，满级IV
+    // 百草附魔书: 胸甲 - 减少魔法/药水伤害, 概率免疫, 满级III
     public static ItemStack HerbGuard_EnchantedBook(int amount, int level) {
         return createEnchantedBook(amount, level, HerbGuardKey, HERB_GUARD_BOOK,
-                "可用装备:胸甲", "减少" + (level * 20) + "%魔法伤害", "满级IV (最高80%)");
+                "可用装备:胸甲", "魔法/药水伤害减免" + (level * 15) + "%", "并有" + (level * 5) + "%概率免疫", "满级III");
+    }
+
+    // 贯穿附魔书: 长矛 - 冲锋攻击后固定穿透伤害, 满级III
+    public static ItemStack Pierce_EnchantedBook(int amount, int level) {
+        return createEnchantedBook(amount, level, PierceKey, PIERCE_BOOK,
+                "可用装备:长矛", "长矛冲锋攻击后固定造成" + (level * 2) + "点穿透伤害", "满级III");
     }
 
     // 火印附魔书: 武器 - 攻击转为火焰伤害

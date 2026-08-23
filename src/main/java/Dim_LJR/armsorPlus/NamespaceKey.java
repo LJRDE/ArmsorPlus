@@ -193,12 +193,20 @@ public class NamespaceKey {
         public static NamespacedKey PoopKey;
         public static NamespacedKey GoldShieldElixirKey;
 
+        // ---- 吞云斩月刀系列 (0.3J+) ----
+        public static NamespacedKey CloudMoonBladeKey;
+        public static NamespacedKey MoonShardKey;
+
+        // ---- 狂怒掠夺者之弩 ----
+        public static NamespacedKey RagingPlundererCrossbowKey;
+
         // ---- 新附魔键 ----
         public static NamespacedKey PoisonKey;
         public static NamespacedKey SharpBladeKey;
         public static NamespacedKey ThunderclapArrowKey;
         public static NamespacedKey DamageDispersalKey;
         public static NamespacedKey HerbGuardKey;
+        public static NamespacedKey PierceKey;
         public static NamespacedKey FireBladeKey;
         public static NamespacedKey FrostBladeKey;
         public static NamespacedKey ThunderBladeKey;
@@ -357,6 +365,7 @@ public class NamespaceKey {
             ThunderclapArrowKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderclapArrow");
             DamageDispersalKey = new NamespacedKey(plugin, "ArmsorPlus_DamageDispersal");
             HerbGuardKey = new NamespacedKey(plugin, "ArmsorPlus_HerbGuard");
+            PierceKey = new NamespacedKey(plugin, "ArmsorPlus_Pierce");
             FireBladeKey = new NamespacedKey(plugin, "ArmsorPlus_FireBlade");
             FrostBladeKey = new NamespacedKey(plugin, "ArmsorPlus_FrostBlade");
             ThunderBladeKey = new NamespacedKey(plugin, "ArmsorPlus_ThunderBlade");
@@ -444,6 +453,13 @@ public class NamespaceKey {
             SpiritSpineKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SpiritSpineKnife");
             SeaCrySwordKey = new NamespacedKey(plugin, "ArmsorPlus_SeaCrySword");
             SeaCryKnifeKey = new NamespacedKey(plugin, "ArmsorPlus_SeaCryKnife");
+
+            // 吞云斩月刀系列 (0.3J+)
+            CloudMoonBladeKey = new NamespacedKey(plugin, "ArmsorPlus_CloudMoonBlade");
+            MoonShardKey = new NamespacedKey(plugin, "ArmsorPlus_MoonShard");
+
+            // 狂怒掠夺者之弩
+            RagingPlundererCrossbowKey = new NamespacedKey(plugin, "ArmsorPlus_RagingPlundererCrossbow");
         }
     }
 

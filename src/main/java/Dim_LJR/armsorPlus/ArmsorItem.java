@@ -327,6 +327,10 @@ public final class ArmsorItem {
         return EnchantedBook.HerbGuard_EnchantedBook(amount, level);
     }
 
+    public static ItemStack Pierce_EnchantedBook(int amount, int level) {
+        return EnchantedBook.Pierce_EnchantedBook(amount, level);
+    }
+
     public static ItemStack FireBlade_EnchantedBook(int amount, int level) {
         return EnchantedBook.FireBlade_EnchantedBook(amount, level);
     }
@@ -409,5 +413,17 @@ public final class ArmsorItem {
 
     public static ItemStack IllusionStaff(int amount) {
         return Weapon.IllusionStaff(amount);
+    }
+
+    // ========================================================================
+    // 吞云斩月刀 (0.3J+)
+    // ========================================================================
+
+    public static ItemStack CloudMoonBlade(int amount) {
+        return Weapon.CloudMoonBlade(amount);
+    }
+
+    public static ItemStack RagingPlundererCrossbow(int amount) {
+        return Weapon.RagingPlundererCrossbow(amount);
     }
 }

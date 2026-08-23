@@ -81,6 +81,10 @@ public class EnhancementHandler implements Listener {
                 || ArmsorEnchant.getEnchantLevel(item, FlameHalberdKey) > 0;
     }
 
+    private boolean isSpear(ItemStack item) {
+        return item.getType().name().endsWith("_SPEAR");
+    }
+
     private boolean isAxe(ItemStack item) {
         return item.getType().name().endsWith("_AXE");
     }
@@ -433,6 +437,9 @@ public class EnhancementHandler implements Listener {
         // [疾刺] 三叉戟/长矛
         if (tryApplyEnchant(event, consum, item, player, QuickThrustKey, QuickThrustKey,
                 isSpearOrTrident(item), ChatColor.GOLD + "疾刺")) return;
+        // [贯穿] 长矛
+        if (tryApplyEnchant(event, consum, item, player, PierceKey, PierceKey,
+                isSpear(item), ChatColor.DARK_PURPLE + "贯穿")) return;
         // [金刚钻] 镐子
         if (tryApplyEnchant(event, consum, item, player, DiamondDrillKey, DiamondDrillKey,
                 isPickaxe(item), ChatColor.AQUA + "金刚钻")) return;

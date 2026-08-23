@@ -602,6 +602,18 @@ public class ArmsorPlusRecipes {
         plugin.getServer().addRecipe(illusionStaffRecipe);
         count++;
 
+        // ===== 吞云斩月刀 (0.3J+) =====
+
+        // 吞云斩月刀: 月之碎片x2 + 幻术师的遗骨x2 + 钻石剑
+        NamespacedKey cloudMoonBladeKey = new NamespacedKey(plugin, "ArmsorPlus_CloudMoonBlade");
+        ShapedRecipe cloudMoonBladeRecipe = new ShapedRecipe(cloudMoonBladeKey, CloudMoonBlade(1));
+        cloudMoonBladeRecipe.shape(" M ", "BSB", " M ");
+        cloudMoonBladeRecipe.setIngredient('M', new RecipeChoice.ExactChoice(MoonShard(1)));
+        cloudMoonBladeRecipe.setIngredient('B', new RecipeChoice.ExactChoice(IllusionerBone(1)));
+        cloudMoonBladeRecipe.setIngredient('S', DIAMOND_SWORD);
+        plugin.getServer().addRecipe(cloudMoonBladeRecipe);
+        count++;
+
         plugin.getLogger().info("ArmsorPlus 配方注册完成 数量: " + count);
     }
 }

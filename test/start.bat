@@ -1,1 +1,0 @@
-java -Xmx4g -Xms2g -jar purpur-1.21.11-2566.jar -nogui

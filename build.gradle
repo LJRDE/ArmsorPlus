@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'com.gradleup.shadow' version '8.3.5'
 }
 
 group = 'Dim_LJR'
@@ -11,16 +12,23 @@ repositories {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
+    maven {
+        name = "codemc-repo"
+        url = "https://repo.codemc.io/repository/maven-releases/"
+    }
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    // PacketEvents 改为可选依赖(softdepend), 不打包进插件 jar, 由用户自行安装。
+    // 未安装时玩家模型Boss退化为纯盔甲架本体(无假玩家渲染, 伤害仍走盔甲架命中盒)。
+    compileOnly("com.github.retrooper:packetevents-spigot:2.13.0")
 }
 
 tasks.register('runPurpur', JavaExec) {
-    dependsOn jar
+    dependsOn shadowJar
 
-    def serverJar = file("test/paper-1.21.11-132.jar")
+    def serverJar = file("run/purpur-1.21.11-2568.jar")
     def runDir = file("run")
 
     classpath = files(serverJar)
@@ -36,9 +44,9 @@ tasks.register('runPurpur', JavaExec) {
         pluginsDir.mkdirs()
         versionsDir.mkdirs()
 
-        def newJar = tasks.jar.archiveFile.get().asFile
+        def newJar = tasks.shadowJar.archiveFile.get().asFile
         def stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())
-        fileTree(pluginsDir).matching { include "ArmsorPlus*.jar" }.each { oldJar ->
+        fileTree(pluginsDir).matching { include "ArmsorPlus1.21-*.jar" }.each { oldJar ->
             // 备份旧版到 versions (带时间戳, 同名版本次也会保留)
             copy {
                 from oldJar
@@ -51,7 +59,7 @@ tasks.register('runPurpur', JavaExec) {
             }
         }
         copy {
-            from tasks.jar.archiveFile
+            from tasks.shadowJar.archiveFile
             into pluginsDir
         }
         println "已更新 run/plugins，旧版已备份到 build/plugin-versions/"
@@ -77,7 +85,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.register('reload') {
-    dependsOn jar
+    dependsOn shadowJar
     doLast {
         def pluginsDir = file("run/plugins")
         def versionsDir = file("build/plugin-versions")
@@ -85,9 +93,9 @@ tasks.register('reload') {
         versionsDir.mkdirs()
 
         // 把旧版 jar 备份到 versions 目录, 再替换为新版
-        def newJar = tasks.jar.archiveFile.get().asFile
+        def newJar = tasks.shadowJar.archiveFile.get().asFile
         def stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())
-        fileTree(pluginsDir).matching { include "ArmsorPlus*.jar" }.each { oldJar ->
+        fileTree(pluginsDir).matching { include "ArmsorPlus1.21-*.jar" }.each { oldJar ->
             copy {
                 from oldJar
                 into versionsDir
@@ -98,7 +106,7 @@ tasks.register('reload') {
             }
         }
         copy {
-            from tasks.jar.archiveFile
+            from tasks.shadowJar.archiveFile
             into pluginsDir
         }
         println "已更新 run/plugins，旧版已备份到 build/plugin-versions/，在服务端输入指令重载插件"

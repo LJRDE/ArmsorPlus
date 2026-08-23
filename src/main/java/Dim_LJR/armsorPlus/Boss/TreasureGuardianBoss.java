@@ -3,6 +3,8 @@ package Dim_LJR.armsorPlus.Boss;
 import Dim_LJR.armsorPlus.ArmsorItem;
 import Dim_LJR.armsorPlus.NamespaceKey;
 import org.bukkit.*;
+
+import static Dim_LJR.armsorPlus.Item.Materials.MoonShard;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -241,6 +243,7 @@ public class TreasureGuardianBoss {
 
         world.dropItemNaturally(loc, new ItemStack(Material.DIAMOND, RANDOM.nextInt(3) + 1));
         world.dropItemNaturally(loc, ArmsorItem.MagicBallCreateI(RANDOM.nextInt(2) + 1));
+        world.dropItemNaturally(loc, MoonShard(RANDOM.nextInt(2) + 1)); // 月之碎片 1~2 (吞云斩月刀材料)
 
         if (RANDOM.nextBoolean()) {
             world.dropItemNaturally(loc, ArmsorItem.Freeze_EnchantedBook(1, RANDOM.nextInt(2) + 1));

@@ -147,6 +147,7 @@ public class ArmsorEnchant {
         if (key.equals(ThunderclapArrowKey)) return "惊雷";
         if (key.equals(DamageDispersalKey))  return "卸力";
         if (key.equals(HerbGuardKey))        return "百草";
+        if (key.equals(PierceKey))           return "贯穿";
         if (key.equals(FireBladeKey))        return "火印";
         if (key.equals(FrostBladeKey))       return "霜印";
         if (key.equals(ThunderBladeKey))     return "雷印";

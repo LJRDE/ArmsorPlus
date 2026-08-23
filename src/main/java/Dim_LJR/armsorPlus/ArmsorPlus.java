@@ -4,7 +4,15 @@ import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
 import Dim_LJR.armsorPlus.Boss.BossMenu;
+import Dim_LJR.armsorPlus.Boss.BossRenderer;
+import Dim_LJR.armsorPlus.Boss.BossSkin;
 import Dim_LJR.armsorPlus.Boss.BossWorld;
+import Dim_LJR.armsorPlus.Boss.FakePlayerFactory;
+import Dim_LJR.armsorPlus.Boss.FakePlayerProvider;
+import Dim_LJR.armsorPlus.Boss.ModelBoss;
+import Dim_LJR.armsorPlus.Boss.PlayerBoss;
+import Dim_LJR.armsorPlus.Boss.SkinServer;
+import Dim_LJR.armsorPlus.Boss.VillageCaptain;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
 import Dim_LJR.armsorPlus.Food.FoodListeners;
 import Dim_LJR.armsorPlus.Food.TreeListeners;
@@ -12,6 +20,8 @@ import Dim_LJR.armsorPlus.OpenSea.LoadOpenSea;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaDig;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaEntity;
 import Dim_LJR.armsorPlus.OpenSea.OpenSeaLottery;
+import com.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
@@ -19,6 +29,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.server.ServiceRegisterEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -44,7 +55,18 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         regkey(this);           // 注册所有NamespaceKey
         banner();               // 打印启动横幅
         loadconfig();           // 加载配置文件
+        SkinServer.init(this);  // 皮肤初始化 (默认不占端口, 见config)
         PlayerSettings.load(this); // 加载玩家设置
+
+        // 玩家模型Boss后端发现: PacketEvents(发包渲染) 为可选依赖(softdepend), 附属插件(FakePlayerFactory)优先。
+        // 附属插件 softdepend 主插件、必然后加载, 故不在此处一次性取 factory,
+        // 而是由 FakePlayerProvider 实时懒发现 (附属就绪时触发 ServiceRegisterEvent, 见下方监听)。
+        boolean packetEvents = Bukkit.getPluginManager().getPlugin("packetevents") != null;
+        FakePlayerProvider.init(packetEvents);
+        if (packetEvents) {
+            initPacketEvents();
+            BossSkin.prefetchShadowWarrior(); // 后台预取影武者皮肤 (Mojang在线拉取)
+        }
         registerListeners();    // 注册事件监听器
         registerCommands();     // 注册命令
         ArmsorPlusRecipes.register(this);      // 注册合成配方
@@ -56,9 +78,32 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
     }
     @Override
     public void onDisable() {
+        SkinServer.shutdown();  // 关闭皮肤文件服务器
         PlayerSettings.save(this); // 保存玩家设置
+        if (FakePlayerProvider.hasPacketEvents() && PacketEvents.getAPI() != null) {
+            PacketEvents.getAPI().terminate();
+        }
         getLogger().info("ArmsorPlus 插件已禁用");
         HandlerList.unregisterAll();
+    }
+
+    // 初始化 PacketEvents 发包库 (玩家模型BOSS使用)
+    private void initPacketEvents() {
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        PacketEvents.getAPI().getSettings().debug(false);
+        PacketEvents.getAPI().load();
+        PacketEvents.getAPI().init();
+        BossRenderer.registerListeners(); // 注册发包攻击拦截 + tick末尾假玩家同步 (影武者/村民队长共用)
+        getLogger().info("PacketEvents 初始化完成");
+    }
+
+    // 附属插件 softdepend 主插件、必然后加载; 其 FakePlayerFactory 服务注册时触发此事件。
+    // 用于在主插件已启用后感知附属就绪 (懒发现, 见 FakePlayerProvider.companion())。
+    @EventHandler
+    public void onServiceRegister(ServiceRegisterEvent event) {
+        if (event.getProvider().getService() == FakePlayerFactory.class) {
+            getLogger().info("已接入附属插件 ArmsorPlusFakePlayer (FakePlayerFactory), 玩家模型Boss将使用假玩家渲染");
+        }
     }
 
     // 注册所有事件监听器
@@ -68,6 +113,9 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(), this);
         getServer().getPluginManager().registerEvents(new EnhancementHandler(), this);
         getServer().getPluginManager().registerEvents(new BossMenu(), this);
+        getServer().getPluginManager().registerEvents(new PlayerBoss(), this);
+        getServer().getPluginManager().registerEvents(new VillageCaptain(), this);
+        getServer().getPluginManager().registerEvents(new ModelBoss.RealEntityDamageListener(), this); // 近战/弓箭/爆炸/火焰等真实伤害 → 统一血量
         getServer().getPluginManager().registerEvents(new ArmsorPlusItemHandler(), this);
         getServer().getPluginManager().registerEvents(new FoodListeners(), this);
         getServer().getPluginManager().registerEvents(new TreeListeners(),this);
@@ -96,6 +144,15 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         config.addDefault("MapZipName", "OpenSea.zip");
         config.addDefault("EnablePlants", false);
         config.addDefault("ResourcePackUrl", "");
+        config.addDefault("BossSkinPlayerName", "Village_master");
+        config.addDefault("BossSkinFile", "Village_master.png");
+        config.addDefault("EnableSkinServer", false);
+        config.addDefault("SkinServerHost", "");
+        config.addDefault("SkinServerPort", 26666);
+        config.addDefault("BossSkinValue", "");
+        config.addDefault("BossSkinSignature", "");
+        config.addDefault("CaptainSkinValue", "");
+        config.addDefault("CaptainSkinSignature", "");
         config.options().copyDefaults(true);
         saveConfig();
 

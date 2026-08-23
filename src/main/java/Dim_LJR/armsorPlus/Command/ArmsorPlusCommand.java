@@ -1,7 +1,11 @@
 package Dim_LJR.armsorPlus.Command;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
+import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusMenu;
+import Dim_LJR.armsorPlus.Boss.PlayerBoss;
+import Dim_LJR.armsorPlus.Boss.VillageCaptain;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -21,13 +25,14 @@ import java.util.stream.Collectors;
 
 import static Dim_LJR.armsorPlus.ArmsorItem.*;
 import static Dim_LJR.armsorPlus.Food.FoodItems.*;
+import static Dim_LJR.armsorPlus.Item.Materials.MoonShard;
 import static Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.reloadmap;
 import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 
 public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
 
     private final List<String> args0 = List.of(
-            "info", "give", "guide", "spawn", "getEnchantmentLevel", "removeEnchant", "reloadmap", "help"
+            "info", "give", "guide", "spawn", "bossremove", "getEnchantmentLevel", "removeEnchant", "getBloodCount", "reloadmap", "help"
     );
     private final List<String> args1_give = List.of(
             "Arms_I", "Arms_II", "Armor_I", "Armor_II", "Bow_I",
@@ -59,6 +64,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "ThunderclapArrow_EnchantedBook",
             "DamageDispersal_EnchantedBook",
             "HerbGuard_EnchantedBook",
+            "Pierce_EnchantedBook",
             "FireBlade_EnchantedBook", "FrostBlade_EnchantedBook",
             "ThunderBlade_EnchantedBook", "MagicBlade_EnchantedBook",
             "IceSpike_EnchantedBook", "Inferno_EnchantedBook",
@@ -69,7 +75,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "SeaBoneSword", "SeaBoneKnife", "SpiritBoneSword", "SpiritBoneKnife",
             "SeaSpineSword", "SeaSpineKnife", "CorrodeBoneSword",
             "SpiritSpineSword", "SpiritSpineKnife", "SeaCrySword", "SeaCryKnife",
-            "IllusionBlade", "IllusionStaff",
+            "IllusionBlade", "IllusionStaff", "CloudMoonBlade", "MoonShard", "RagingPlundererCrossbow",
             "GoldShieldElixir",
             "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "GoldWine", "RottenJerky",
             "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
@@ -84,7 +90,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "Piercing", "LavaWalker", "LightningCall", "Holographic",
             "Tracking", "Harvest", "AutoPlant", "StrongBurst", "MultiShot",
             "Poison", "SharpBlade", "ThunderclapArrow", "DamageDispersal",
-            "HerbGuard", "FireBlade", "FrostBlade", "ThunderBlade", "MagicBlade",
+            "HerbGuard", "Pierce", "FireBlade", "FrostBlade", "ThunderBlade", "MagicBlade",
             "IceSpike", "Inferno", "HeavyArmor", "EarthFavor", "Ambush"
     );
 
@@ -119,6 +125,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         map.put("ThunderclapArrow", ThunderclapArrowKey);
         map.put("DamageDispersal", DamageDispersalKey);
         map.put("HerbGuard", HerbGuardKey);
+        map.put("Pierce", PierceKey);
         map.put("FireBlade", FireBladeKey);
         map.put("FrostBlade", FrostBladeKey);
         map.put("ThunderBlade", ThunderBladeKey);
@@ -147,10 +154,12 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "info" -> handleInfo(sender);
             case "give" -> handleGive(sender, args);
             case "guide" -> handleGuide(sender);
-            case "spawn" -> handleSpawn(sender);
+            case "spawn" -> handleSpawn(sender, args);
+            case "bossremove" -> handleBossRemove(sender);
             case "reloadmap" -> handleReloadMap(sender);
             case "getEnchantmentLevel" -> handleGetEnchantLevel(sender, args);
             case "removeEnchant" -> handleRemoveEnchant(sender, args);
+            case "getBloodCount" -> handleGetBloodCount(sender);
             case "help" -> sendHelp(sender);
             default -> sender.sendMessage(ChatColor.RED + "未知指令，请输入 /ArmsorPlus help 查看帮助");
         }
@@ -632,6 +641,12 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(HerbGuard_EnchantedBook(amount, level));
                 sender.sendMessage("已给予 " + amount + " 本" + ChatColor.GREEN + "百草" + ChatColor.RESET + "附魔书 (等级" + level + ")");
             }
+            case "Pierce_EnchantedBook" -> {
+                int amount = parseAmount(args, 2, 1);
+                int level = parseLevel(args, 3, 1);
+                player.getInventory().addItem(Pierce_EnchantedBook(amount, level));
+                sender.sendMessage("已给予 " + amount + " 本" + ChatColor.DARK_PURPLE + "贯穿" + ChatColor.RESET + "附魔书 (等级" + level + ")");
+            }
             case "FireBlade_EnchantedBook" -> {
                 int amount = parseAmount(args, 2, 1);
                 int level = parseLevel(args, 3, 1);
@@ -792,12 +807,59 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 player.getInventory().addItem(IllusionStaff(amount));
                 sender.sendMessage(ChatColor.AQUA + "已获得 " + amount + " 把幻惑法杖");
             }
+            case "CloudMoonBlade" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(CloudMoonBlade(amount));
+                sender.sendMessage(ChatColor.WHITE + "已获得 " + amount + " 把吞云斩月刀");
+            }
+            case "MoonShard" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(MoonShard(amount));
+                sender.sendMessage(ChatColor.AQUA + "已获得 " + amount + " 个月之碎片");
+            }
+            case "RagingPlundererCrossbow" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(RagingPlundererCrossbow(amount));
+                sender.sendMessage(ChatColor.RED + "已获得 " + amount + " 把狂怒掠夺者之弩");
+            }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }
     }
 
-    private void handleSpawn(@NotNull CommandSender sender) {
-        sender.sendMessage(ChatColor.YELLOW + "开发中...");
+    private void handleSpawn(@NotNull CommandSender sender, @NotNull String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "该指令必须由玩家执行");
+            return;
+        }
+        // /ArmsorPlus spawn 或 /ArmsorPlus spawn shadow —— 召唤影武者 (默认用召唤者皮肤)
+        if (args.length == 1 || (args.length >= 2 && args[1].equalsIgnoreCase("shadow"))) {
+            if (args.length >= 3) {
+                Player skinSource = Bukkit.getPlayer(args[2]);
+                if (skinSource == null) {
+                    sender.sendMessage(ChatColor.RED + "找不到在线玩家: " + args[2]);
+                    return;
+                }
+                PlayerBoss.spawnBoss(player, skinSource);
+            } else {
+                PlayerBoss.spawnBoss(player);
+            }
+            return;
+        }
+        // /ArmsorPlus spawn captain —— 召唤村民队长 (简单近战Boss, 使用新皮肤)
+        if (args.length >= 2 && args[1].equalsIgnoreCase("captain")) {
+            VillageCaptain.spawnBoss(player);
+            return;
+        }
+        sender.sendMessage(ChatColor.YELLOW + "用法: /ArmsorPlus spawn [shadow [玩家名] | captain]");
+    }
+
+    // 击杀/移除存活的影武者 (假玩家为纯发包实体, 原版 /kill 无法选中, 故提供此指令)
+    private void handleBossRemove(@NotNull CommandSender sender) {
+        if (PlayerBoss.killBoss()) {
+            sender.sendMessage(ChatColor.GREEN + "已击杀 ShadowWarrior (含掉落结算)");
+        } else {
+            sender.sendMessage(ChatColor.YELLOW + "当前没有存活的 ShadowWarrior");
+        }
     }
 
     private void handleReloadMap(@NotNull CommandSender sender) {
@@ -858,7 +920,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                         IndestructibleKey, ProtectionPROKey, StunKey, GolemGuardianKey,
                         CriticalStrikeKey, PiercingKey, LavaWalkerKey, LightningCallKey,
                         HolographicKey, TrackingKey, HarvestKey, AutoPlantKey, StrongBurstKey,
-                        MultiShotKey, PoisonKey, SharpBladeKey,
+                        MultiShotKey, PoisonKey, SharpBladeKey, PierceKey,
                         ThunderclapArrowKey,
                         Armskey, Armorkey, Bowkey, DiamondPluskey,
                         BasicStone, GuideBookKey, MagicBallKey, MenuMark
@@ -901,6 +963,24 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GREEN + "已移除 " + (displayName != null ? displayName : args[1]) + " 附魔 (原等级: " + oldLevel + ")");
     }
 
+    private void handleGetBloodCount(@NotNull CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "该指令必须由玩家执行");
+            return;
+        }
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item.getType().isAir()) {
+            sender.sendMessage(ChatColor.RED + "请手持噬生剑");
+            return;
+        }
+        if (ArmsorEnchant.getEnchantLevel(item, DevourLifeSwordKey) == 0) {
+            sender.sendMessage(ChatColor.RED + "手持物品没有噬生附魔");
+            return;
+        }
+        int count = ArmsorPlusEnchantEventHandler.getDevourLifeBloodCount(item);
+        sender.sendMessage(ChatColor.DARK_PURPLE + "噬生当前血裂数: " + count + "/20");
+    }
+
     private void sendHelp(@NotNull CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "===== ArmsorPlus 指令帮助 =====");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus help" + ChatColor.RESET + " - 显示本帮助");
@@ -912,7 +992,9 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GRAY + "  各附魔书(附魔名_EnchantedBook)");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus getEnchantmentLevel <附魔>" + ChatColor.RESET + " - 查看手持物品的附魔等级");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus removeEnchant <附魔|all>" + ChatColor.RESET + " - 移除手持物品的附魔");
-        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus spawn" + ChatColor.RESET + " - 公海地图传送(开发中)");
+        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus getBloodCount" + ChatColor.RESET + " - 查看手持噬生剑当前血裂数");
+        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus spawn [shadow [玩家名] | captain]" + ChatColor.RESET + " - 召唤影武者(ShadowWarrior)或村民队长(VillageCaptain)");
+        sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus bossremove" + ChatColor.RESET + " - 击杀存活的影武者(ShadowWarrior)");
         sender.sendMessage(ChatColor.YELLOW + "/ArmsorPlus reloadmap" + ChatColor.RESET + " - 重载地图文件");
     }
 
@@ -932,6 +1014,10 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 if (args[0].equals("give")) {
                     if (args[1].isEmpty()) return args1_give;
                     return args1_give.stream().filter(s -> s.startsWith(args[1])).collect(Collectors.toList());
+                } else if (args[0].equals("spawn")) {
+                    List<String> spawns = List.of("shadow", "captain");
+                    if (args[1].isEmpty()) return spawns;
+                    return spawns.stream().filter(s -> s.startsWith(args[1])).collect(Collectors.toList());
                 } else if (args[0].equals("getEnchantmentLevel") || args[0].equals("removeEnchant")) {
                     if (args[1].isEmpty()) return args1_enchant;
                     return args1_enchant.stream().filter(s -> s.startsWith(args[1])).collect(Collectors.toList());

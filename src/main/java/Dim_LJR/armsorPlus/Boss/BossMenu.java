@@ -29,7 +29,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER }
+    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER, DESERT_CAMEL, SHADOW_WARRIOR }
 
     // 身体部位实体 -> BOSS类型
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -146,6 +146,8 @@ public class BossMenu implements Listener {
                 case TREASURE_GUARDIAN -> TreasureGuardianBoss.onDeath();
                 case SKELETON_KING -> SkeletonKing.onDeath();
                 case ILLUSIONER -> IllusionerBoss.onDeath();
+                case DESERT_CAMEL -> DesertCamelBoss.onDeath();
+                case SHADOW_WARRIOR -> PlayerBoss.onDeath();
             }
             return true;
         }
@@ -168,11 +170,21 @@ public class BossMenu implements Listener {
         bossEntities.remove(type);
     }
 
-    // 更新BOSS血条可见范围 (150格)
+    // 更新BOSS血条: 同步血量进度/标题 + 可见范围 (150格)
     public static void updateBossBar(BossType type) {
         BossBar bar = bossBars.get(type);
         LivingEntity entity = bossEntities.get(type);
         if (bar == null || entity == null || entity.isDead()) return;
+
+        Double health = bossHealth.get(type);
+        Double maxHp = bossMaxHealth.get(type);
+        if (health != null && maxHp != null && maxHp > 0) {
+            bar.setProgress(Math.min(1.0, Math.max(0.0, health / maxHp)));
+            String base = bossBarBaseTitles.get(type);
+            if (base != null && type != BossType.CRYO) {
+                bar.setTitle(base + " §7" + Math.round(health) + "/" + Math.round(maxHp));
+            }
+        }
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p.getWorld().equals(entity.getWorld()) && p.getLocation().distance(entity.getLocation()) <= 150) {
@@ -212,8 +224,10 @@ public class BossMenu implements Listener {
         if (type == BossType.SKELETON_KING) {
             return; // 原版伤害，AI循环读实体血量
         }
-        // 原生实体薄封装: 史莱姆王/小僵尸Double/宝藏守护者 使用原生血量+原生AI, 不重定向伤害
-        if (type == BossType.SLIME || type == BossType.BABY_ZOMBIE_DOUBLE || type == BossType.TREASURE_GUARDIAN) {
+        // 原生实体薄封装: 史莱姆王/小僵尸Double/宝藏守护者/沙漠骆驼/影武者 使用原生血量+原生AI, 不重定向伤害
+        if (type == BossType.SLIME || type == BossType.BABY_ZOMBIE_DOUBLE
+                || type == BossType.TREASURE_GUARDIAN || type == BossType.DESERT_CAMEL
+                || type == BossType.SHADOW_WARRIOR) {
             return;
         }
 
@@ -431,6 +445,42 @@ public class BossMenu implements Listener {
         ));
         illusioner.setItemMeta(illusionerMeta);
         bossList.setItem(16, illusioner);
+
+        ItemStack desertCamel = new ItemStack(Material.ZOMBIE_HORSE_SPAWN_EGG);
+        ItemMeta desertCamelMeta = desertCamel.getItemMeta();
+        desertCamelMeta.setDisplayName("§2■ 铁骑双雄");
+        desertCamelMeta.setLore(Arrays.asList(
+                "§7沙漠中的移动死亡堡垒，",
+                "§7僵尸骑士驾驶僵尸战马冲锋，",
+                "§7骷髅射手骑在毒蛛上远程支援。",
+                "",
+                "§c❤ 坐骑: 125×2 / 僵尸: 150 / 骷髅: 100",
+                "§2⚔ 僵尸: 全套下界合金 + 基础伤害25·锋利70·击退X·贯穿III长矛",
+                "§7✦ 骷髅: 全套下界合金 + 力量85·弹道V·冲击III·火矢I神弓",
+                "§b⚡ 双坐骑: 速度VII + 抗性IV",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        desertCamel.setItemMeta(desertCamelMeta);
+        bossList.setItem(19, desertCamel);
+
+        ItemStack shadowWarrior = new ItemStack(Material.PLAYER_HEAD);
+        ItemMeta shadowMeta = shadowWarrior.getItemMeta();
+        shadowMeta.setDisplayName("§8■ ShadowWarrior");
+        shadowMeta.setLore(Arrays.asList(
+                "§7以召唤者皮肤为模型的幻影武者，",
+                "§7手持钻石剑，来去如影。",
+                "",
+                "§c❤ 生命值: 300",
+                "§8⚔ 近战伤害: 12 / 影遁 15 / 幻影斩 10",
+                "§e✦ 使用真实玩家皮肤渲染 (自定义皮肤Boss)",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        shadowWarrior.setItemMeta(shadowMeta);
+        bossList.setItem(20, shadowWarrior);
     }
 
     // ========================================================================
@@ -546,6 +596,32 @@ public class BossMenu implements Listener {
             player.closeInventory();
             player.sendMessage("§d◆ 幻术师已降临！");
             IllusionerBoss.spawnBoss(player);
+        } else if (name.contains("铁骑双雄")) {
+            if (DesertCamelBoss.isAlive()) {
+                Location loc = DesertCamelBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e铁骑双雄尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§2◆ 铁骑双雄已降临！");
+            DesertCamelBoss.spawnBoss(player);
+        } else if (name.contains("ShadowWarrior")) {
+            if (PlayerBoss.isAlive()) {
+                Location loc = PlayerBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§eShadowWarrior尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            PlayerBoss.spawnBoss(player);
+            player.sendMessage("§8◆ ShadowWarrior以你的形象降临了！");
         }
     }
 }

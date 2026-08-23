@@ -3,6 +3,7 @@ package Dim_LJR.armsorPlus.Item;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -61,6 +62,19 @@ public class Materials {
         meta.setLore(Arrays.asList(ChatColor.GRAY + "幻术师BOSS掉落的珍贵遗骸"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, IllusionerScrapKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // 月之碎片: 宝藏守护者BOSS掉落物 (吞云斩月刀材料)
+    public static ItemStack MoonShard(int amount) {
+        ItemStack item = new ItemStack(Material.QUARTZ);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + "月之碎片");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "宝藏守护者掉落的月华碎片"));
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:moon_shard"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, MoonShardKey, 1);
         item.setAmount(amount);
         return item;
     }

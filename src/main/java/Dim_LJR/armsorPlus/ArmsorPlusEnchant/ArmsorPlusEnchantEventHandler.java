@@ -13,7 +13,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -48,6 +51,9 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     // 正在被复仇反弹伤害处理中的实体 (标记复仇伤害来源, 避免触发血祭/吸血等攻击侧附魔)
     private static final Set<java.util.UUID> REVENGE_ACTIVE = new HashSet<>();
 
+    // 正在被卸力拆分结算中的实体 (防止拆分的分段伤害被再次拆分)
+    private static final Set<java.util.UUID> DAMAGE_SPLIT_ACTIVE = new HashSet<>();
+
     // 共享随机数 (避免 percent() 每次 new Random 的 GC 压力)
     private static final Random RANDOM = new Random();
 
@@ -55,10 +61,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         java.util.UUID uuid = event.getPlayer().getUniqueId();
-        cooldowns.remove(uuid);
         golemCooldowns.remove(uuid);
         heavyArmorTimers.remove(uuid);
         pendingBloodDecayRefresh.remove(uuid);
+        DAMAGE_SPLIT_ACTIVE.remove(uuid);
     }
 
     // 构造"无法抵挡"的穿透伤害源: 无视护甲/保护附魔/抗性/无敌帧 (等价于原版 /kill)
@@ -68,6 +74,15 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
                 .withDirectEntity(causer)
                 .withCausingEntity(causer)
                 .build();
+    }
+
+    // 伤害溯源: 判断是否为真实近战攻击 (ENTITY_ATTACK/ENTITY_SWEEP_ATTACK)。
+    // 荆棘(THORNS)等反弹伤害的 damager 是持武器玩家, 但并非玩家主动挥击,
+    // 所有武器命中效果必须先过此关, 避免在反弹伤害上误触发 (血祭/双重打击/火焰戟/匕首等)
+    public static boolean isDirectMeleeAttack(EntityDamageByEntityEvent event) {
+        EntityDamageEvent.DamageCause cause = event.getCause();
+        return cause == EntityDamageEvent.DamageCause.ENTITY_ATTACK
+                || cause == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK;
     }
 
     // ========================================================================
@@ -106,6 +121,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void AmbushHandler(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!isDirectMeleeAttack(event)) return;
         ItemStack offhand = player.getInventory().getItemInOffHand();
         int level = ArmsorEnchant.getEnchantLevel(offhand, AmbushKey);
         if (level <= 0) return;
@@ -133,7 +149,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     }
 
     // 解析时间戳字符串为List
-    private List<Long> parseTimestamps(String tsStr) {
+    private static List<Long> parseTimestamps(String tsStr) {
         List<Long> list = new ArrayList<>();
         if (tsStr == null || tsStr.isEmpty()) return list;
         for (String s : tsStr.split(",")) {
@@ -142,26 +158,64 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         return list;
     }
 
-    // 更新噬生剑的lore显示血裂数
-    private void updateDevourLifeLore(ItemMeta meta, int bloodCount) {
-        List<String> lore = meta.getLore();
-        if (lore == null) lore = new ArrayList<>();
-        // 移除旧的血裂行
-        lore.removeIf(line -> ChatColor.stripColor(line).contains("血裂数"));
-        // 添加新的血裂行到最前面
-        lore.add(0, ChatColor.DARK_RED + "血裂数: " + bloodCount + "/20");
+    // 计算噬生剑当前有效血裂数 (30秒内的时间戳数量, 上限20)
+    public static int getDevourLifeBloodCount(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) return 0;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        List<Long> timestamps = parseTimestamps(pdc.get(DevourLifeBloodTimestamps, PersistentDataType.STRING));
+        long now = System.currentTimeMillis();
+        timestamps.removeIf(ts -> now - ts >= 30000);
+        return Math.min(timestamps.size(), 20);
+    }
+
+    // 更新噬生剑显示: 耐久条 + Lore 血裂数 (0/20 → 20/20)
+    private void updateDevourLifeDisplay(ItemMeta meta, int maxDurability, int bloodCount) {
+        // 耐久条显示 (0血裂≈空条, 20血裂=满条; 至少保留1点耐久防止损坏, 攻击不消耗耐久)
+        if (meta instanceof Damageable dmg) {
+            int damage = maxDurability - 1 - (int) Math.round(
+                    (double) (maxDurability - 1) * Math.min(bloodCount, 20) / 20);
+            dmg.setDamage(damage);
+        }
+        // Lore 显示血裂数 (保留其他 Lore 行, 如附魔行)
+        List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+        String line = ChatColor.DARK_RED + "血裂数: " + bloodCount + "/20";
+        boolean replaced = false;
+        for (int i = 0; i < lore.size(); i++) {
+            if (ChatColor.stripColor(lore.get(i)).contains("血裂数")) {
+                lore.set(i, line);
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced) lore.add(line);
         meta.setLore(lore);
     }
 
-    // 血裂衰减Lore刷新: 定时在31秒后刷新Lore (稍晚于30秒衰减)
+    // 血裂衰减刷新: 血裂存在30秒后衰减, 定时刷新显示 (耐久条+Lore)。
+    // 每次只保留一个待定刷新, 并精确在"最旧血裂过期时刻"触发;
+    // 刷新后若仍有未衰减的血裂则继续追踪, 保证血裂数下降时显示即时更新
     private final Set<UUID> pendingBloodDecayRefresh = new HashSet<>();
 
-    private void scheduleBloodDecayLoreRefresh(Player player) {
-        UUID uuid = player.getUniqueId();
-        if (pendingBloodDecayRefresh.contains(uuid)) return;
-        pendingBloodDecayRefresh.add(uuid);
+    private void scheduleBloodDecayRefresh(Player player) {
+        scheduleBloodDecayRefresh(player, player.getEquipment().getItemInMainHand());
+    }
+
+    private void scheduleBloodDecayRefresh(Player player, ItemStack item) {
+        if (pendingBloodDecayRefresh.contains(player.getUniqueId())) return;
+        if (item == null || item.getType().isAir() || item.getItemMeta() == null) return;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        List<Long> timestamps = parseTimestamps(pdc.get(DevourLifeBloodTimestamps, PersistentDataType.STRING));
+        if (timestamps.isEmpty()) return;
+        // 精确到最旧血裂的过期时刻 (时间戳按追加顺序排列, 第一个最旧)
+        long delayMs = timestamps.get(0) + 30000 - System.currentTimeMillis();
+        scheduleBloodDecayRefresh(player, Math.max(1, (delayMs + 49) / 50)); // ms -> ticks 向上取整
+    }
+
+    private void scheduleBloodDecayRefresh(Player player, long delayTicks) {
+        if (pendingBloodDecayRefresh.contains(player.getUniqueId())) return;
+        pendingBloodDecayRefresh.add(player.getUniqueId());
         Bukkit.getScheduler().runTaskLater(getplugin, () -> {
-            pendingBloodDecayRefresh.remove(uuid);
+            pendingBloodDecayRefresh.remove(player.getUniqueId());
             // 玩家已登出/死亡则跳过, 避免空指针
             if (!player.isOnline() || player.isDead()) return;
             ItemStack item = player.getEquipment().getItemInMainHand();
@@ -176,9 +230,54 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             // 保存清理后的时间戳
             pdc.set(DevourLifeBloodTimestamps, PersistentDataType.STRING,
                     timestamps.stream().map(String::valueOf).reduce((a, b) -> a + "," + b).orElse(""));
-            updateDevourLifeLore(meta, bloodCount);
+            updateDevourLifeDisplay(meta, item.getType().getMaxDurability(), bloodCount);
             item.setItemMeta(meta);
-        }, 31 * 20L); // 31秒 = 620 ticks
+            // 血裂未完全衰减: 继续追踪下一次衰减, 直到血裂清零
+            if (!timestamps.isEmpty()) {
+                long delayMs = timestamps.get(0) + 30000 - System.currentTimeMillis();
+                scheduleBloodDecayRefresh(player, Math.max(1, (delayMs + 49) / 50));
+            }
+        }, Math.max(1, delayTicks));
+    }
+
+    // 噬生剑: 耐久度用来显示血裂数, 攻击/使用时不得消耗耐久
+    @EventHandler
+    public void onDevourLifeItemDamage(PlayerItemDamageEvent event) {
+        ItemStack item = event.getItem();
+        if (ArmsorEnchant.getEnchantLevel(item, DevourLifeSwordKey) > 0) {
+            event.setCancelled(true);
+        }
+    }
+
+    // 刷新噬生剑显示 (Lore + 耐久条): 根据当前有效血裂数重写
+    private void refreshDevourLifeDisplay(ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        if (ArmsorEnchant.getEnchantLevel(item, DevourLifeSwordKey) == 0) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+        int count = getDevourLifeBloodCount(item);
+        updateDevourLifeDisplay(meta, item.getType().getMaxDurability(), count);
+        item.setItemMeta(meta);
+    }
+
+    // 噬生切到主手时刷新显示: 剑在背包中时衰减刷新链会停掉, 显示变旧, 切回主手立即同步
+    @EventHandler
+    public void onDevourLifeItemHeld(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItem(event.getNewSlot());
+        if (item == null || item.getType().isAir()) return;
+        if (ArmsorEnchant.getEnchantLevel(item, DevourLifeSwordKey) == 0) return;
+        int count = getDevourLifeBloodCount(item);
+        refreshDevourLifeDisplay(item);
+        // 剑已在主手, 若还有未衰减的血裂则续排衰减追踪
+        if (count > 0) scheduleBloodDecayRefresh(player, item);
+    }
+
+    // 在背包/容器点击噬生剑时刷新显示
+    @EventHandler
+    public void onDevourLifeInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        refreshDevourLifeDisplay(event.getCurrentItem());
     }
 
     // ========================================================================
@@ -229,6 +328,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void ShadowDodgeHandler(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
+        // 穿透伤害无法被影避
+        if (PIERCING_ACTIVE.contains(entity.getUniqueId())) return;
         EntityEquipment equipment = entity.getEquipment();
         if (equipment == null) return;
 
@@ -319,6 +420,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void RevengeHandler(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+        // 穿透伤害不触发复仇反弹 (无法抵挡)
+        if (PIERCING_ACTIVE.contains(player.getUniqueId())) return;
         // 防递归: 复仇反弹伤害再触发复仇 (双方都有复仇时)
         if (REVENGE_ACTIVE.contains(event.getEntity().getUniqueId())) return;
 
@@ -362,6 +465,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (event.getEntity().equals(event.getDamager())) return;
         Entity damager = event.getDamager();
         if (!(event.getEntity() instanceof LivingEntity target)) return;
+        // 穿透伤害不再重复施加凋零
+        if (PIERCING_ACTIVE.contains(target.getUniqueId())) return;
 
         ItemStack weapon = null;
         if (damager instanceof Player) {
@@ -395,6 +500,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         // 格挡只对物理攻击生效 (魔法伤害由百草附魔处理)
         if (!isPhysicalAttack(event)) return;
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
+        // 穿透伤害无法被格挡
+        if (PIERCING_ACTIVE.contains(entity.getUniqueId())) return;
         EntityEquipment equipment = entity.getEquipment();
         if (equipment == null) return;
 
@@ -413,7 +520,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     }
 
     // ========================================================================
-    // 涤魂 —— 每(9-level)秒解除一个负面效果 (胸甲)
+    // 涤魂 —— 获得负面效果时 25%*level 概率免除 (胸甲, 满级III)
     // ========================================================================
 
     private static final Set<PotionEffectType> NEGATIVE_EFFECTS = new HashSet<>(Arrays.asList(
@@ -425,10 +532,27 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             PotionEffectType.INFESTED
     ));
 
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    // 涤魂: 获得负面效果时概率免除 (胸甲, 满级III)
+    @EventHandler
+    public void onPotionEffectAdd(EntityPotionEffectEvent event) {
+        if (event.isCancelled()) return;
+        if (event.getAction() != EntityPotionEffectEvent.Action.ADDED
+                && event.getAction() != EntityPotionEffectEvent.Action.CHANGED) return;
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!NEGATIVE_EFFECTS.contains(event.getModifiedType())) return;
+        ItemStack chestplate = player.getInventory().getChestplate();
+        if (chestplate == null) return;
+        int lvl = ArmsorEnchant.getEnchantLevel(chestplate, EffectClear);
+        if (lvl <= 0) return;
+        if (percent(25 * lvl)) {
+            event.setCancelled(true);
+            player.playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 0.8f, 1.2f);
+            PlayerSettings.notifyActionBar(player, "§f[涤魂]免疫了负面效果 §7(" + (25 * lvl) + "%)");
+        }
+    }
 
     // ========================================================================
-    // 百草 —— 减少魔法伤害 20%*level (胸甲, 满级IV)
+    // 百草 —— 药水/魔法伤害减免 15%*level, 并有 5%*level 概率免疫 (胸甲, 满级III)
     // ========================================================================
 
     private static final EntityDamageEvent.DamageCause[] MAGIC_DAMAGE_TYPES = {
@@ -458,6 +582,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void OnBeaten(EntityDamageByEntityEvent event) {
+        // 穿透伤害无法被闪避
+        if (PIERCING_ACTIVE.contains(event.getEntity().getUniqueId())) return;
         // 闪避只对物理攻击生效 (魔法伤害无法闪避, 由百草附魔处理)
         if (!isPhysicalAttack(event)) return;
 
@@ -510,6 +636,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void RipplesHandler(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
+        // 穿透伤害不再触发涟漪回复
+        if (PIERCING_ACTIVE.contains(entity.getUniqueId())) return;
         EntityEquipment equipment = entity.getEquipment();
         if (equipment == null) return;
 
@@ -734,6 +862,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void SurvivorHandler(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+        // 穿透伤害无视幸存 (无法抵挡)
+        if (PIERCING_ACTIVE.contains(player.getUniqueId())) return;
 
         ItemStack leggings = player.getEquipment().getLeggings();
         int level = ArmsorEnchant.getEnchantLevel(leggings, SurvivorKey);
@@ -794,6 +924,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void IndestructibleHandler(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+        // 穿透伤害无视不朽 (无法抵挡)
+        if (PIERCING_ACTIVE.contains(player.getUniqueId())) return;
         if (player.getHealth() - event.getFinalDamage() > 0) return;
 
         int level = 0;
@@ -825,6 +957,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void GolemGuardianHandler(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+        // 穿透伤害不再召唤傀儡
+        if (PIERCING_ACTIVE.contains(player.getUniqueId())) return;
         if (!(event.getDamager() instanceof LivingEntity attacker)) return;
 
         ItemStack chest = player.getEquipment().getChestplate();
@@ -931,6 +1065,8 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void HolographicHandler(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+        // 穿透伤害无法被全息盾格挡
+        if (PIERCING_ACTIVE.contains(player.getUniqueId())) return;
 
         // 检查玩家是否正在举盾防御
         if (!player.isBlocking()) return;
@@ -1108,6 +1244,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler
     public void StrongBurstHandler(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!isDirectMeleeAttack(event)) return;
 
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (weapon.getType() != Material.MACE) return;
@@ -1230,6 +1367,7 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void ElementalBladeHandler(EntityDamageByEntityEvent event) {
         if (event.getEntity().equals(event.getDamager())) return;
+        if (!isDirectMeleeAttack(event)) return;
         if (!(event.getDamager() instanceof LivingEntity damager)) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
         if (target.hasMetadata(ELEMENTAL_BLADE_FLAG)) return;
@@ -1443,39 +1581,42 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (event.getEntity() instanceof Player player) {
             ItemStack chestplate = player.getInventory().getChestplate();
             if (chestplate != null) {
-                // 卸力 (最先)
+                // 卸力 (最先): 受到100+伤害时拆分为 (level+1) 段, 每段间隔4tick
                 int ddLvl = ArmsorEnchant.getEnchantLevel(chestplate, DamageDispersalKey);
                 if (ddLvl > 0) {
-                    double old = event.getDamage();
-                    // 每级减1点, 最多使伤害降低95% (保底5%原始伤害)
-                    event.setDamage(Math.max(old * 0.05, old - ddLvl * 1.0));
-                    if (event.getDamage() < old)
-                        PlayerSettings.notify(player, ChatColor.DARK_GREEN + "卸力: 减免了 " + String.format("%.1f", old - event.getDamage()) + " 点原始伤害");
-                }
-                // 涤魂
-                int ecLvl = ArmsorEnchant.getEnchantLevel(chestplate, EffectClear);
-                if (ecLvl > 0) {
-                    UUID pid = player.getUniqueId();
-                    long now = System.currentTimeMillis();
-                    Long last = cooldowns.get(pid);
-                    long cd = (9L - ecLvl) * 1000;
-                    if (last == null || (now - last) >= cd) {
-                        cooldowns.put(pid, now);
-                        for (PotionEffect eff : player.getActivePotionEffects()) {
-                            if (NEGATIVE_EFFECTS.contains(eff.getType())) {
-                                player.removePotionEffect(eff.getType());
-                                player.playSound(player.getLocation(), Sound.ITEM_BOTTLE_FILL, 0.8f, 1.2f);
-                                PlayerSettings.notifyActionBar(player, "§b[涤魂]已解除负面效果 §7(" + (9 - ecLvl) + "秒冷却)");
-                                break;
+                    java.util.UUID pid = player.getUniqueId();
+                    if (!DAMAGE_SPLIT_ACTIVE.contains(pid)) {
+                        double total = event.getDamage();
+                        if (total >= 100) {
+                            int parts = ddLvl + 1;
+                            double part = total / parts;
+                            DAMAGE_SPLIT_ACTIVE.add(pid);
+                            event.setDamage(part); // 第一段立即结算, 剩余段延迟 4*i tick
+                            for (int i = 1; i < parts; i++) {
+                                int delay = i * 4;
+                                boolean last = (i == parts - 1);
+                                Bukkit.getScheduler().runTaskLater(getplugin, () -> {
+                                    if (player.isOnline() && !player.isDead()) {
+                                        player.setNoDamageTicks(0); // 绕过受伤无敌帧, 保证每段都生效
+                                        player.damage(part);
+                                    }
+                                    if (last) DAMAGE_SPLIT_ACTIVE.remove(pid);
+                                }, delay);
                             }
+                            PlayerSettings.notify(player, ChatColor.DARK_GREEN + "卸力: " + total + "点伤害拆分为" + parts + "段");
                         }
                     }
                 }
-                // 百草
+                // 百草: 药水/魔法伤害减免15%*level, 并有5%*level概率免疫 (满级III)
                 int hgLvl = ArmsorEnchant.getEnchantLevel(chestplate, HerbGuardKey);
                 if (hgLvl > 0 && isMagicDamage(event.getCause())) {
-                    event.setDamage(event.getDamage() * (1.0 - 0.20 * hgLvl));
-                    PlayerSettings.notifyActionBar(player, "§a[百草]魔法伤害减免 §7(" + (hgLvl * 20) + "%)");
+                    if (percent(5 * hgLvl)) {
+                        event.setDamage(0);
+                        PlayerSettings.notifyActionBar(player, "§a[百草]免疫了魔法伤害 §7(" + (5 * hgLvl) + "%)");
+                    } else {
+                        event.setDamage(event.getDamage() * (1.0 - 0.15 * hgLvl));
+                        PlayerSettings.notifyActionBar(player, "§a[百草]魔法伤害减免 §7(" + (hgLvl * 15) + "%)");
+                    }
                 }
                 // 保护PRO
                 int proLvl = ArmsorEnchant.getEnchantLevel(chestplate, ProtectionPROKey);
@@ -1487,6 +1628,10 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
         if (!(event instanceof EntityDamageByEntityEvent ebEvent)) return;
         // 复仇反弹伤害溯源: 跳过攻击侧, 避免触发血祭/吸血等武器附魔
         if (REVENGE_ACTIVE.contains(ebEvent.getEntity().getUniqueId())) return;
+        // 伤害溯源: 只有真实近战攻击(ENTITY_ATTACK/ENTITY_SWEEP_ATTACK)才触发武器附魔。
+        // 荆棘(THORNS)等反弹伤害的 damager 是持剑玩家, 但并非玩家主动挥剑, 必须排除,
+        // 否则血祭/双重打击会在荆棘伤害上重复触发(血祭还会额外自伤10点生命)
+        if (!isDirectMeleeAttack(ebEvent)) return;
         if (ebEvent.getEntity().equals(ebEvent.getDamager())) return;
         if (!(ebEvent.getDamager() instanceof LivingEntity damager)) return;
         if (!(ebEvent.getEntity() instanceof LivingEntity target)) return;
@@ -1533,6 +1678,25 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             ebEvent.setDamage(ebEvent.getDamage() * 2);
             PlayerSettings.notify(ebEvent.getDamager(), "你发动了" + ChatColor.RED + "双重打击" + ChatColor.RESET + "对对方造成" + ebEvent.getDamage() + "点伤害");
             PlayerSettings.notify(ebEvent.getEntity(), "对方发动了" + ChatColor.RED + "双重打击" + ChatColor.RESET + "对你造成" + ebEvent.getDamage() + "点伤害");
+        }
+
+        // 贯穿: 长矛冲锋攻击(冲刺)后固定造成2*level穿透伤害 (满级III)
+        int pierceLvl = ArmsorEnchant.getEnchantLevel(weapon, PierceKey);
+        if (pierceLvl > 0 && damager instanceof Player piercer
+                && piercer.isSprinting() && weapon.getType().name().endsWith("_SPEAR")) {
+            if (target.isDead()) return; // 前: 目标已死亡则跳过
+            if (!PIERCING_ACTIVE.contains(target.getUniqueId())) {
+                PIERCING_ACTIVE.add(target.getUniqueId());
+                try {
+                    target.damage(2.0 * pierceLvl, pierceSource(damager));
+                } finally {
+                    PIERCING_ACTIVE.remove(target.getUniqueId());
+                }
+            }
+            if (target.isDead()) return; // 后: 目标被击杀则停止特效
+            target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0),
+                    pierceLvl * 4, 0.3, 0.3, 0.3, 0.1);
+            PlayerSettings.notify(damager, ChatColor.DARK_PURPLE + "贯穿: 额外造成 " + (2 * pierceLvl) + " 点穿透伤害");
         }
 
         // 星痕
@@ -1613,11 +1777,11 @@ public class ArmsorPlusEnchantEventHandler implements Listener {
             pdc.set(ScoreKey, PersistentDataType.DOUBLE, score);
             pdc.set(DevourLifeBloodTimestamps, PersistentDataType.STRING,
                     timestamps.stream().map(String::valueOf).reduce((a,b)->a+","+b).orElse(""));
-            updateDevourLifeLore(meta, bc);
+            updateDevourLifeDisplay(meta, weapon.getType().getMaxDurability(), bc);
             weapon.setItemMeta(meta);
             if (gained > 0 && ebEvent.getDamager() instanceof Player)
                 PlayerSettings.notify(ebEvent.getDamager(), ChatColor.DARK_PURPLE + "产生了一点血裂! 当前血裂数: " + bc);
-            if (damager instanceof Player player) scheduleBloodDecayLoreRefresh(player);
+            if (damager instanceof Player player) scheduleBloodDecayRefresh(player);
         }
 
         // 吸血

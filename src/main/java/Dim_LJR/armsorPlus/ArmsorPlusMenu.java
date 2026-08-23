@@ -221,6 +221,11 @@ public class ArmsorPlusMenu implements Listener {
         RECIPES.put(ChatColor.DARK_BLUE + "海哭刀", new String[]{
                 "ABA", "BCB", "ABA",
                 "A=下界之星", "B=潮涌核心", "C=灵刺刀"});
+
+        // ===== 吞云斩月刀 (0.3J+) =====
+        RECIPES.put(ChatColor.WHITE + "吞云斩月刀", new String[]{
+                " M ", "BSB", " M ",
+                "M=月之碎片", "B=幻术师的遗骨", "S=钻石剑"});
     }
 
     // ========================================================================
@@ -292,6 +297,10 @@ public class ArmsorPlusMenu implements Listener {
             // 幻术师武器
             armsList.setItem(30, IllusionBlade(1));
             armsList.setItem(31, IllusionStaff(1));
+            // 吞云斩月刀
+            armsList.setItem(32, CloudMoonBlade(1));
+            // 狂怒掠夺者之弩
+            armsList.setItem(33, RagingPlundererCrossbow(1));
         }
         if (page > 0) armsList.setItem(39, createInfoItem(Material.ARROW, "§a← 上一页", "§7点击返回上一页"));
         if (page < totalPages - 1) armsList.setItem(41, createInfoItem(Material.ARROW, "§a下一页 →", "§7点击查看下一页"));
@@ -534,6 +543,7 @@ public class ArmsorPlusMenu implements Listener {
             enchantmentList.setItem(31, DiamondDrill_EnchantedBook(1, 5));
             enchantmentList.setItem(32, QuickThrust_EnchantedBook(1, 5));
             enchantmentList.setItem(33, Blindness_EnchantedBook(1, 5));
+            enchantmentList.setItem(34, Pierce_EnchantedBook(1, 3));
         } else if (page == 1) {
             // 第2页: 0.3I 新附魔
             enchantmentList.setItem(10, ProtectionPRO_EnchantedBook(1, 5));
@@ -552,7 +562,7 @@ public class ArmsorPlusMenu implements Listener {
             enchantmentList.setItem(25, Poison_EnchantedBook(1, 5));
             enchantmentList.setItem(28, SharpBlade_EnchantedBook(1, 3));
             enchantmentList.setItem(29, DamageDispersal_EnchantedBook(1, 5));
-            enchantmentList.setItem(30, HerbGuard_EnchantedBook(1, 4));
+            enchantmentList.setItem(30, HerbGuard_EnchantedBook(1, 3));
             enchantmentList.setItem(31, FireBlade_EnchantedBook(1, 3));
             enchantmentList.setItem(32, FrostBlade_EnchantedBook(1, 3));
             enchantmentList.setItem(33, ThunderBlade_EnchantedBook(1, 3));
@@ -1176,6 +1186,8 @@ public class ArmsorPlusMenu implements Listener {
             case "血祭之剑" -> BloodSword(1);
             case "精炼金刚石" -> ArmsPlusCreateII(1);
             case "基础强化石" -> ArmsPlusCreateI(1);
+            case "月之碎片" -> MoonShard(1);
+            case "幻术师的遗骨" -> IllusionerBone(1);
             default -> null;
         };
     }

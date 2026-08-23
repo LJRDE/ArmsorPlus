@@ -1,10 +1,12 @@
 package Dim_LJR.armsorPlus;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
+import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import org.bukkit.*;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -42,8 +44,8 @@ public class ArmsorPlusItemHandler implements Listener {
     private static final Map<UUID, Integer> scepterCooldown = new HashMap<>();
     private static final Map<UUID, Integer> rainSwordCooldown = new HashMap<>();
     private static final Map<UUID, Integer> flashStepBladeCooldown = new HashMap<>();
+    private static final Map<UUID, Integer> cloudMoonBladeCooldown = new HashMap<>();
     private static final Map<UUID, Boolean> flyingSwordActive = new HashMap<>();
-    private static final Map<UUID, Integer> magicStickCooldown = new HashMap<>();
     private static final Random RANDOM = new Random();
 
     // 玩家登出时清理冷却/状态, 防止 Map 泄漏
@@ -56,7 +58,7 @@ public class ArmsorPlusItemHandler implements Listener {
         scepterCooldown.remove(uuid);
         rainSwordCooldown.remove(uuid);
         flashStepBladeCooldown.remove(uuid);
-        magicStickCooldown.remove(uuid);
+        cloudMoonBladeCooldown.remove(uuid);
         flyingSwordActive.remove(uuid);
     }
 
@@ -68,6 +70,7 @@ public class ArmsorPlusItemHandler implements Listener {
     public void onDaggerAttack(EntityDamageByEntityEvent event) {
         if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, DaggerKey) == 0) return;
 
@@ -295,12 +298,6 @@ public class ArmsorPlusItemHandler implements Listener {
 
         event.setCancelled(true);
         Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-
-        int cd = magicStickCooldown.getOrDefault(uuid, 0);
-        if (cd > 0) {
-            return; // 冷却中,静默阻止
-        }
 
         // 发射魔法球 (SmallFireball直射)
         SmallFireball fireball = player.launchProjectile(SmallFireball.class);
@@ -326,22 +323,6 @@ public class ArmsorPlusItemHandler implements Listener {
         }.runTaskTimer(getplugin, 0L, 1L);
 
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 0.5f, 1.5f);
-
-        // 0.5秒冷却 (10 ticks)
-        magicStickCooldown.put(uuid, 10);
-        new BukkitRunnable() {
-            int remaining = 10;
-            @Override
-            public void run() {
-                remaining--;
-                if (remaining <= 0) {
-                    magicStickCooldown.remove(uuid); // 冷却结束移除条目, 避免 Map 泄漏
-                    cancel();
-                } else {
-                    magicStickCooldown.put(uuid, remaining);
-                }
-            }
-        }.runTaskTimer(getplugin, 1L, 1L);
     }
 
     @EventHandler
@@ -421,6 +402,9 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onFlameHalberdAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        // 伤害溯源: 只有真实近战攻击才附加火焰伤害, 荆棘(THORNS)反弹伤害的 damager 是持戟玩家,
+        // 但并非玩家主动挥戟, 必须排除, 否则荆棘会造成额外火焰伤害
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, FlameHalberdKey) == 0) return;
 
@@ -498,7 +482,7 @@ public class ArmsorPlusItemHandler implements Listener {
         int level = ArmsorEnchant.getEnchantLevel(item, QuickThrustKey);
         if (level == 0) return;
 
-        event.setCancelled(true);
+        // 不取消事件: 保留原版右键功能 (三叉戟/火焰戟仍可投掷), 疾刺只附加速度提升
         Player player = event.getPlayer();
         int duration = 60 + level * 20; // 基础60 ticks + 每级20 ticks
 
@@ -751,6 +735,119 @@ public class ArmsorPlusItemHandler implements Listener {
         }.runTaskTimer(getplugin, 1L, 1L);
     }
 
+    // ========================================================================
+    // 吞云斩月刀: 右键向前突刺(最远3格), 指向生物则突刺至其面前并造成[基础9+锋利x2]伤害
+    // 突刺伤害走真实近战事件(target.damage), 经 MergedDamageHandler 自动触发血祭/双重打击等
+    // ========================================================================
+
+    @EventHandler
+    public void onCloudMoonBladeUse(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        ItemStack item = event.getItem();
+        if (item == null || ArmsorEnchant.getEnchantLevel(item, CloudMoonBladeKey) == 0) return;
+
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        UUID uuid = player.getUniqueId();
+
+        if (cloudMoonBladeCooldown.getOrDefault(uuid, 0) > 0) return; // 0.2秒冷却太短, 不刷提示
+
+        // 检测前方生物 (最远3格)
+        LivingEntity target = null;
+        double targetDist = 0;
+        for (Entity entity : player.getNearbyEntities(3, 3, 3)) {
+            if (entity instanceof LivingEntity living && living != player && living.hasLineOfSight(player)) {
+                Location eyeLoc = player.getEyeLocation();
+                Vector dir = eyeLoc.getDirection();
+                Vector toTarget = living.getLocation().add(0, 1, 0).subtract(eyeLoc).toVector();
+                double dist = toTarget.length();
+                if (dist > 0.5 && dist <= 3.0 && dir.angle(toTarget) < 0.35) { // ~20度锥形
+                    target = living;
+                    targetDist = dist;
+                    break;
+                }
+            }
+        }
+
+        // 计算突刺终点
+        Location start = player.getLocation().clone();
+        Location end = start.clone();
+        if (target != null) {
+            // 指向生物: 突刺至目标前方1格 (目标过近则原地突刺)
+            if (targetDist >= 1.0) {
+                Vector forward = player.getEyeLocation().getDirection().setY(0).normalize();
+                end = target.getLocation().clone().subtract(forward.multiply(targetDist - 1.0));
+            }
+        } else {
+            // 未指向生物: 向前突刺最远3格
+            Vector forward = player.getEyeLocation().getDirection();
+            forward.setY(0).normalize().multiply(3);
+            end = start.clone().add(forward);
+        }
+        Location safeEnd = findSafeTeleportLocation(end);
+        if (safeEnd != null) end = safeEnd;
+
+        final int sharp = item.getEnchantmentLevel(Enchantment.SHARPNESS);
+        final double dashDamage = 9.0 + sharp * 2.0;
+        final LivingEntity finalTarget = (target != null && !target.isDead()) ? target : null;
+
+        // 长矛突刺动画: 手臂挥击 + 4 tick 分步前冲 + 云迹粒子
+        player.swingMainHand();
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.9f);
+
+        final Vector stepVec = end.clone().subtract(start).toVector().multiply(1.0 / 4);
+        new BukkitRunnable() {
+            int tick = 0;
+            Location lastLoc = start;
+            @Override
+            public void run() {
+                tick++;
+                Location loc = start.clone().add(stepVec.clone().multiply(tick));
+                // 中途撞墙则停在上一格并提前结算
+                if (tick < 4 && (!loc.getBlock().isPassable() || !loc.clone().add(0, 1, 0).getBlock().isPassable())) {
+                    player.teleport(lastLoc);
+                    finish();
+                    cancel();
+                    return;
+                }
+                lastLoc = loc;
+                player.teleport(loc);
+                player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 4, 0.25, 0.25, 0.25, 0.02);
+                if (tick >= 4) {
+                    finish();
+                    cancel();
+                }
+            }
+            // 突刺到位后结算伤害 (真实近战事件, 经 MergedDamageHandler 触发血祭/双重打击)
+            private void finish() {
+                if (finalTarget != null && !finalTarget.isDead()) {
+                    finalTarget.damage(dashDamage, player);
+                    if (!finalTarget.isDead()) {
+                        finalTarget.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR,
+                                finalTarget.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
+                    }
+                }
+                player.sendActionBar("§f吞云斩月 · 突刺!");
+            }
+        }.runTaskTimer(getplugin, 1L, 1L);
+
+        cloudMoonBladeCooldown.put(uuid, 4); // 0.2秒冷却
+        new BukkitRunnable() {
+            int remaining = 4;
+            @Override
+            public void run() {
+                remaining--;
+                if (remaining <= 0) {
+                    cloudMoonBladeCooldown.remove(uuid); // 冷却结束移除条目, 避免 Map 泄漏
+                    cancel();
+                } else {
+                    cloudMoonBladeCooldown.put(uuid, remaining);
+                }
+            }
+        }.runTaskTimer(getplugin, 1L, 1L);
+    }
+
     // 更新武器Lore中的剩余次数显示
     private static void updateUsesLore(ItemStack item, int uses) {
         if (item == null || !item.hasItemMeta()) return;
@@ -785,6 +882,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onIceSwordAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, IceSwordKey) == 0) return;
 
@@ -904,6 +1002,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSeaBoneSwordAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SeaBoneSwordKey) == 0) return;
         if (!player.isInWater() && !isInRain(player)) return;
@@ -917,6 +1016,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSeaBoneKnifeAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SeaBoneKnifeKey) == 0) return;
         if (!player.isInWater() && !isInRain(player)) return;
@@ -930,6 +1030,7 @@ public class ArmsorPlusItemHandler implements Listener {
     public void onSpiritBoneSwordAttack(EntityDamageByEntityEvent event) {
         if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SpiritBoneSwordKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -949,6 +1050,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSpiritBoneKnifeAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SpiritBoneKnifeKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -966,6 +1068,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSeaSpineSwordAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SeaSpineSwordKey) == 0) return;
         if (!player.isInWater() && !isInRain(player)) return;
@@ -1012,6 +1115,7 @@ public class ArmsorPlusItemHandler implements Listener {
     public void onSpiritSpineSwordAttack(EntityDamageByEntityEvent event) {
         if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SpiritSpineSwordKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -1032,6 +1136,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSpiritSpineKnifeAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SpiritSpineKnifeKey) == 0) return;
         if (!player.isInWater() && !isInRain(player)) return;
@@ -1072,6 +1177,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSeaCrySwordAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SeaCrySwordKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -1092,6 +1198,7 @@ public class ArmsorPlusItemHandler implements Listener {
     @EventHandler
     public void onSeaCryKnifeAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, SeaCryKnifeKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -1230,6 +1337,7 @@ public class ArmsorPlusItemHandler implements Listener {
     public void onIllusionBladeAttack(EntityDamageByEntityEvent event) {
         if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, IllusionBladeKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;
@@ -1284,6 +1392,7 @@ public class ArmsorPlusItemHandler implements Listener {
     public void onIllusionStaffAttack(EntityDamageByEntityEvent event) {
         if (event.isCancelled()) return;
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!ArmsorPlusEnchantEventHandler.isDirectMeleeAttack(event)) return;
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (ArmsorEnchant.getEnchantLevel(weapon, IllusionStaffKey) == 0) return;
         if (!(event.getEntity() instanceof LivingEntity target)) return;

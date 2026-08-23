@@ -9,6 +9,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -259,6 +260,10 @@ public class Weapon {
                 PersistentDataType.STRING,
                 "");
         meta.setItemModel(NamespacedKey.fromString("armsorplus:devour_life_sword"));
+        // 初始耐久: 0血裂 = 近乎空条 (保留1点耐久防止损坏, 攻击不消耗耐久由事件处理器拦截)
+        if (meta instanceof Damageable dmg) {
+            dmg.setDamage(NETHERITE_SWORD.getMaxDurability() - 1);
+        }
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, DevourLifeSwordKey, 5);
         ArmsorEnchant.addEnchant(item, MagicBladeKey, 1); // 合成自带魔印
@@ -410,7 +415,6 @@ public class Weapon {
         meta.setLore(Arrays.asList(
                 ChatColor.LIGHT_PURPLE + "左键: 发射魔法球",
                 ChatColor.RED + "命中造成20点伤害+着火3秒",
-                ChatColor.DARK_AQUA + "冷却: 0.5秒",
                 ChatColor.GRAY + "蕴含魔力的法杖"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, MagicStickKey, 1);
@@ -796,6 +800,53 @@ public class Weapon {
         meta.setItemModel(NamespacedKey.fromString("armsorplus:illusion_staff"));
         item.setItemMeta(meta);
         ArmsorEnchant.addEnchant(item, IllusionStaffKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // ========================================================================
+    // 吞云斩月刀 (0.3J+)
+    // ========================================================================
+
+    // 吞云斩月刀: 攻击7.4无法破坏, 右键突刺(最远3格), 指向生物则突刺至面前并造成[基础+锋利x2]伤害
+    public static ItemStack CloudMoonBlade(int amount) {
+        ItemStack item = new ItemStack(DIAMOND_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.WHITE + "吞云斩月刀");
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "右键: 向前突刺 (最远3格)",
+                ChatColor.LIGHT_PURPLE + "指向生物时: 突刺至其面前并造成[基础伤害+锋利x2]",
+                ChatColor.DARK_RED + "突刺可触发: 双重打击、血祭",
+                ChatColor.GRAY + "冷却: 0.2秒",
+                ChatColor.GRAY + "吞云吐雾，斩月流光"));
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE,
+                new AttributeModifier(new NamespacedKey(getplugin, "cloud_moon_blade_damage"),
+                        7.4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
+        meta.setUnbreakable(true);
+        meta.setItemModel(NamespacedKey.fromString("armsorplus:cloud_moon_blade"));
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, CloudMoonBladeKey, 1);
+        item.setAmount(amount);
+        return item;
+    }
+
+    // 狂怒掠夺者之弩: 弩原型, 力量V/快速装填V/耐久V/经验修补II
+    public static ItemStack RagingPlundererCrossbow(int amount) {
+        ItemStack item = new ItemStack(CROSSBOW);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.RED + "狂怒掠夺者之弩");
+        meta.setLore(Arrays.asList(
+                ChatColor.GOLD + "力量 V",
+                ChatColor.GOLD + "快速装填 V",
+                ChatColor.GOLD + "耐久 V",
+                ChatColor.GOLD + "经验修补 II",
+                ChatColor.GRAY + "狂怒的掠夺者倾泻而下的怒火"));
+        meta.addEnchant(Enchantment.POWER, 5, true);
+        meta.addEnchant(Enchantment.QUICK_CHARGE, 5, true);
+        meta.addEnchant(Enchantment.UNBREAKING, 5, true);
+        meta.addEnchant(Enchantment.MENDING, 2, true);
+        item.setItemMeta(meta);
+        ArmsorEnchant.addEnchant(item, RagingPlundererCrossbowKey, 1);
         item.setAmount(amount);
         return item;
     }

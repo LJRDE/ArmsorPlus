@@ -6,3 +6,30 @@ AutoResetOpenSeaMap: true
 EnablePlants: false已修复的
 # 资源包下载地址 (需为可直连的 .zip 文件 URL) — 设置后玩家可在设置菜单点击下载
 ResourcePackUrl: "https://github.com/LJRDE/ArmsorPlus/releases/download/0.3-J+/ArmsorPlusResourcesPack.zip"
+# ---- 影武者BOSS皮肤 (SkinRestorer式, 默认不占端口) ----
+# 默认方案: 从Mojang在线拉取指定正版账号的已签名皮肤, 其URL在 textures.minecraft.net 上,
+# 原版客户端即可直接显示, 无需本地HTTP端口, 也无需客户端装皮肤mod。
+# BossSkinPlayerName: 想要用作影武者皮肤的正版Minecraft账号名 (账号必须真实存在且已设置皮肤)
+BossSkinPlayerName: "Village_master"
+# 兜底: 本地皮肤文件 (plugins/ArmsorPlus/skins/ 下的PNG)。
+# 以 data:image/png;base64 形式内嵌到textures属性 — 原版客户端不会加载 data-url,
+# 仅支持 data-url 的 modded 客户端可见; 所以它只是兜底, 保证离线/无网时Boss不至于没皮肤。
+BossSkinFile: "Village_master.png"
+# 已烘焙皮肤 (value+signature, 来自正版账号切换皮肤时抓取并永久保存)。
+# 这两个键存在时优先使用, 不依赖Mojang在线、不占端口, 原版+离线服均可用。
+# ---- 影武者 (ShadowWarrior) 使用旧皮肤 ----
+BossSkinValue: "ewogICJ0aW1lc3RhbXAiIDogMTc4NzQxMjUyNTcxMSwKICAicHJvZmlsZUlkIiA6ICI5N2VhMmYzOGJhZDM0MDg5OTNhNjQyMjdiYWE2ZDBmOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJEaW1fTEpSIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2VlZDhlMThkNTk3Y2U5YTE2NWFjYTNkNGY3NWExYjdhNGI3ZDQ4ZTFmYTdkMjI0ODRiMWU3N2FlM2QyZjc3NDkiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ=="
+BossSkinSignature: "lh6P/27gOWY5/NJi+JzTIE4A9qfvkmcNBp5ZFnTMAdIaeEMADQMTCIBzAJfcdgseMbwp9wckd/0w68yMF4uZ45Wt3ifXl9/0v8XDKMxPvoxO56YNekS6cqPXDlnl8+bq4MOt05VLp79aEM+KCmSJjTQo9ZXLsEC3md+2UctVIudJCwdLM3IadUxuciGrtzBOYJb0wMOQIT+Fi8Es59Z/+XaaSghs1cfLGdaYdkVBEpOKDLvP1YGVw4dcuVNVSHiqWb9PA/ypVEHoLDs3wYKebHuKinaBjGOrzo/lwpLK93visxHl0tLxqdzkntxeQGb7I9yrqVkKowUZQMmy3H1DC/zWzvinS57jKxBJkrHAHMy+nSs8knqXCzbLibW9O9JzknpnY0qZksPg9ykeFD+M8QkjSeU4a8Qrj64Bs5ewl9XcZadXXVTBt5Mt48eEL+dm7yc4TcyMS6RaubZ3KNN6GJlwNYph6rUrI5ytUYyojQnfhdgPK2XjSpagNAhYEvNQVmq45shUJn+q1qQ1U+Od3Wa+89Busqi6EKnfaGSRwDgh8BDXZMDfeWXRkKeRlzPW3Aj7cUD/0xwzPKp088zRhZmpiCjZFVaoDiHUPsOAFt9TXG9U2JS7szUm/KRXn+9xGQQVwbsE3ZDe1kPSbMZ0dbK83L8lUnTREYVPpCQ/wkY="
+# ---- 村民队长 (VillageCaptain) 使用新皮肤 ----
+CaptainSkinValue: "ewogICJ0aW1lc3RhbXAiIDogMTc4NzQxMjc4MzU1OSwKICAicHJvZmlsZUlkIiA6ICI5N2VhMmYzOGJhZDM0MDg5OTNhNjQyMjdiYWE2ZDBmOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJEaW1fTEpSIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzNiODhhODQ4OWZiMTZjMjI5OWQwZDg4ODRmM2I3OGUwM2Y3NWQ2ODMyYzAxMDMwZGYyNWQ3MjYwMTNjNjZkMzAiCiAgICB9CiAgfQp9"
+CaptainSkinSignature: "g5r73gpFFqibXZmvgYBwtpgxjTNwGD7Sy8sIt2W1Vk7FI2SsD6CYQIrm6NejcQmYUJH3CuktjZHU0DobuBrHYRF/n60jh61eU+avPQK6Liy0bXWa5pa2et6QLHgvXMS3AquI7Ze/SuYYRM7M6zAHGV9OygS2BJ+BfZTkjTB4SZv6P7fDsrGdOW3ZHRa8aTsa293n8p+oQZEFE336qS8Uf21qDPMHcpOnrs1wsx5SIhBR0zLBMdJ7E1rojrVMuNZe1jekj63L/mRR3Cjh9kYgKYRv3Rz6KDzHHLrxb+JAa6Vb3Ekm2TDXgnPWmg+2vcSTZCIaDnAU5lRrRwt39YihVTvFcUGumSuJSnhO3CGrKQq7HXf0+k9E/GZ6Rz8a+HDV2EsyB1nEamaK4v58JRvEmzbgaT/Ut4RCwjGx87A7b8QraLxhI2VbCHJlQle+b0AMp8LcVDyZbgG4bKWKos4U4TdTXWq+lmS2VzjoToP2SWh2fnm+G+L7FaHyZxIQcNhESOAievoa9k825ntsRLntsdSM7u18ozKcJ6c3mHz7/36H6wDoaheNu6ifbgsJ2IvyoO8NM1Mji6HRpTdd+ZytQ4pUtQC3rCt1QQk2RZKZha/K/IXG3hfc6L/Mspd7dbqPPCAzz0gzvs0Zb8ncOk0I3lxfcw3sFGmRsItJJOrTa6A="
+# ---- 本地HTTP皮肤文件服务器 (仅 modded 客户端需要, 默认关闭 = 不占用端口) ----
+# 只有当你给所有客户端都装了 CustomSkinLoader 等支持任意域名皮肤的mod时才需要开启。
+# 开启后绑定 SkinServerPort 端口; 关掉则完全不占端口。
+EnableSkinServer: false
+# SkinServerHost: 客户端下载皮肤用的主机IP。留空时自动判断:
+#   - 客户端与服务端同机(回环连接) → 自动用 127.0.0.1
+#   - 远程客户端 → 自动检测本机IP (若拿到的是内网/虚拟网卡IP而连不上, 请手动填写)
+# 服务器有公网IP时: 填公网IP, 并确保该IP上开放 SkinServerPort 端口(防火墙放行/路由器转发)
+SkinServerHost: ""
+SkinServerPort: 26666
