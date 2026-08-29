@@ -2,6 +2,7 @@ name: ArmsorPlus
 version: '${version}'
 main: Dim_LJR.armsorPlus.ArmsorPlus
 api-version: '1.21'
+depend: [ ArmsorPlusFakePlayer ]
 softdepend: [ packetevents ]
 authors: [ Dim_LJR ]
 description: 一个Minecraft武器装备强化插件

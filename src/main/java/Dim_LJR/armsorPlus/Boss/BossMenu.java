@@ -4,6 +4,8 @@ import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,11 +13,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPortalEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -29,7 +36,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER, DESERT_CAMEL, SHADOW_WARRIOR }
+    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER, DESERT_CAMEL, SHADOW_WARRIOR, LAVA_DUO, PHANTOM_VEX }
 
     // 身体部位实体 -> BOSS类型
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -42,6 +49,8 @@ public class BossMenu implements Listener {
     private static final Map<BossType, BossBar> bossBars = new HashMap<>();
     private static final Map<BossType, Set<UUID>> bossAllStands = new HashMap<>();
     private static final Map<BossType, String> bossBarBaseTitles = new HashMap<>();
+    // 同队实体(骑士/坐骑/小弟等未注册为部位但属于本BOSS的实体) -> BOSS类型, 用于取消友军伤害
+    private static final Map<UUID, BossType> bossFriendlies = new HashMap<>();
 
     // ========================================================================
     // 注册 / 注销 API
@@ -148,6 +157,8 @@ public class BossMenu implements Listener {
                 case ILLUSIONER -> IllusionerBoss.onDeath();
                 case DESERT_CAMEL -> DesertCamelBoss.onDeath();
                 case SHADOW_WARRIOR -> PlayerBoss.onDeath();
+                case LAVA_DUO -> LavaDuoBoss.onDeath();
+                case PHANTOM_VEX -> PhantomVexBoss.onDeath();
             }
             return true;
         }
@@ -168,6 +179,12 @@ public class BossMenu implements Listener {
         bossHealth.remove(type);
         bossMaxHealth.remove(type);
         bossEntities.remove(type);
+        bossFriendlies.entrySet().removeIf(e -> e.getValue() == type);
+    }
+
+    // 注册同队实体: 取消它与本BOSS其他实体之间的伤害 (不影响玩家攻击它)
+    public static void registerFriendlyEntity(BossType type, Entity entity) {
+        bossFriendlies.put(entity.getUniqueId(), type);
     }
 
     // 更新BOSS血条: 同步血量进度/标题 + 可见范围 (150格)
@@ -201,9 +218,80 @@ public class BossMenu implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBossBodyPartDamage(EntityDamageByEntityEvent event) {
+        // 爆炸附加伤害的damage()不再重复放大
+        if (explosionBonusActive) return;
 
         Entity damaged = event.getEntity();
         UUID id = damaged.getUniqueId();
+
+        // 同一BOSS的同队实体之间不互相伤害 (铁骑双雄骷髅/僵尸, 熔岩双王岩浆怪/烈焰人/小弟)
+        BossType damagedType = lookupBossType(id);
+        if (damagedType != null) {
+            Entity damager = event.getDamager();
+            if (damager instanceof Projectile proj) {
+                ProjectileSource src = proj.getShooter();
+                if (src instanceof Entity) damager = (Entity) src;
+            }
+            if (lookupBossType(damager.getUniqueId()) == damagedType) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        // 幻翼/恼鬼: 免疫远程伤害 (箭/三叉戟/火焰弹等投射物), 近战保留原版血量
+        if (damagedType == BossType.PHANTOM_VEX) {
+            if (event.getDamager() instanceof Projectile) {
+                event.setCancelled(true);
+            }
+            // 被击中时发光2秒 (光灵效果): 隐身BOSS被命中后短暂显形
+            if (damaged instanceof LivingEntity le) {
+                le.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 40, 0, false, false));
+            }
+            return;
+        }
+
+        // 熔岩双王·烈焰人: 火焰弹直击 — 火焰弹(目标无抗火)→伤害×9(小弟×4.5)+点燃; 爆炸弹(目标有抗火)→伤害×4.5(小弟×2.25)
+        if (damaged instanceof Player && event.getDamager() instanceof Projectile proj) {
+            ProjectileSource src = proj.getShooter();
+            if (src instanceof Entity srcEntity) {
+                boolean main = findBossTypeByEntity(srcEntity.getUniqueId()) == BossType.LAVA_DUO;
+                boolean minion = LavaDuoBoss.isMinion(srcEntity.getUniqueId());
+                if (main || minion) {
+                    String type = proj.getPersistentDataContainer().get(
+                            LavaDuoBoss.FIREBALL_KEY, PersistentDataType.STRING);
+                    if ("fire".equals(type)) {
+                        event.setDamage(event.getDamage() * (main ? 9 : 4.5)); // 火焰弹: 伤害×9
+                        ((Player) damaged).setFireTicks(240); // 覆盖原版100tick, 长时燃烧
+                    } else {
+                        event.setDamage(event.getDamage() * (main ? 4.5 : 2.25)); // 爆炸弹: 伤害×4.5
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 熔岩双王·烈焰人: 接触伤害 ×10 (本体触碰玩家; 小弟×5)
+        if (damaged instanceof Player && event.getDamager() instanceof LivingEntity dmgEnt) {
+            if (findBossTypeByEntity(dmgEnt.getUniqueId()) == BossType.LAVA_DUO) {
+                event.setDamage(event.getDamage() * 10);
+                return;
+            } else if (LavaDuoBoss.isMinion(dmgEnt.getUniqueId())) {
+                event.setDamage(event.getDamage() * 5);
+                return;
+            }
+        }
+
+        // 幻翼/恼鬼: 攻击玩家 — 幻翼俯冲伤害×2, 恼鬼挥剑伤害×0.35, 均为穿透伤害(无视护甲)
+        if (damaged instanceof Player && event.getDamager() instanceof LivingEntity dmgEnt) {
+            if (lookupBossType(dmgEnt.getUniqueId()) == BossType.PHANTOM_VEX) {
+                double mult = (dmgEnt instanceof Phantom) ? 2.0 : 0.35;
+                event.setCancelled(true);
+                // MAGIC伤害源无视护甲; 不带directEntity, 重新触发的只是EntityDamageEvent, 不会再次进入本(实体伤害)处理器
+                ((Player) damaged).damage(event.getDamage() * mult,
+                        DamageSource.builder(DamageType.MAGIC).build());
+                return;
+            }
+        }
 
         // 检查是否为已追踪的BOSS实体/部位
         BossType type = BOSS_BODY_PARTS.get(id);
@@ -224,8 +312,9 @@ public class BossMenu implements Listener {
         if (type == BossType.SKELETON_KING) {
             return; // 原版伤害，AI循环读实体血量
         }
-        // 原生实体薄封装: 史莱姆王/小僵尸Double/宝藏守护者/沙漠骆驼/影武者 使用原生血量+原生AI, 不重定向伤害
-        if (type == BossType.SLIME || type == BossType.BABY_ZOMBIE_DOUBLE
+        // 原生实体薄封装: 史莱姆王/熔岩双王/小僵尸Double/宝藏守护者/沙漠骆驼/影武者 使用原生血量+原生AI, 不重定向伤害
+        if (type == BossType.SLIME || type == BossType.LAVA_DUO
+                || type == BossType.BABY_ZOMBIE_DOUBLE
                 || type == BossType.TREASURE_GUARDIAN || type == BossType.DESERT_CAMEL
                 || type == BossType.SHADOW_WARRIOR) {
             return;
@@ -270,12 +359,6 @@ public class BossMenu implements Listener {
                 6, 0.3, 0.3, 0.3, 0.1);
     }
 
-    private static boolean isBossSummonWorld(World world) {
-        if (BossWorld.world != null && world.equals(BossWorld.world)) return true;
-        if (Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world != null && world.equals(Dim_LJR.armsorPlus.OpenSea.LoadOpenSea.world)) return true;
-        return false;
-    }
-
     private static BossType findBossTypeByEntity(UUID id) {
         for (Map.Entry<BossType, LivingEntity> entry : bossEntities.entrySet()) {
             if (entry.getValue() != null && entry.getValue().getUniqueId().equals(id)) {
@@ -285,6 +368,85 @@ public class BossMenu implements Listener {
         return null;
     }
 
+    // 综合查询: 身体部位 → 核心部位 → 主实体 → 同队实体
+    private static BossType lookupBossType(UUID id) {
+        BossType t = BOSS_BODY_PARTS.get(id);
+        if (t != null) return t;
+        t = BOSS_CORE_PARTS.get(id);
+        if (t != null) return t;
+        t = findBossTypeByEntity(id);
+        if (t != null) return t;
+        return bossFriendlies.get(id);
+    }
+
+    // 火焰弹命中玩家的爆炸特效 (纯视觉效果, 伤害由 explosionDamage 负责)
+    private static void explosionEffect(Location loc, float size) {
+        loc.add(0, 0.5, 0);
+        loc.getWorld().spawnParticle(Particle.EXPLOSION, loc, 4, size, size, size, 0);
+        loc.getWorld().spawnParticle(Particle.FLAME, loc, 20, size, size, size, 0.05);
+        loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.7f);
+    }
+
+    // 爆炸附加伤害是否正在进行 (避免爆炸AoE的damage()再次被上面的放大逻辑重复放大)
+    private static boolean explosionBonusActive = false;
+
+    // 烈焰人火焰弹命中/落地 → 按弹种结算:
+    //   爆炸弹(目标有抗火) → 命中点爆炸 (主烈焰人15点/小弟5点, 范围AoE, 无视抗火)
+    //   火焰弹(目标无抗火) → 仅火焰伤害: 点燃命中及附近玩家, 长时燃烧, 不产生爆炸
+    @EventHandler
+    public void onBlazeFireballHit(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof SmallFireball fb)) return;
+        ProjectileSource src = fb.getShooter();
+        if (!(src instanceof Entity srcEntity)) return;
+
+        boolean main = findBossTypeByEntity(srcEntity.getUniqueId()) == BossType.LAVA_DUO;
+        boolean minion = LavaDuoBoss.isMinion(srcEntity.getUniqueId());
+        if (!main && !minion) return;
+
+        String type = fb.getPersistentDataContainer().get(
+                LavaDuoBoss.FIREBALL_KEY, PersistentDataType.STRING);
+        Location hit = fb.getLocation();
+
+        if ("fire".equals(type)) {
+            // 仅火焰伤害的火焰弹: 点燃命中玩家及附近玩家 (燃烧无视护甲, 目标无抗火时生效)
+            int fireTicks = 240;
+            for (Entity e : hit.getWorld().getNearbyEntities(hit, 3, 3, 3)) {
+                if (e instanceof Player p && !p.isDead()) p.setFireTicks(fireTicks);
+            }
+        } else {
+            // 爆炸弹: 命中点爆炸 (无视抗火)
+            double baseDmg = main ? 15 : 5;
+            double radius = main ? 4.0 : 3.0;
+            explosionDamage(hit, srcEntity, baseDmg, radius);
+            explosionEffect(hit, main ? 1.5f : 1.0f);
+        }
+    }
+
+    // 命中点真实爆炸: 对范围内玩家造成爆炸伤害 (距离衰减) + 轻微击退
+    private static void explosionDamage(Location center, Entity source, double baseDmg, double radius) {
+        World world = center.getWorld();
+        if (world == null) return;
+        explosionBonusActive = true;
+        try {
+            for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
+                if (!(e instanceof Player p) || p.isDead()) continue;
+                double dist = p.getLocation().distance(center);
+                if (dist > radius) continue;
+                double falloff = 1.0 - (dist / radius);
+                double dmg = Math.max(1.0, baseDmg * Math.max(0.15, falloff));
+                p.damage(dmg, source);
+                // 爆炸击退: 远离爆炸中心
+                Vector away = p.getLocation().toVector().subtract(center.toVector());
+                if (away.lengthSquared() > 0.01) {
+                    p.setVelocity(away.normalize().multiply(0.6 * (0.3 + falloff))
+                            .setY(0.35 + falloff * 0.5));
+                }
+            }
+        } finally {
+            explosionBonusActive = false;
+        }
+    }
+
     // ========================================================================
     // 环境伤害拦截 (坠落/火焰/窒息等)
     // ========================================================================
@@ -292,7 +454,7 @@ public class BossMenu implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBossEnvironmentalDamage(EntityDamageEvent event) {
         if (event instanceof EntityDamageByEntityEvent) return;
-        if (findBossTypeByEntity(event.getEntity().getUniqueId()) != null) {
+        if (lookupBossType(event.getEntity().getUniqueId()) != null) {
             event.setCancelled(true);
         }
     }
@@ -481,6 +643,43 @@ public class BossMenu implements Listener {
         ));
         shadowWarrior.setItemMeta(shadowMeta);
         bossList.setItem(20, shadowWarrior);
+
+        ItemStack lavaDuo = new ItemStack(Material.MAGMA_BLOCK);
+        ItemMeta lavaMeta = lavaDuo.getItemMeta();
+        lavaMeta.setDisplayName("§c■ 熔岩双王");
+        lavaMeta.setLore(Arrays.asList(
+                "§7烈焰人与岩浆史莱姆王同时降临，",
+                "§7二者都击败才算获胜。",
+                "",
+                "§e❤ 烈焰人: 200",
+                "§e🔥 火焰弹/接触伤害: 原版10倍",
+                "§c❤ 岩浆史莱姆王: 750",
+                "§c⚡ 重锤粉碎攻击 · 半血激怒分裂",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        lavaDuo.setItemMeta(lavaMeta);
+        bossList.setItem(21, lavaDuo);
+
+        ItemStack pv = new ItemStack(Material.PHANTOM_SPAWN_EGG);
+        ItemMeta pvMeta = pv.getItemMeta();
+        pvMeta.setDisplayName("§9■ 幻翼·恼鬼");
+        pvMeta.setLore(Arrays.asList(
+                "§7幻翼与恼鬼同时降临，",
+                "§7二者都击败才算获胜。",
+                "",
+                "§c❤ 幻翼: 125",
+                "§c❤ 恼鬼: 125",
+                "§9⚔ 幻翼: 伤害×2 穿透",
+                "§d⚔ 恼鬼: 伤害×0.35 穿透",
+                "§e✦ 隐身 · 免疫远程/火焰/中毒/凋零",
+                "",
+                "§a▼ 点击召唤BOSS",
+                "§7(请在空旷处召唤)"
+        ));
+        pv.setItemMeta(pvMeta);
+        bossList.setItem(22, pv);
     }
 
     // ========================================================================
@@ -497,13 +696,6 @@ public class BossMenu implements Listener {
 
         String name = event.getCurrentItem().getItemMeta().getDisplayName();
         Player player = (Player) event.getWhoClicked();
-
-        if (!isBossSummonWorld(player.getWorld())) {
-            player.sendMessage("§c⚠ 请在BOSS世界或公海世界召唤BOSS！");
-            player.sendMessage("§e使用主菜单中的「前往BOSS世界」传送");
-            player.closeInventory();
-            return;
-        }
 
         if (name.contains("雪人王")) {
             if (CryoRegisvine.isAlive()) {
@@ -622,6 +814,32 @@ public class BossMenu implements Listener {
             player.closeInventory();
             PlayerBoss.spawnBoss(player);
             player.sendMessage("§8◆ ShadowWarrior以你的形象降临了！");
+        } else if (name.contains("熔岩双王")) {
+            if (LavaDuoBoss.isAlive()) {
+                Location loc = LavaDuoBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e熔岩双王尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§c◆ 熔岩双王已降临！");
+            LavaDuoBoss.spawnBoss(player);
+        } else if (name.contains("幻翼")) {
+            if (PhantomVexBoss.isAlive()) {
+                Location loc = PhantomVexBoss.getBossLocation();
+                if (loc != null) {
+                    player.teleport(loc);
+                    player.sendMessage("§e幻翼·恼鬼尚未被击败，已传送至BOSS位置");
+                }
+                player.closeInventory();
+                return;
+            }
+            player.closeInventory();
+            player.sendMessage("§b◆ 幻翼与恼鬼已降临！");
+            PhantomVexBoss.spawnBoss(player);
         }
     }
 }

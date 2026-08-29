@@ -7,9 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -20,90 +20,97 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 
-// 村民队长 —— 玩家模型简单BOSS (无技能, 追击+近战)。
-// 物理本体是隐形盔甲架(ModelBoss): setVelocity追击(原生物理/击退), 假玩家每tick同步到盔甲架位置;
-// 使用玩家账号换肤后的"新皮肤"(已烘焙的签名textures), 原版+离线服均可显示。
-// 独立的血量/血条/死亡, 不依赖 BossMenu, 机制保持简单。
-public class VillageCaptain implements Listener {
+// 村民卫兵 —— 玩家模型生物(非BOSS), 收录在生物菜单, 可重复召唤(多个并存)。
+// 物理本体是隐形盔甲架(ModelBoss): setVelocity追击, 假玩家每tick同步到盔甲架位置;
+// 穿戴保护II铁头盔 + 主手普通铁剑: 装备穿在物理本体上, 铁头盔额外提供 ARMOR 减伤,
+// 让"保护II"实际生效(假玩家模型渲染不支持显示装备, 见下注)。
+// 目标选择/追击/近战复用 VillageCaptain 的简单模式, 无血条/无全服广播。
+public class VillageGuard implements Listener {
 
-    private static final double MAX_HEALTH = 20;
-    private static final int FOLLOW_RANGE = 40;
-    private static final String BOSS_NAME = "VillageCaptain";
+    private static final double MAX_HEALTH = 30;      // 铁盔卫兵比村民队长(20)更耐打
+    private static final int FOLLOW_RANGE = 32;
+    private static final String BOSS_NAME = "VillageGuard";
+    private static final double MELEE_DAMAGE = 7.0;   // 普通铁剑 ≈ 7 点伤害
+    private static final double ARMOR_POINTS = 4.0;   // 铁头盔(2点) + 保护II(约2点)
 
-    private static boolean alive = false;
-    private static FakePlayer body;
-    private static World world;
-    private static BukkitTask aiTask;
-    private static BossBar bossBar;
-
+    // 支持多只并存: 每次从生物菜单点击都召唤一只新的, 各自管理自己的本体/AI。
+    private static final List<VillageGuard> ACTIVE = new ArrayList<>();
     private static final Random RANDOM = new Random();
+
+    private FakePlayer body;
+    private World world;
+    private BukkitTask aiTask;
 
     // ========================================================================
     // 召唤
     // ========================================================================
 
-    public static void spawnBoss(Player summoner) {
-        if (alive) {
-            summoner.sendMessage("§c已有一只" + BOSS_NAME + "，请先击败或等待其消失");
-            return;
-        }
-        world = summoner.getWorld();
-        Location spawnLoc = summoner.getLocation();
+    public static void spawn(Player summoner) {
+        World w = summoner.getWorld();
+        Location loc = summoner.getLocation();
 
-        // ---- BossBar (先于FakePlayer生成, 血量由onDamage回调同步) ----
-        bossBar = Bukkit.createBossBar("§a■ " + BOSS_NAME, BarColor.GREEN, BarStyle.SOLID);
-        bossBar.setVisible(true);
-        bossBar.setProgress(1.0);
+        VillageGuard guard = new VillageGuard();
+        guard.world = w;
 
         // ---- 统一创建 (附属插件优先, 本地PE兜底) ----
-        body = FakePlayerProvider.createVillageCaptain(world, spawnLoc, BOSS_NAME,
-                "§a■ " + BOSS_NAME + " §7Lv.40", summoner.getLocation().getYaw(), MAX_HEALTH);
-        if (body == null) {
-            summoner.sendMessage("§c" + BOSS_NAME + "渲染初始化失败");
-            NamespaceKey.Keys.getplugin.getLogger().warning(BOSS_NAME + "渲染初始化失败");
-            cleanup();
+        guard.body = FakePlayerProvider.createVillageGuard(w, loc, BOSS_NAME,
+                "§7■ 村民卫兵 §7Lv.30", loc.getYaw(), MAX_HEALTH);
+        if (guard.body == null) {
+            summoner.sendMessage("§c村民卫兵: 渲染初始化失败");
+            NamespaceKey.Keys.getplugin.getLogger().warning("村民卫兵渲染初始化失败");
             return;
         }
-        body.setAiType(AiType.RUN); // 村民队长: RUN 追击(更快 + 更近停止, 翻 1 格)
+        guard.body.setAiType(AiType.RUN); // 卫兵: RUN 追击(更快 + 更近停止)
         if (!FakePlayerProvider.hasBackend()) {
-            summoner.sendMessage("§e未检测到 PacketEvents 与附属插件, " + BOSS_NAME + " 将以隐形状态出现(仅盔甲架本体, 伤害仍有效)");
-        }
-        Enmity.registerBossBody(body.getBody()); // 供挑拨木棍右键选中
-
-        // ---- 穿戴 (铁剑 + 金胸甲) ----
-        body.setEquipment(
-                null,
-                new ItemStack(Material.GOLDEN_CHESTPLATE),
-                null,
-                null,
-                new ItemStack(Material.IRON_SWORD));
-
-        // ---- 挂游戏逻辑回调 (算伤害/同步血条/掉落) ----
-        body.setOnAttack(p -> body.applyDamage(p, ModelBoss.computeDamage(p), true));
-        body.setOnDamage((attacker, remaining) -> {
-            bossBar.setProgress(Math.min(1.0, Math.max(0.0, remaining / MAX_HEALTH)));
-            bossBar.setTitle("§a■ " + BOSS_NAME + " §7" + Math.round(remaining) + "/" + Math.round(MAX_HEALTH));
-        });
-        body.setOnDeath(killer -> VillageCaptain.onDeath());
-
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§a◆ " + BOSS_NAME + " 出现了！");
+            summoner.sendMessage("§e未检测到 PacketEvents 与附属插件, 村民卫兵将以隐形状态出现(仅盔甲架本体, 伤害仍有效)");
         }
 
-        alive = true;
-        startAI();
+        guard.equipLoadout(); // 铁头盔(保护II) + 铁剑
+        Enmity.registerBossBody(guard.body.getBody()); // 供挑拨木棍右键选中
+
+        // ---- 挂游戏逻辑回调 ----
+        guard.body.setOnAttack(p -> guard.body.applyDamage(p, ModelBoss.computeDamage(p), true));
+        guard.body.setOnDeath(killer -> guard.onDeath());
+
+        ACTIVE.add(guard);
+        guard.startAI();
+
+        summoner.closeInventory();
+        summoner.sendMessage("§7村民卫兵: 已召唤!");
+    }
+
+    // 铁头盔(保护II) + 普通铁剑。
+    // 统一走 FakePlayer.setEquipment: 附属方案发包渲染装备(视觉), 本地PE方案穿到盔甲架真实槽(原生减伤);
+    // 铁头盔的减伤通过本体 ARMOR 属性直接生效(受击伤害计算会扣掉护甲减伤)。
+    private void equipLoadout() {
+        if (body == null || body.getBody() == null) return;
+
+        ItemStack helmet = new ItemStack(Material.IRON_HELMET);
+        ItemMeta helmetMeta = helmet.getItemMeta();
+        helmetMeta.addEnchant(Enchantment.PROTECTION, 2, true);
+        helmet.setItemMeta(helmetMeta);
+
+        body.setEquipment(helmet, null, null, null, new ItemStack(Material.IRON_SWORD));
+
+        // 保护II铁头盔的真实减伤: 本体 ARMOR 护甲值 (盔甲架受击伤害计算会扣护甲)
+        AttributeInstance armor = body.getBody().getAttribute(Attribute.ARMOR);
+        if (armor != null) armor.setBaseValue(ARMOR_POINTS);
     }
 
     // ========================================================================
-    // AI: 追击 + 近战 (无技能)
+    // AI: 追击 + 近战 (复用村民队长简单模式)
     // ========================================================================
 
-    private static void startAI() {
+    private void startAI() {
         aiTask = new BukkitRunnable() {
             int attackCooldown = 0;
             int idleTicks = 0;
@@ -138,7 +145,7 @@ public class VillageCaptain implements Listener {
                     body.setTarget(target);
                     double dist = body.getLocation().distance(target.getLocation());
 
-                    // ---- 近战 ----
+                    // ---- 近战 (普通铁剑) ----
                     if (attackCooldown > 0) attackCooldown--;
                     if (attackCooldown <= 0 && dist <= 3.5) {
                         body.rotateTo(target);
@@ -146,9 +153,7 @@ public class VillageCaptain implements Listener {
                         world.playSound(body.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 1.0f);
                         if (!target.isDead()) {
                             // 以盔甲架本体作为伤害来源, 让被击中的生物能收到"是谁打的它"
-                            target.damage(8, body.getBody());
-                            // 每次命中都强制生物反击玩家模型本体(不检查原目标):
-                            // 僵尸猪灵等中立怪被攻击后原生仇恨会优先指向附近的玩家, 不强制会被"抢走"反击目标
+                            target.damage(MELEE_DAMAGE, body.getBody());
                             if (target instanceof Mob mob) {
                                 mob.setTarget(body.getBody());
                             }
@@ -158,19 +163,14 @@ public class VillageCaptain implements Listener {
                         attackCooldown = 25 + RANDOM.nextInt(25);
                     }
                 } catch (Throwable t) {
-                    NamespaceKey.Keys.getplugin.getLogger().warning("[" + BOSS_NAME + "] AI循环异常(已忽略): " + t);
+                    NamespaceKey.Keys.getplugin.getLogger().warning("[村民卫兵] AI循环异常(已忽略): " + t);
                 }
             }
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 2L);
     }
 
-    private static void faceTarget(Player target) {
-        if (body == null) return;
-        body.rotateTo(target);
-    }
-
     // 寻找目标: 优先攻击附近敌对生物(怪物), 无怪物时攻击最近的战斗玩家。
-    private static LivingEntity findNearestTarget() {
+    private LivingEntity findNearestTarget() {
         if (body == null || !body.isValid()) return null;
         Location bodyLoc = body.getLocation();
         LivingEntity monster = null;
@@ -199,76 +199,71 @@ public class VillageCaptain implements Listener {
     // 死亡 & 消失
     // ========================================================================
 
-    private static void onDeath() {
+    private void onDeath() {
         if (body == null) return;
         Location loc = body.getLocation();
         body.remove();
 
-        world.spawnParticle(Particle.CLOUD, loc, 80, 2, 2, 2, 0.3);
-        world.spawnParticle(Particle.ENCHANT, loc, 40, 1, 1, 1, 0.2);
-        world.playSound(loc, Sound.ENTITY_WITHER_DEATH, 1.0f, 0.6f);
+        world.spawnParticle(Particle.CLOUD, loc, 60, 2, 2, 2, 0.3);
+        world.spawnParticle(Particle.CRIT, loc, 30, 1, 1, 1, 0.2);
+        world.playSound(loc, Sound.ENTITY_PLAYER_DEATH, 1.0f, 0.8f);
 
-        // 村民队长掉落: 绿宝石 + 村民刷怪蛋 + 经验瓶
-        world.dropItemNaturally(loc, new ItemStack(Material.EMERALD, RANDOM.nextInt(3) + 2));
-        world.dropItemNaturally(loc, new ItemStack(Material.VILLAGER_SPAWN_EGG, 1));
-        world.dropItemNaturally(loc, new ItemStack(Material.EXPERIENCE_BOTTLE, 6));
+        // 掉落: 铁头盔(保护II) + 铁剑 + 绿宝石
+        ItemStack helmet = new ItemStack(Material.IRON_HELMET);
+        ItemMeta helmetMeta = helmet.getItemMeta();
+        helmetMeta.addEnchant(Enchantment.PROTECTION, 2, true);
+        helmet.setItemMeta(helmetMeta);
+        world.dropItemNaturally(loc, helmet);
+        world.dropItemNaturally(loc, new ItemStack(Material.IRON_SWORD));
+        world.dropItemNaturally(loc, new ItemStack(Material.EMERALD, RANDOM.nextInt(2) + 1));
 
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§a◆ " + BOSS_NAME + " 已被击败！");
-        }
         cleanup();
     }
 
-    private static void despawn() {
+    private void despawn() {
         if (body == null) return;
         body.remove();
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage("§a" + BOSS_NAME + " 因失去目标而消失了");
-        }
         cleanup();
     }
 
-    private static void cleanup() {
+    private void cleanup() {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
         if (body != null) {
             Enmity.unregisterBossBody(body.getBody());
             body.remove();
             body = null;
         }
-        if (bossBar != null) { bossBar.removeAll(); bossBar = null; }
-        alive = false;
         world = null;
-    }
-
-    public static boolean isAlive() { return alive; }
-
-    public static Location getBossLocation() {
-        return body != null ? body.getLocation() : null;
+        ACTIVE.remove(this);
     }
 
     // ========================================================================
-    // 玩家上线补齐 (让后加入的玩家也能看到村民队长)
+    // 玩家上线补齐 (让后加入的玩家也能看到村民卫兵)
     // ========================================================================
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!alive || body == null || world == null) return;
         Player p = event.getPlayer();
-        if (p.getWorld().equals(world)) {
-            Bukkit.getScheduler().runTaskLater(NamespaceKey.Keys.getplugin,
-                    () -> { if (alive && body != null && p.isOnline()) body.spawnTo(p); }, 20L);
+        for (VillageGuard g : new ArrayList<>(ACTIVE)) {
+            if (g.body == null || g.world == null) continue;
+            if (p.getWorld().equals(g.world)) {
+                Bukkit.getScheduler().runTaskLater(NamespaceKey.Keys.getplugin,
+                        () -> { if (g.body != null && p.isOnline()) g.body.spawnTo(p); }, 20L);
+            }
         }
     }
 
     @EventHandler
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
-        if (!alive || body == null || world == null) return;
         Player p = event.getPlayer();
-        if (p.getWorld().equals(world)) {
-            Bukkit.getScheduler().runTaskLater(NamespaceKey.Keys.getplugin,
-                    () -> { if (alive && body != null && p.isOnline()) body.spawnTo(p); }, 20L);
-        } else {
-            body.despawnFrom(p);
+        for (VillageGuard g : new ArrayList<>(ACTIVE)) {
+            if (g.body == null || g.world == null) continue;
+            if (p.getWorld().equals(g.world)) {
+                Bukkit.getScheduler().runTaskLater(NamespaceKey.Keys.getplugin,
+                        () -> { if (g.body != null && p.isOnline()) g.body.spawnTo(p); }, 20L);
+            } else {
+                g.body.despawnFrom(p);
+            }
         }
     }
 }

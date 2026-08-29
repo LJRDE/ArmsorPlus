@@ -10,6 +10,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -17,6 +18,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -69,7 +73,7 @@ public class ModelBoss implements FakePlayer {
 
     private BossRenderer renderer;       // 视觉渲染层 (PacketEvents可用时非空, 由BossRenderer.create回填)
     private final BukkitRunnable syncTask;
-    private Player target;               // 追击目标 (由调用方 setTarget 设置)
+    private LivingEntity target;         // 追击目标 (由调用方 setTarget 设置, 任意生物)
     private int stuckTicks = 0;          // 连续卡住的tick计数
     private int jumpCooldown = 0;        // 跳跃冷却tick
     private Vector lastPos = null;       // 上一tick位置 (卡住检测用)
@@ -168,8 +172,8 @@ public class ModelBoss implements FakePlayer {
     // ========================================================================
 
     private void chase() {
-        Player t = target;
-        if (t == null || !t.isOnline() || t.isDead() || !t.getWorld().equals(world)) {
+        LivingEntity t = target;
+        if (t == null || t.isDead() || !t.isValid() || !t.getWorld().equals(world)) {
             stuckTicks = 0;
             lastPos = null;
             return;
@@ -345,8 +349,10 @@ public class ModelBoss implements FakePlayer {
 
                 Player attacker = resolveAttacker(damager);
                 if (attacker == null) {
-                    // 非玩家来源(其他怪物等): 只取消保护, 不扣BOSS血
-                    event.setCancelled(true);
+                    // 非玩家来源(生物近战/生物弹射物/TNT爆炸等): 结算伤害, 让怪物能反击玩家模型Boss。
+                    boolean projectile = damager instanceof Projectile;
+                    boss.applyDamage(null, Math.max(event.getDamage(), 1.0));
+                    if (!projectile) event.setCancelled(true);
                     return;
                 }
                 // 玩家近战命中 → 取消事件: 原生血量永不掉, 盔甲架不会原生死亡/掉落盔甲架。
@@ -429,17 +435,38 @@ public class ModelBoss implements FakePlayer {
 
     @Override public ArmorStand getBody() { return body; }
 
+    // 设置/覆盖装备 (null=空槽, 全量覆盖)。ModelBoss 用盔甲架实体真实装备槽,
+    // 视觉 + 伤害(attribute)都直接生效。
+    @Override
+    public void setEquipment(ItemStack helmet, ItemStack chestplate,
+                             ItemStack leggings, ItemStack boots, ItemStack mainHand) {
+        if (body == null || !body.isValid()) return;
+        EntityEquipment eq = body.getEquipment();
+        if (eq == null) return;
+        eq.setItem(EquipmentSlot.HEAD, helmet);
+        eq.setItem(EquipmentSlot.CHEST, chestplate);
+        eq.setItem(EquipmentSlot.LEGS, leggings);
+        eq.setItem(EquipmentSlot.FEET, boots);
+        eq.setItem(EquipmentSlot.HAND, mainHand);
+    }
+
     @Override public Location getLocation() { return body.getLocation(); }
 
     // 设置/清除追击目标 (由本类每tick setVelocity 推进)
-    @Override public void setTarget(Player p) { this.target = p; }
+    @Override public void setTarget(LivingEntity p) { this.target = p; }
+
+    // AI 兜底: ModelBoss 固定为 WALK + NORMAL 现状行为, 不实现类型/等级分派。
+    @Override public void setAiType(AiType type) { }
+    @Override public AiType getAiType() { return AiType.WALK; }
+    @Override public void setAiLevel(AiLevel level) { }
+    @Override public AiLevel getAiLevel() { return AiLevel.NORMAL; }
 
     @Override public void swing() { if (renderer != null) renderer.swing(); }
     @Override public void hurt() { if (renderer != null) renderer.hurt(); }
 
     // 假玩家面向目标 (攻击前保证挥砍方向与朝向一致)
     @Override
-    public void rotateTo(Player target) {
+    public void rotateTo(LivingEntity target) {
         Location bl = body.getLocation();
         Vector dir = target.getLocation().toVector().subtract(bl.toVector());
         float yaw = bl.getYaw();

@@ -3,6 +3,7 @@ package Dim_LJR.armsorPlus.Command;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusMenu;
+import Dim_LJR.armsorPlus.Boss.CreatureMenu;
 import Dim_LJR.armsorPlus.Boss.PlayerBoss;
 import Dim_LJR.armsorPlus.Boss.VillageCaptain;
 import org.bukkit.Bukkit;
@@ -32,7 +33,7 @@ import static Dim_LJR.armsorPlus.NamespaceKey.Keys.*;
 public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
 
     private final List<String> args0 = List.of(
-            "info", "give", "guide", "spawn", "bossremove", "getEnchantmentLevel", "removeEnchant", "getBloodCount", "reloadmap", "help"
+            "info", "give", "guide", "creature", "spawn", "bossremove", "getEnchantmentLevel", "removeEnchant", "getBloodCount", "reloadmap", "help"
     );
     private final List<String> args1_give = List.of(
             "Arms_I", "Arms_II", "Armor_I", "Armor_II", "Bow_I",
@@ -78,7 +79,8 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             "IllusionBlade", "IllusionStaff", "CloudMoonBlade", "MoonShard", "RagingPlundererCrossbow",
             "GoldShieldElixir",
             "Salt", "Jerky", "PorkJerky", "MuttonJerky", "SweetBerryPie", "WineBarrel", "Wine", "GoldWine", "RottenJerky",
-            "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit"
+            "RejuvenationPowder", "HemostaticBandage", "CompressedBiscuit",
+            "EnmityTool"
     );
     private final List<String> args1_enchant = List.of(
             "Dodge", "Famine", "Ripples", "BloodSacrifice", "EffectClear",
@@ -154,6 +156,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             case "info" -> handleInfo(sender);
             case "give" -> handleGive(sender, args);
             case "guide" -> handleGuide(sender);
+            case "creature" -> handleCreature(sender);
             case "spawn" -> handleSpawn(sender, args);
             case "bossremove" -> handleBossRemove(sender);
             case "reloadmap" -> handleReloadMap(sender);
@@ -181,6 +184,14 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             return;
         }
         player.openInventory(new ArmsorPlusMenu().createMenu());
+    }
+
+    private void handleCreature(@NotNull CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "该指令必须由玩家执行");
+            return;
+        }
+        player.openInventory(CreatureMenu.getCreatureList());
     }
 
     private void handleGive(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -821,6 +832,11 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
                 int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
                 player.getInventory().addItem(RagingPlundererCrossbow(amount));
                 sender.sendMessage(ChatColor.RED + "已获得 " + amount + " 把狂怒掠夺者之弩");
+            }
+            case "EnmityTool" -> {
+                int amount = (args.length >= 3 && IsInt(args[2])) ? Integer.parseInt(args[2]) : 1;
+                player.getInventory().addItem(EnmityTool(amount));
+                sender.sendMessage(ChatColor.RED + "已获得 " + amount + " 根挑拨木棍 (右键两个生物使其结仇)");
             }
             default -> sender.sendMessage(ChatColor.RED + "未知物品: " + args[1] + "，请输入 /ArmsorPlus help 查看可用物品");
         }

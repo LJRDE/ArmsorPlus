@@ -144,6 +144,10 @@ public class DesertCamelBoss {
         zombieHorse.addPassenger(zombie);
         spider.addPassenger(skeleton);
 
+        // 注册同队实体: 骷髅与僵尸之间不互相伤害 (战马/毒蛛已作为主实体/部位注册)
+        BossMenu.registerFriendlyEntity(BossMenu.BossType.DESERT_CAMEL, zombie);
+        BossMenu.registerFriendlyEntity(BossMenu.BossType.DESERT_CAMEL, skeleton);
+
         // ---- BossBar (僵尸 & 骷髅) ----
         zombieBar = Bukkit.createBossBar("§2◆ 铁骑双雄·僵尸骑士", BarColor.GREEN, BarStyle.SOLID);
         zombieBar.setVisible(true);
@@ -219,8 +223,9 @@ public class DesertCamelBoss {
                         + (spiderAlive ? spider.getHealth() : 0);
                 BossMenu.syncBossHealth(BossMenu.BossType.DESERT_CAMEL, mountHp, MOUNT_HEALTH * 2);
 
-                // 索敌
-                Player target = findNearestPlayer();
+                // 索敌 (仇怨目标优先)
+                LivingEntity target = Enmity.getEnemy(zombie, skeleton, zombieHorse, spider);
+                if (target == null) target = findNearestPlayer();
                 if (target == null) {
                     noTargetTicks++;
                     if (noTargetTicks >= DESPAWN_TICKS) {
@@ -332,13 +337,13 @@ public class DesertCamelBoss {
     // 装备
     // ========================================================================
 
-    private static ItemStack createSpear() {
+    public static ItemStack createSpear() {
         // 1.21.11 新增 Spear 武器系列, 用下界合金长矛作为僵尸主武器
         ItemStack spear = new ItemStack(Material.NETHERITE_SPEAR);
         ItemMeta meta = spear.getItemMeta();
-        meta.setDisplayName("§6下界合金长矛");
+        meta.setDisplayName("§6平原之星");
         meta.addEnchant(Enchantment.SHARPNESS, 70, true);
-        meta.addEnchant(Enchantment.KNOCKBACK, 10, true);
+        meta.addEnchant(Enchantment.KNOCKBACK, 7, true);
         meta.addEnchant(Enchantment.FIRE_ASPECT, 5, true);
         meta.setUnbreakable(true);
         // 基础伤害25: 移除原版长矛自带伤害修饰符, 再写入固定25
@@ -352,7 +357,7 @@ public class DesertCamelBoss {
         return spear;
     }
 
-    private static ItemStack createShield() {
+    public static ItemStack createShield() {
         ItemStack shield = new ItemStack(Material.SHIELD);
         ItemMeta meta = shield.getItemMeta();
         meta.setDisplayName("§7盾");
@@ -361,21 +366,19 @@ public class DesertCamelBoss {
         return shield;
     }
 
-    private static ItemStack createBow() {
+    public static ItemStack createBow() {
         ItemStack bow = new ItemStack(Material.BOW);
         ItemMeta meta = bow.getItemMeta();
-        meta.setDisplayName("§f神弓");
-        meta.addEnchant(Enchantment.POWER, 85, true);
+        meta.setDisplayName("§f平原之耀");
+        meta.addEnchant(Enchantment.POWER, 255, true);
         meta.addEnchant(Enchantment.PUNCH, 3, true);
         meta.addEnchant(Enchantment.FLAME, 1, true);
         meta.setUnbreakable(true);
         bow.setItemMeta(meta);
-        ArmsorEnchant.addEnchant(bow, NamespaceKey.Keys.ArrowSpeed, 5);                       // 弹道V
-        ArmsorEnchant.addEnchantLore(bow, ChatColor.GOLD + "弹道", 5, NamespaceKey.Keys.ArrowSpeed);
         return bow;
     }
 
-    private static void equipNetheriteArmor(LivingEntity entity) {
+    public static void equipNetheriteArmor(LivingEntity entity) {
         EntityEquipment equip = entity.getEquipment();
         equip.setHelmet(armorPiece(Material.NETHERITE_HELMET));
         equip.setChestplate(armorPiece(Material.NETHERITE_CHESTPLATE));
@@ -411,7 +414,7 @@ public class DesertCamelBoss {
         Player nearest = null;
         double nearestDist = Double.MAX_VALUE;
         for (Entity entity : active.getNearbyEntities(FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
-            if (entity instanceof Player p && !p.isDead() && !p.isInvulnerable()) {
+            if (entity instanceof Player p && BossTargets.isCombatPlayer(p)) {
                 double dist = p.getLocation().distance(active.getLocation());
                 if (dist < nearestDist) {
                     nearestDist = dist;
@@ -423,16 +426,6 @@ public class DesertCamelBoss {
     }
 
     private static Location findSpawnLocation(Player summoner) {
-        Location base = summoner.getLocation();
-        for (int r = 5; r <= 20; r += 5) {
-            for (int i = 0; i < 8; i++) {
-                double angle = i * Math.PI / 4;
-                Location loc = base.clone().add(Math.cos(angle) * r, 0, Math.sin(angle) * r);
-                loc.setY(base.getWorld().getHighestBlockYAt(loc) + 1);
-                if (loc.getBlock().isEmpty() && loc.clone().add(0, 1, 0).getBlock().isEmpty())
-                    return loc;
-            }
-        }
-        return null;
+        return BossSpawn.ringSpawn(summoner, 5);
     }
 }

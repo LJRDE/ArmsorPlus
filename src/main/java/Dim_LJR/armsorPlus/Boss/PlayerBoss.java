@@ -7,6 +7,7 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -55,12 +56,6 @@ public class PlayerBoss implements Listener {
             summoner.sendMessage("§c已有一只" + BOSS_NAME + "，请先击败或等待其消失");
             return;
         }
-        if (summoner.getWorld().getEnvironment() == World.Environment.THE_END
-                || summoner.getWorld().getEnvironment() == World.Environment.NETHER) {
-            summoner.sendMessage("§c" + BOSS_NAME + "只能在主世界/公海/BOSS世界召唤");
-            return;
-        }
-
         Location spawnLoc = findSpawnLocation(summoner);
         if (spawnLoc == null) {
             summoner.sendMessage("§c没有足够的空间召唤BOSS");
@@ -88,6 +83,15 @@ public class PlayerBoss implements Listener {
         if (!FakePlayerProvider.hasBackend()) {
             summoner.sendMessage("§e未检测到 PacketEvents 与附属插件, " + BOSS_NAME + " 将以隐形状态出现(仅盔甲架本体, 伤害仍有效)");
         }
+        Enmity.registerBossBody(body.getBody()); // 供挑拨木棍右键选中
+
+        // ---- 穿戴 (钻石套 + 钻石剑) ----
+        body.setEquipment(
+                new ItemStack(Material.DIAMOND_HELMET),
+                new ItemStack(Material.DIAMOND_CHESTPLATE),
+                new ItemStack(Material.DIAMOND_LEGGINGS),
+                new ItemStack(Material.DIAMOND_BOOTS),
+                new ItemStack(Material.DIAMOND_SWORD));
 
         // ---- 挂游戏逻辑回调 (算伤害/同步血条/掉落) ----
         body.setOnAttack(p -> body.applyDamage(p, ModelBoss.computeDamage(p), true));
@@ -121,7 +125,7 @@ public class PlayerBoss implements Listener {
         Location base = player.getLocation();
         Vector dir = base.getDirection().multiply(6);
         Location target = base.clone().add(dir);
-        target.setY(target.getWorld().getHighestBlockYAt(target) + 1);
+        target.setY(BossSpawn.groundY(target.getWorld(), target.getBlockX(), target.getBlockZ(), base.getBlockY()));
         return target;
     }
 
@@ -146,7 +150,8 @@ public class PlayerBoss implements Listener {
 
                 BossMenu.updateBossBar(BossMenu.BossType.SHADOW_WARRIOR);
 
-                Player target = findNearestPlayer();
+                LivingEntity target = Enmity.getEnemy(body.getBody());
+                if (target == null) target = findNearestPlayer();
                 if (target == null) {
                     body.setTarget(null); // 失去目标, 盔甲架原地待命
                     if (++idleTicks > 3000) {
@@ -193,12 +198,12 @@ public class PlayerBoss implements Listener {
     // ========================================================================
 
     // 让假玩家原地转向面向目标 (仅旋转包, 不移动)。
-    private static void faceTarget(Player target) {
+    private static void faceTarget(LivingEntity target) {
         if (body == null) return;
         body.rotateTo(target);
     }
 
-    private static void meleeAttack(Player target) {
+    private static void meleeAttack(LivingEntity target) {
         if (body == null) return;
         body.rotateTo(target); // 攻击前转向目标, 保证挥砍方向与朝向一致
         body.swing();
@@ -210,7 +215,7 @@ public class PlayerBoss implements Listener {
     }
 
     // 影遁 —— 瞬间冲向目标并造成范围伤害
-    private static void shadowDash(Player target) {
+    private static void shadowDash(LivingEntity target) {
         if (body == null) return;
         Location start = body.getLocation();
         world.playSound(start, Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.0f, 0.8f);
@@ -242,7 +247,7 @@ public class PlayerBoss implements Listener {
     }
 
     // 幻影斩 —— 攻击周围所有玩家
-    private static void areaSlash(Player target) {
+    private static void areaSlash(LivingEntity target) {
         if (body == null) return;
         Location loc = body.getLocation();
         body.rotateTo(target); // 攻击前转向目标
@@ -336,6 +341,7 @@ public class PlayerBoss implements Listener {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
 
         if (body != null) {
+            Enmity.unregisterBossBody(body.getBody());
             body.remove();
             body = null;
         }
@@ -359,7 +365,7 @@ public class PlayerBoss implements Listener {
         double nearestDistance = Double.MAX_VALUE;
 
         for (Entity entity : bodyLoc.getWorld().getNearbyEntities(bodyLoc, FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
-            if (entity instanceof Player p && !p.isDead() && !p.isInvulnerable()
+            if (entity instanceof Player p && BossTargets.isCombatPlayer(p)
                     && p.getWorld().equals(world)) {
                 double dist = p.getLocation().distance(bodyLoc);
                 if (dist < nearestDistance) {

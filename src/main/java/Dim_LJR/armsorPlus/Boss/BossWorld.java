@@ -2,7 +2,6 @@ package Dim_LJR.armsorPlus.Boss;
 
 import io.papermc.paper.registry.keys.GameRuleKeys;
 import org.bukkit.*;
-import org.bukkit.generator.ChunkGenerator;
 
 // BOSS世界 —— 专用的BOSS战斗世界。
 // 一个平坦的虚空世界，用于BOSS战斗，防止破坏主世界地形。
@@ -22,17 +21,10 @@ public class BossWorld {
 
         if (world != null) {
             world.setAutoSave(true);
-            world.setPVP(false);
+            // 保留: 死亡不掉物品栏、世界时间清晨600、难度困难。其余世界规则(PVP/生物生成等)恢复默认
             setRule(world, GameRuleKeys.KEEP_INVENTORY, true);
-            setRule(world, GameRuleKeys.MOB_GRIEFING, false);
-            setRule(world, GameRuleKeys.FIRE_DAMAGE, false);
-            setRule(world, GameRuleKeys.SPAWN_MOBS, false);
-            setRule(world, GameRuleKeys.SPAWN_MONSTERS, false);
-            setRule(world, GameRuleKeys.SPAWN_PHANTOMS, false);
-            setRule(world, GameRuleKeys.ADVANCE_TIME, false);
-            setRule(world, GameRuleKeys.ADVANCE_WEATHER, false);
-            world.setDifficulty(Difficulty.EASY);
-            world.setTime(6000);
+            world.setTime(600);
+            world.setDifficulty(Difficulty.HARD);
 
             Bukkit.getLogger().info("BOSS世界加载完成");
         } else {

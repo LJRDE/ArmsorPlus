@@ -48,6 +48,13 @@ public final class FakePlayerProvider {
         return create(world, loc, maxHealth, bossName, displayName, yaw, BossSkin.villageCaptain());
     }
 
+    // 村民卫兵: 复用村民队长皮肤
+    public static FakePlayer createVillageGuard(World world, Location loc,
+                                                String bossName, String displayName,
+                                                float yaw, double maxHealth) {
+        return create(world, loc, maxHealth, bossName, displayName, yaw, BossSkin.villageCaptain());
+    }
+
     private static FakePlayer create(World world, Location loc, double maxHealth,
                                      String bossName, String displayName, float yaw, BossSkin skin) {
         FakePlayerFactory factory = companion();

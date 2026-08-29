@@ -169,17 +169,7 @@ public class SkeletonKing {
     }
 
     private static Location findSpawnLocation(Player summoner) {
-        Location base = summoner.getLocation();
-        for (int r = 5; r <= 20; r += 5) {
-            for (int i = 0; i < 8; i++) {
-                double angle = i * Math.PI / 4;
-                Location loc = base.clone().add(Math.cos(angle)*r, 0, Math.sin(angle)*r);
-                loc.setY(base.getWorld().getHighestBlockYAt(loc) + 1);
-                if (loc.getBlock().isEmpty() && loc.clone().add(0,1,0).getBlock().isEmpty())
-                    return loc;
-            }
-        }
-        return null;
+        return BossSpawn.ringSpawn(summoner, 5);
     }
 
     public static void onDeath() {

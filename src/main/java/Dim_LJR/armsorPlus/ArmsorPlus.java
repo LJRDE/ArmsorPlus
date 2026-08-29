@@ -4,15 +4,19 @@ import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
 import Dim_LJR.armsorPlus.Boss.BossMenu;
+import Dim_LJR.armsorPlus.Boss.CreatureMenu;
 import Dim_LJR.armsorPlus.Boss.BossRenderer;
 import Dim_LJR.armsorPlus.Boss.BossSkin;
 import Dim_LJR.armsorPlus.Boss.BossWorld;
+import Dim_LJR.armsorPlus.Boss.Enmity;
+import Dim_LJR.armsorPlus.Boss.EnmityToolListener;
 import Dim_LJR.armsorPlus.Boss.FakePlayerFactory;
 import Dim_LJR.armsorPlus.Boss.FakePlayerProvider;
 import Dim_LJR.armsorPlus.Boss.ModelBoss;
 import Dim_LJR.armsorPlus.Boss.PlayerBoss;
 import Dim_LJR.armsorPlus.Boss.SkinServer;
 import Dim_LJR.armsorPlus.Boss.VillageCaptain;
+import Dim_LJR.armsorPlus.Boss.VillageGuard;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
 import Dim_LJR.armsorPlus.Food.FoodListeners;
 import Dim_LJR.armsorPlus.Food.TreeListeners;
@@ -68,6 +72,7 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
             BossSkin.prefetchShadowWarrior(); // 后台预取影武者皮肤 (Mojang在线拉取)
         }
         registerListeners();    // 注册事件监听器
+        Enmity.startTask(this); // 挑拨木棍仇怨强制执行任务
         registerCommands();     // 注册命令
         ArmsorPlusRecipes.register(this);      // 注册合成配方
         BossWorld.loadWorld();  // 加载BOSS世界
@@ -113,10 +118,13 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(), this);
         getServer().getPluginManager().registerEvents(new EnhancementHandler(), this);
         getServer().getPluginManager().registerEvents(new BossMenu(), this);
+        getServer().getPluginManager().registerEvents(new CreatureMenu(), this);
         getServer().getPluginManager().registerEvents(new PlayerBoss(), this);
         getServer().getPluginManager().registerEvents(new VillageCaptain(), this);
+        getServer().getPluginManager().registerEvents(new VillageGuard(), this);
         getServer().getPluginManager().registerEvents(new ModelBoss.RealEntityDamageListener(), this); // 近战/弓箭/爆炸/火焰等真实伤害 → 统一血量
         getServer().getPluginManager().registerEvents(new ArmsorPlusItemHandler(), this);
+        getServer().getPluginManager().registerEvents(new EnmityToolListener(), this);
         getServer().getPluginManager().registerEvents(new FoodListeners(), this);
         getServer().getPluginManager().registerEvents(new TreeListeners(),this);
     }

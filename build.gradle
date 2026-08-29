@@ -18,11 +18,41 @@ repositories {
     }
 }
 
+// 附属插件(接口+实现一体)由 ArmsorPlusFakePlayer 项目构建。
+// 其版本号会随更新递增(+0.1), 这里动态查找 build/libs 下最新的 ArmsorPlusFakePlayer-*.jar,
+// 避免硬编码版本号导致主插件编译报"找不到符号"(FakePlayerFactory/AiType 等)。
+def companionCandidates = fileTree("../ArmsorPlusFakePlayer/build/libs").matching { include "ArmsorPlusFakePlayer-*.jar" }.files.sort { it.lastModified() }
+def companionJarFile = companionCandidates.isEmpty() ? null : companionCandidates.last()
+
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    // 接口类(FakePlayer / FakePlayerFactory / FakePlayerOptions)由附属插件 ArmsorPlusFakePlayer 提供(接口+实现一体)。
+    // 运行时 plugin.yml depend 它, 这里 compileOnly 仅拿接口 class 引用, 不打包进 jar。
+    if (companionJarFile != null) {
+        compileOnly files(companionJarFile)
+    }
     // PacketEvents 改为可选依赖(softdepend), 不打包进插件 jar, 由用户自行安装。
     // 未安装时玩家模型Boss退化为纯盔甲架本体(无假玩家渲染, 伤害仍走盔甲架命中盒)。
     compileOnly("com.github.retrooper:packetevents-spigot:2.13.0")
+}
+
+// 更新 run/plugins: 备份旧版到项目根 backup-versions/(放 build/ 外, clean 不会误删), 再放入新版主插件 jar + 附属插件 jar。
+def updateRunPlugins = { File pluginsDir, File versionsDir, File mainJar ->
+    def stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())
+    fileTree(pluginsDir).matching { include "ArmsorPlus1.21-*.jar" }.each { oldJar ->
+        copy { from oldJar into versionsDir; rename { String n -> n.replace(".jar", "-${stamp}.jar") } }
+        if (oldJar.name != mainJar.name) delete oldJar
+    }
+    copy { from mainJar into pluginsDir }
+    fileTree(pluginsDir).matching { include "ArmsorPlusFakePlayer-*.jar" }.each { oldCompanion ->
+        copy { from oldCompanion into versionsDir; rename { String n -> n.replace(".jar", "-${stamp}.jar") } }
+        if (oldCompanion.name != companionJarFile.name) delete oldCompanion
+    }
+    if (companionJarFile != null && companionJarFile.exists()) {
+        copy { from companionJarFile into pluginsDir }
+    } else {
+        println "警告: 未找到附属插件 ArmsorPlusFakePlayer-*.jar, 请先在 ArmsorPlusFakePlayer 目录运行 ./gradlew jar"
+    }
 }
 
 tasks.register('runPurpur', JavaExec) {
@@ -36,33 +66,16 @@ tasks.register('runPurpur', JavaExec) {
     standardInput = System.in
     args("--nogui")
 
-    // 每次启动前: 把旧版 jar 备份到 versions 目录, 再替换为新版
+    // 每次启动前: 把旧版 jar 备份到 versions 目录, 再替换为主插件新版 + 共享 API 新版
     doFirst {
         runDir.mkdirs()
         def pluginsDir = file("run/plugins")
-        def versionsDir = file("build/plugin-versions")
+        def versionsDir = file("backup-versions")
         pluginsDir.mkdirs()
         versionsDir.mkdirs()
 
-        def newJar = tasks.shadowJar.archiveFile.get().asFile
-        def stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())
-        fileTree(pluginsDir).matching { include "ArmsorPlus1.21-*.jar" }.each { oldJar ->
-            // 备份旧版到 versions (带时间戳, 同名版本次也会保留)
-            copy {
-                from oldJar
-                into versionsDir
-                rename { String fileName -> fileName.replace(".jar", "-${stamp}.jar") }
-            }
-            // 从 run/plugins 删除旧 jar (避免 Paper 加载旧版重复插件)
-            if (oldJar.name != newJar.name) {
-                delete oldJar
-            }
-        }
-        copy {
-            from tasks.shadowJar.archiveFile
-            into pluginsDir
-        }
-        println "已更新 run/plugins，旧版已备份到 build/plugin-versions/"
+        updateRunPlugins(pluginsDir, versionsDir, tasks.shadowJar.archiveFile.get().asFile)
+        println "已更新 run/plugins，旧版已备份到 backup-versions/"
     }
 }
 
@@ -88,28 +101,12 @@ tasks.register('reload') {
     dependsOn shadowJar
     doLast {
         def pluginsDir = file("run/plugins")
-        def versionsDir = file("build/plugin-versions")
+        def versionsDir = file("backup-versions")
         pluginsDir.mkdirs()
         versionsDir.mkdirs()
 
-        // 把旧版 jar 备份到 versions 目录, 再替换为新版
-        def newJar = tasks.shadowJar.archiveFile.get().asFile
-        def stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date())
-        fileTree(pluginsDir).matching { include "ArmsorPlus1.21-*.jar" }.each { oldJar ->
-            copy {
-                from oldJar
-                into versionsDir
-                rename { String fileName -> fileName.replace(".jar", "-${stamp}.jar") }
-            }
-            if (oldJar.name != newJar.name) {
-                delete oldJar
-            }
-        }
-        copy {
-            from tasks.shadowJar.archiveFile
-            into pluginsDir
-        }
-        println "已更新 run/plugins，旧版已备份到 build/plugin-versions/，在服务端输入指令重载插件"
+        updateRunPlugins(pluginsDir, versionsDir, tasks.shadowJar.archiveFile.get().asFile)
+        println "已更新 run/plugins，旧版已备份到 backup-versions/，在服务端输入指令重载插件"
     }
 }
 

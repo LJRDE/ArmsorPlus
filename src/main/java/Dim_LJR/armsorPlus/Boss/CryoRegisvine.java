@@ -105,7 +105,7 @@ public class CryoRegisvine {
         Location base = player.getLocation();
         Vector dir = base.getDirection().multiply(8);
         Location target = base.clone().add(dir);
-        target.setY(target.getWorld().getHighestBlockYAt(target) + 1);
+        target.setY(BossSpawn.groundY(target.getWorld(), target.getBlockX(), target.getBlockZ(), base.getBlockY()));
 
         for (int x = -4; x <= 4; x++) {
             for (int z = -4; z <= 4; z++) {
@@ -431,7 +431,8 @@ public class CryoRegisvine {
                 bossLoc.getWorld().spawnParticle(Particle.SNOWFLAKE,
                         bossLoc.clone().add(0, 5, 0), 5, 2, 0.5, 2, 0.05);
 
-                Player target = findNearestPlayer();
+                LivingEntity target = Enmity.getEnemy(bossEntity);
+                if (target == null) target = findNearestPlayer();
                 if (target == null) {
                     if (tick > 600) {
                         despawn();
@@ -443,30 +444,49 @@ public class CryoRegisvine {
 
                 lookAtTarget(bossEntity, target.getLocation());
 
-                if (attackCooldown > 0) {
-                    attackCooldown--;
+                if (target instanceof Player player) {
+                    if (attackCooldown > 0) {
+                        attackCooldown--;
+                        return;
+                    }
+
+                    int r = RANDOM.nextInt(phase2 ? 6 : 5);
+                    int attack = (!phase2 && r >= 3) ? r + 1 : r;
+                    switch (attack) {
+                        case 0 -> iceShardAttack(player);
+                        case 1 -> frostAura();
+                        case 2 -> frostBreath(player);
+                        case 3 -> iceExplosion(player);
+                        case 4 -> hailAttack(player);
+                        case 5 -> sweepAttack(player);
+                    }
+
+                    attacksSinceCore++;
+                    if (attacksSinceCore >= 3) {
+                        exposeCore();
+                        attacksSinceCore = 0;
+                        attackCooldown = phase2 ? 5 : 8;
+                    } else {
+                        attackCooldown = phase2 ? 5 : 8;
+                    }
                     return;
                 }
 
-                int r = RANDOM.nextInt(phase2 ? 6 : 5);
-                int attack = (!phase2 && r >= 3) ? r + 1 : r;
-                switch (attack) {
-                    case 0 -> iceShardAttack(target);
-                    case 1 -> frostAura();
-                    case 2 -> frostBreath(target);
-                    case 3 -> iceExplosion(target);
-                    case 4 -> hailAttack(target);
-                    case 5 -> sweepAttack(target);
+                // 仇怨目标(非玩家): 面对它, 距离够近就打击 (原版AI已关闭, 由这里补近战)
+                if (bossEntity.getLocation().distance(target.getLocation()) <= 4.0) {
+                    target.damage(14, bossEntity);
+                    Vector knock = target.getLocation().toVector().subtract(bossEntity.getLocation().toVector());
+                    if (knock.lengthSquared() < 1.0E-4) {
+                        knock = new Vector(0, 0, 0);
+                    } else {
+                        knock.normalize().multiply(0.6);
+                    }
+                    knock.setY(Math.max(0.35, knock.getY()));
+                    target.setVelocity(knock);
+                    bossEntity.getWorld().spawnParticle(Particle.SNOWFLAKE,
+                            target.getLocation().clone().add(0, 1, 0), 15, 0.4, 0.4, 0.4, 0.1);
                 }
-
-                attacksSinceCore++;
-                if (attacksSinceCore >= 3) {
-                    exposeCore();
-                    attacksSinceCore = 0;
-                    attackCooldown = phase2 ? 5 : 8;
-                } else {
-                    attackCooldown = phase2 ? 5 : 8;
-                }
+                attackCooldown = 15 + RANDOM.nextInt(10);
             }
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 10L);
     }
@@ -652,7 +672,7 @@ public class CryoRegisvine {
         double nearestDistance = Double.MAX_VALUE;
 
         for (Entity entity : bossEntity.getNearbyEntities(FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
-            if (entity instanceof Player p && !p.isDead() && !p.isInvulnerable()) {
+            if (entity instanceof Player p && BossTargets.isCombatPlayer(p)) {
                 double dist = p.getLocation().distance(bossEntity.getLocation());
                 if (dist < nearestDistance) {
                     nearestDistance = dist;

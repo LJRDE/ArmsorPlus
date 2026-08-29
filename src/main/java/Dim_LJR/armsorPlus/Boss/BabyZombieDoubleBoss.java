@@ -41,7 +41,8 @@ public class BabyZombieDoubleBoss {
 
         Location spawnLoc = summoner.getLocation().clone()
                 .add(summoner.getLocation().getDirection().multiply(6));
-        spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
+        spawnLoc.setY(BossSpawn.groundY(spawnLoc.getWorld(), spawnLoc.getBlockX(), spawnLoc.getBlockZ(),
+                summoner.getLocation().getBlockY()));
 
         spawnLoc.getWorld().loadChunk(spawnLoc.getChunk());
 
@@ -173,8 +174,12 @@ public class BabyZombieDoubleBoss {
                 }
                 BossMenu.updateBossBar(BossMenu.BossType.BABY_ZOMBIE_DOUBLE);
 
-                // 无人应战则消失
-                if (findNearestPlayer() == null && tick > 600) {
+                // 仇怨目标优先 (原版僵尸AI负责追击/近战); 无敌人且无人应战才消失
+                LivingEntity enemy = Enmity.getEnemy(mountZombie, riderZombie);
+                if (enemy != null) {
+                    if (mountZombie != null && !mountZombie.isDead()) mountZombie.setTarget(enemy);
+                    if (riderZombie != null && !riderZombie.isDead()) riderZombie.setTarget(enemy);
+                } else if (findNearestPlayer() == null && tick > 600) {
                     despawn();
                     cancel();
                 }
@@ -235,7 +240,7 @@ public class BabyZombieDoubleBoss {
         Player nearest = null;
         double nearestDist = Double.MAX_VALUE;
         for (Entity entity : active.getNearbyEntities(FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
-            if (entity instanceof Player p && !p.isDead() && !p.isInvulnerable()) {
+            if (entity instanceof Player p && BossTargets.isCombatPlayer(p)) {
                 double dist = p.getLocation().distance(active.getLocation());
                 if (dist < nearestDist) {
                     nearestDist = dist;

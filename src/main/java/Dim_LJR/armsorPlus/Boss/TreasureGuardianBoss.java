@@ -105,7 +105,7 @@ public class TreasureGuardianBoss {
         Location base = player.getLocation();
         Vector dir = base.getDirection().multiply(6);
         Location target = base.clone().add(dir);
-        target.setY(target.getWorld().getHighestBlockYAt(target) + 1);
+        target.setY(BossSpawn.groundY(target.getWorld(), target.getBlockX(), target.getBlockZ(), base.getBlockY()));
         return target;
     }
 
@@ -134,7 +134,8 @@ public class TreasureGuardianBoss {
                         bossEntity.getAttribute(Attribute.MAX_HEALTH).getValue());
                 BossMenu.updateBossBar(BossMenu.BossType.TREASURE_GUARDIAN);
 
-                Player target = findNearestPlayer();
+                LivingEntity target = Enmity.getEnemy(bossEntity);
+                if (target == null) target = findNearestPlayer();
                 if (target == null) {
                     if (tick > 600) {
                         despawn();
@@ -166,7 +167,7 @@ public class TreasureGuardianBoss {
     // 攻击方式
     // ========================================================================
 
-    private static void iceSlash(Player target) {
+    private static void iceSlash(LivingEntity target) {
         if (bossEntity == null || bossEntity.isDead()) return;
         Location bossLoc = bossEntity.getLocation();
         World world = bossLoc.getWorld();
@@ -183,7 +184,7 @@ public class TreasureGuardianBoss {
         }
     }
 
-    private static void freezeAura(Player target) {
+    private static void freezeAura(LivingEntity target) {
         if (bossEntity == null || bossEntity.isDead()) return;
         Location bossLoc = bossEntity.getLocation();
         World world = bossLoc.getWorld();
@@ -200,7 +201,7 @@ public class TreasureGuardianBoss {
         }
     }
 
-    private static void chargeAttack(Player target) {
+    private static void chargeAttack(LivingEntity target) {
         if (bossEntity == null || bossEntity.isDead()) return;
         World world = bossEntity.getWorld();
 
@@ -389,7 +390,7 @@ public class TreasureGuardianBoss {
         double nearestDistance = Double.MAX_VALUE;
 
         for (Entity entity : bossEntity.getNearbyEntities(FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
-            if (entity instanceof Player p && !p.isDead() && !p.isInvulnerable()) {
+            if (entity instanceof Player p && BossTargets.isCombatPlayer(p)) {
                 double dist = p.getLocation().distance(bossEntity.getLocation());
                 if (dist < nearestDistance) {
                     nearestDistance = dist;

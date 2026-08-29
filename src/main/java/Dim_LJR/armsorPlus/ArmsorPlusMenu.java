@@ -3,6 +3,7 @@ package Dim_LJR.armsorPlus;
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
 import Dim_LJR.armsorPlus.Boss.BossMenu;
 import Dim_LJR.armsorPlus.Boss.BossWorld;
+import Dim_LJR.armsorPlus.Boss.CreatureMenu;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -629,6 +630,8 @@ public class ArmsorPlusMenu implements Listener {
             menu.setItem(23, createInfoItem(COMPASS, ChatColor.GREEN + "回到主世界",
                     ChatColor.GREEN + "点击传送回主世界"));
         }
+        menu.setItem(25, createInfoItem(IRON_GOLEM_SPAWN_EGG, ChatColor.GREEN + "生物菜单",
+                ChatColor.GREEN + "点击查看可召唤的生物"));
         menu.setItem(34, createInfoItem(COMPARATOR, ChatColor.GRAY + "设置",
                 ChatColor.GRAY + "点击打开个人设置"));
         return menu;
@@ -729,6 +732,8 @@ public class ArmsorPlusMenu implements Listener {
                 player.sendActionBar(Component.text("已回到主世界"));
             } else if (name.equals(ChatColor.RED + "BOSS清单")) {
                 player.openInventory(BossMenu.getBossList());
+            } else if (name.equals(ChatColor.GREEN + "生物菜单")) {
+                player.openInventory(CreatureMenu.getCreatureList());
             } else if (name.equals(ChatColor.RED + "前往BOSS世界")) {
                 if (BossWorld.world != null) {
                     player.teleport(BossWorld.world.getSpawnLocation());

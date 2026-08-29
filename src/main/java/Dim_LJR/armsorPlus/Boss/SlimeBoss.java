@@ -101,7 +101,7 @@ public class SlimeBoss {
         Location base = player.getLocation();
         Vector dir = base.getDirection().multiply(8);
         Location target = base.clone().add(dir);
-        target.setY(target.getWorld().getHighestBlockYAt(target) + 1);
+        target.setY(BossSpawn.groundY(target.getWorld(), target.getBlockX(), target.getBlockZ(), base.getBlockY()));
 
         for (int x = -5; x <= 5; x++) {
             for (int z = -5; z <= 5; z++) {
@@ -120,7 +120,7 @@ public class SlimeBoss {
     // BOSS重锤
     // ========================================================================
 
-    private static ItemStack createBossMace() {
+    public static ItemStack createBossMace() {
         ItemStack mace = new ItemStack(Material.MACE);
         ItemMeta meta = mace.getItemMeta();
         meta.setDisplayName("§c★ 史莱姆王的重锤");
@@ -184,8 +184,11 @@ public class SlimeBoss {
                 bossLoc.getWorld().spawnParticle(Particle.ITEM_SLIME,
                         bossLoc.clone().add(0, 0.5, 0), 2, 0.5, 0.3, 0.5, 0);
 
-                // 无人应战则消失
-                if (findNearestPlayer() == null && tick > 600) {
+                // 仇怨目标优先 (原版史莱姆AI负责追击/接触伤害); 无敌人且无人应战才消失
+                LivingEntity enemy = Enmity.getEnemy(bossSlime);
+                if (enemy != null) {
+                    bossSlime.setTarget(enemy);
+                } else if (findNearestPlayer() == null && tick > 600) {
                     despawn();
                     cancel();
                 }
@@ -352,7 +355,7 @@ public class SlimeBoss {
         double nearestDist = Double.MAX_VALUE;
 
         for (Entity entity : bossSlime.getNearbyEntities(FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
-            if (entity instanceof Player p && !p.isDead() && !p.isInvulnerable()) {
+            if (entity instanceof Player p && BossTargets.isCombatPlayer(p)) {
                 double dist = p.getLocation().distance(bossSlime.getLocation());
                 if (dist < nearestDist) {
                     nearestDist = dist;

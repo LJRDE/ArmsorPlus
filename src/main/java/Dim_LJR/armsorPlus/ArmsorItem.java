@@ -54,6 +54,10 @@ public final class ArmsorItem {
         return EnhancementStone.BasicStone(amount);
     }
 
+    public static ItemStack EnmityTool(int amount) {
+        return MiscItem.EnmityTool(amount);
+    }
+
     public static ItemStack DIAMONDPLUSCreate(int amount) {
         return EnhancementStone.DIAMONDPLUSCreate(amount);
     }

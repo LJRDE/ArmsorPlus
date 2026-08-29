@@ -200,6 +200,9 @@ public class NamespaceKey {
         // ---- 狂怒掠夺者之弩 ----
         public static NamespacedKey RagingPlundererCrossbowKey;
 
+        // ---- 挑拨木棍 (EnmityTool) ----
+        public static NamespacedKey EnmityKey;
+
         // ---- 新附魔键 ----
         public static NamespacedKey PoisonKey;
         public static NamespacedKey SharpBladeKey;
@@ -460,6 +463,9 @@ public class NamespaceKey {
 
             // 狂怒掠夺者之弩
             RagingPlundererCrossbowKey = new NamespacedKey(plugin, "ArmsorPlus_RagingPlundererCrossbow");
+
+            // 挑拨木棍 (EnmityTool)
+            EnmityKey = new NamespacedKey(plugin, "ArmsorPlus_Enmity");
         }
     }
 
