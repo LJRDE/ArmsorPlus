@@ -5,6 +5,8 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.enchantments.Enchantment;
@@ -365,6 +367,9 @@ public class ModelBoss implements FakePlayer {
             }
 
             // 非实体伤害
+            // 放行 /kill (generic_kill): 让盔甲架原生死亡, 由BOSS的AI检测 body 失效后 cleanup
+            DamageSource ds = event.getDamageSource();
+            if (ds != null && ds.getDamageType() == DamageType.GENERIC_KILL) return;
             event.setCancelled(true);
             if (CONVERT_NON_ENTITY.contains(event.getCause())) {
                 // 爆炸击退在原版独立施加, 取消伤害也不影响击退

@@ -2,6 +2,7 @@ package Dim_LJR.armsorPlus.Boss;
 
 import Dim_LJR.armsorPlus.NamespaceKey;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -49,6 +50,7 @@ public class VillageGuard implements Listener {
     private FakePlayer body;
     private World world;
     private BukkitTask aiTask;
+    private Player retaliatingAgainst; // 被玩家攻击后才索敌该玩家
 
     // ========================================================================
     // 召唤
@@ -79,6 +81,11 @@ public class VillageGuard implements Listener {
 
         // ---- 挂游戏逻辑回调 ----
         guard.body.setOnAttack(p -> guard.body.applyDamage(p, ModelBoss.computeDamage(p), true));
+        guard.body.setOnDamage((attacker, remaining) -> {
+            if (attacker != null && attacker.getGameMode() != GameMode.CREATIVE) {
+                guard.retaliatingAgainst = attacker;
+            }
+        });
         guard.body.setOnDeath(killer -> guard.onDeath());
 
         ACTIVE.add(guard);
@@ -130,6 +137,7 @@ public class VillageGuard implements Listener {
                         return;
                     }
                     LivingEntity target = Enmity.getEnemy(body.getBody());
+                    if (target == null) target = getRetaliatingTarget();
                     if (target == null) target = findNearestTarget();
                     if (target == null) {
                         body.setTarget(null);
@@ -169,30 +177,35 @@ public class VillageGuard implements Listener {
         }.runTaskTimer(NamespaceKey.Keys.getplugin, 20L, 2L);
     }
 
-    // 寻找目标: 优先攻击附近敌对生物(怪物), 无怪物时攻击最近的战斗玩家。
+    // 返回攻击过卫兵的玩家(有效时), 否则清空并返回 null。
+    private LivingEntity getRetaliatingTarget() {
+        if (retaliatingAgainst == null) return null;
+        if (retaliatingAgainst.isDead() || !retaliatingAgainst.isValid()
+                || retaliatingAgainst.getGameMode() == GameMode.CREATIVE
+                || !retaliatingAgainst.getWorld().equals(world)) {
+            retaliatingAgainst = null;
+            return null;
+        }
+        return retaliatingAgainst;
+    }
+
+    // 寻找目标: 仅攻击附近敌对生物(怪物), 不主动攻击玩家。
     private LivingEntity findNearestTarget() {
         if (body == null || !body.isValid()) return null;
         Location bodyLoc = body.getLocation();
         LivingEntity monster = null;
-        LivingEntity player = null;
         double monsterDist = Double.MAX_VALUE;
-        double playerDist = Double.MAX_VALUE;
         for (Entity entity : bodyLoc.getWorld().getNearbyEntities(bodyLoc, FOLLOW_RANGE, 10, FOLLOW_RANGE)) {
             if (entity.isDead() || !entity.isValid() || !entity.getWorld().equals(world)) continue;
-            double dist = entity.getLocation().distance(bodyLoc);
             if (entity instanceof Monster) {
+                double dist = entity.getLocation().distance(bodyLoc);
                 if (dist < monsterDist) {
                     monsterDist = dist;
                     monster = (LivingEntity) entity;
                 }
-            } else if (entity instanceof Player p && BossTargets.isCombatPlayer(p)) {
-                if (dist < playerDist) {
-                    playerDist = dist;
-                    player = p;
-                }
             }
         }
-        return monster != null ? monster : player;
+        return monster;
     }
 
     // ========================================================================
@@ -202,6 +215,9 @@ public class VillageGuard implements Listener {
     private void onDeath() {
         if (body == null) return;
         Location loc = body.getLocation();
+
+        // 先注销再移除, 保证 Enmity 能读到有效的 body UUID
+        Enmity.unregisterBossBody(body.getBody());
         body.remove();
 
         world.spawnParticle(Particle.CLOUD, loc, 60, 2, 2, 2, 0.3);
@@ -222,17 +238,23 @@ public class VillageGuard implements Listener {
 
     private void despawn() {
         if (body == null) return;
-        body.remove();
+        if (body.isValid()) {
+            Enmity.unregisterBossBody(body.getBody());
+            body.remove();
+        }
         cleanup();
     }
 
     private void cleanup() {
         if (aiTask != null) { aiTask.cancel(); aiTask = null; }
         if (body != null) {
-            Enmity.unregisterBossBody(body.getBody());
-            body.remove();
+            if (body.isValid()) {
+                Enmity.unregisterBossBody(body.getBody());
+                body.remove();
+            }
             body = null;
         }
+        retaliatingAgainst = null;
         world = null;
         ACTIVE.remove(this);
     }

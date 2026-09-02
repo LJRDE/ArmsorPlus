@@ -1,5 +1,6 @@
 package Dim_LJR.armsorPlus.Boss;
 
+import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnchantUtil;
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -36,7 +37,7 @@ public class BossMenu implements Listener {
     // BOSS 战斗跟踪系统
     // ========================================================================
 
-    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER, DESERT_CAMEL, SHADOW_WARRIOR, LAVA_DUO, PHANTOM_VEX }
+    public enum BossType { CRYO, PYRO, SLIME, BABY_ZOMBIE_DOUBLE, TREASURE_GUARDIAN, SKELETON_KING, ILLUSIONER, DESERT_CAMEL, SHADOW_WARRIOR, LAVA_DUO, PHANTOM_VEX, VILLAGE_SQUAD }
 
     // 身体部位实体 -> BOSS类型
     public static final Map<UUID, BossType> BOSS_BODY_PARTS = new HashMap<>();
@@ -159,6 +160,7 @@ public class BossMenu implements Listener {
                 case SHADOW_WARRIOR -> PlayerBoss.onDeath();
                 case LAVA_DUO -> LavaDuoBoss.onDeath();
                 case PHANTOM_VEX -> PhantomVexBoss.onDeath();
+                case VILLAGE_SQUAD -> VillageSquad.onDeath();
             }
             return true;
         }
@@ -281,14 +283,30 @@ public class BossMenu implements Listener {
             }
         }
 
-        // 幻翼/恼鬼: 攻击玩家 — 幻翼俯冲伤害×2, 恼鬼挥剑伤害×0.35, 均为穿透伤害(无视护甲)
-        if (damaged instanceof Player && event.getDamager() instanceof LivingEntity dmgEnt) {
+        // 幻翼/恼鬼: 攻击玩家 — 两者均固定2点强制穿透; 幻翼附剧毒/失明, 恼鬼附凋零/失明
+        if (damaged instanceof Player victim && event.getDamager() instanceof LivingEntity dmgEnt) {
             if (lookupBossType(dmgEnt.getUniqueId()) == BossType.PHANTOM_VEX) {
-                double mult = (dmgEnt instanceof Phantom) ? 2.0 : 0.35;
                 event.setCancelled(true);
-                // MAGIC伤害源无视护甲; 不带directEntity, 重新触发的只是EntityDamageEvent, 不会再次进入本(实体伤害)处理器
-                ((Player) damaged).damage(event.getDamage() * mult,
-                        DamageSource.builder(DamageType.MAGIC).build());
+                // 不带directEntity: 重新触发的是纯EntityDamageEvent, 不会再次进入本(实体伤害)处理器, 避免递归
+                // GENERIC_KILL 穿透: 无视护甲/保护附魔/抗性效果/无敌帧 (与/enchant穿透同源)
+                // 套 PIERCING_ACTIVE: 让插件自身防护附魔(保护PRO/影避/不灭/幸存等)也无法减免/闪避, 才是真正的强制穿透
+                UUID vId = victim.getUniqueId();
+                if (!EnchantUtil.PIERCING_ACTIVE.contains(vId)) {
+                    EnchantUtil.PIERCING_ACTIVE.add(vId);
+                    try {
+                        victim.damage(2.0, DamageSource.builder(DamageType.GENERIC_KILL).build());
+                    } finally {
+                        EnchantUtil.PIERCING_ACTIVE.remove(vId);
+                    }
+                }
+                // 命中附加效果 (5秒): 仅对该BOSS的攻击生效 (由 lookupBossType==PHANTOM_VEX 保障)
+                if (dmgEnt instanceof Phantom) {
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON,  100, 0, false, true));
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, false, true));
+                } else {
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.WITHER,    100, 0, false, true));
+                    victim.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, false, true));
+                }
                 return;
             }
         }
@@ -454,6 +472,10 @@ public class BossMenu implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBossEnvironmentalDamage(EntityDamageEvent event) {
         if (event instanceof EntityDamageByEntityEvent) return;
+        // 放行 /kill (generic_kill伤害源): 环境保护只挡环境伤害, 不能把管理员的kill也拦掉,
+        // 否则 /kill @e 无法清除BOSS (实体死亡后由各BOSS的AI检测并触发onDeath清理)
+        DamageSource ds = event.getDamageSource();
+        if (ds != null && ds.getDamageType() == DamageType.GENERIC_KILL) return;
         if (lookupBossType(event.getEntity().getUniqueId()) != null) {
             event.setCancelled(true);
         }
@@ -507,8 +529,7 @@ public class BossMenu implements Listener {
                 "§b❄ 核心: 雪人",
                 "§e✦ 攻击树状盔甲架转移伤害至核心",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         cryo.setItemMeta(cryoMeta);
         bossList.setItem(10, cryo);
@@ -525,8 +546,7 @@ public class BossMenu implements Listener {
                 "§e✦ 跳跃时触发重锤粉碎，造成大量伤害",
                 "§e✦ 半血激怒，召唤小史莱姆",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         slime.setItemMeta(slimeMeta);
         bossList.setItem(11, slime);
@@ -542,8 +562,7 @@ public class BossMenu implements Listener {
                 "§c🔥 核心: 烈焰人",
                 "§e✦ 攻击树状盔甲架转移伤害至核心",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         pyro.setItemMeta(pyroMeta);
         bossList.setItem(12, pyro);
@@ -560,8 +579,7 @@ public class BossMenu implements Listener {
                 "§6⚔ 攻击伤害: 15",
                 "§e✦ 移速极快，拥有冰冻能力",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         treasure.setItemMeta(treasureMeta);
         bossList.setItem(13, treasure);
@@ -577,8 +595,7 @@ public class BossMenu implements Listener {
                 "§5⚔ 一矛一剑，双重打击",
                 "§e✦ 装备不可掉落",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         doubleZombie.setItemMeta(doubleMeta);
         bossList.setItem(14, doubleZombie);
@@ -586,7 +603,7 @@ public class BossMenu implements Listener {
         ItemStack skKing = new ItemStack(Material.BOW);
         ItemMeta skMeta = skKing.getItemMeta();
         skMeta.setDisplayName("§8■ 骷髅王");
-        skMeta.setLore(Arrays.asList("§7手持力量X神弓的骷髅王者，", "§7每隔10秒召唤箭雨。", "", "§c❤ 生命值: 600", "§8⚔ 箭雨伤害: 6/箭", "§e✦ 弓箭无法掉落", "", "§a▼ 点击召唤BOSS", "§7(请在空旷处召唤)"));
+        skMeta.setLore(Arrays.asList("§7手持力量X神弓的骷髅王者，", "§7每隔10秒召唤箭雨。", "", "§c❤ 生命值: 600", "§8⚔ 箭雨伤害: 6/箭", "§e✦ 弓箭无法掉落", "", "§a▼ 左键召唤BOSS / 右键传送"));
         skKing.setItemMeta(skMeta);
         bossList.setItem(15, skKing);
 
@@ -602,8 +619,7 @@ public class BossMenu implements Listener {
                 "§d✦ 血量40%时召唤4名幻术护卫",
                 "§d✦ 血量20%时降下5秒箭雨",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         illusioner.setItemMeta(illusionerMeta);
         bossList.setItem(16, illusioner);
@@ -621,8 +637,7 @@ public class BossMenu implements Listener {
                 "§7✦ 骷髅: 全套下界合金 + 力量85·弹道V·冲击III·火矢I神弓",
                 "§b⚡ 双坐骑: 速度VII + 抗性IV",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         desertCamel.setItemMeta(desertCamelMeta);
         bossList.setItem(19, desertCamel);
@@ -638,8 +653,7 @@ public class BossMenu implements Listener {
                 "§8⚔ 近战伤害: 12 / 影遁 15 / 幻影斩 10",
                 "§e✦ 使用真实玩家皮肤渲染 (自定义皮肤Boss)",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         shadowWarrior.setItemMeta(shadowMeta);
         bossList.setItem(20, shadowWarrior);
@@ -656,8 +670,7 @@ public class BossMenu implements Listener {
                 "§c❤ 岩浆史莱姆王: 750",
                 "§c⚡ 重锤粉碎攻击 · 半血激怒分裂",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         lavaDuo.setItemMeta(lavaMeta);
         bossList.setItem(21, lavaDuo);
@@ -671,15 +684,31 @@ public class BossMenu implements Listener {
                 "",
                 "§c❤ 幻翼: 125",
                 "§c❤ 恼鬼: 125",
-                "§9⚔ 幻翼: 伤害×2 穿透",
-                "§d⚔ 恼鬼: 伤害×0.35 穿透",
+                "§9⚔ 幻翼: 固定2点 穿透 + 剧毒/失明",
+                "§d⚔ 恼鬼: 固定2点 穿透 + 凋零/失明",
                 "§e✦ 隐身 · 免疫远程/火焰/中毒/凋零",
                 "",
-                "§a▼ 点击召唤BOSS",
-                "§7(请在空旷处召唤)"
+                "§a▼ 左键召唤BOSS / 右键传送"
         ));
         pv.setItemMeta(pvMeta);
         bossList.setItem(22, pv);
+
+        ItemStack villageSquad = new ItemStack(Material.VILLAGER_SPAWN_EGG);
+        ItemMeta vsMeta = villageSquad.getItemMeta();
+        vsMeta.setDisplayName("§a■ 村民卫队");
+        vsMeta.setLore(Arrays.asList(
+                "§7村庄的精锐卫队，",
+                "§7队长率领10名卫兵一同出战。",
+                "",
+                "§c❤ 队长: 40 / 卫兵: 30×10",
+                "§a⚔ 队长: 铁剑(8伤) + 金胸甲",
+                "§7⚔ 卫兵: 铁剑(7伤) + 保护II铁头盔",
+                "§e✦ 全部击败才算获胜",
+                "",
+                "§a▼ 左键召唤BOSS / 右键传送"
+        ));
+        villageSquad.setItemMeta(vsMeta);
+        bossList.setItem(23, villageSquad);
     }
 
     // ========================================================================
@@ -696,150 +725,70 @@ public class BossMenu implements Listener {
 
         String name = event.getCurrentItem().getItemMeta().getDisplayName();
         Player player = (Player) event.getWhoClicked();
+        player.closeInventory();
 
-        if (name.contains("雪人王")) {
-            if (CryoRegisvine.isAlive()) {
-                Location loc = CryoRegisvine.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e雪人王尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
+        // ---- 右键: 传送至已存活BOSS位置 ----
+        if (event.isRightClick()) {
+            Location loc = null;
+            String bossLabel = null;
+            if (name.contains("雪人王")       && CryoRegisvine.isAlive())         { loc = CryoRegisvine.getBossLocation();         bossLabel = "雪人王"; }
+            else if (name.contains("烈焰领主") && PyroRegisvine.isAlive())        { loc = PyroRegisvine.getBossLocation();         bossLabel = "烈焰领主"; }
+            else if (name.contains("史莱姆王") && SlimeBoss.isAlive())            { loc = SlimeBoss.getBossLocation();             bossLabel = "史莱姆王"; }
+            else if (name.contains("小僵尸")   && BabyZombieDoubleBoss.isAlive()) { loc = BabyZombieDoubleBoss.getBossLocation();  bossLabel = "小僵尸Double"; }
+            else if (name.contains("宝藏守护者") && TreasureGuardianBoss.isAlive()) { loc = TreasureGuardianBoss.getBossLocation(); bossLabel = "宝藏守护者"; }
+            else if (name.contains("骷髅王")   && SkeletonKing.isAlive())         { loc = SkeletonKing.getBossLocation();          bossLabel = "骷髅王"; }
+            else if (name.contains("幻术师")   && IllusionerBoss.isAlive())       { loc = IllusionerBoss.getBossLocation();        bossLabel = "幻术师"; }
+            else if (name.contains("铁骑双雄") && DesertCamelBoss.isAlive())      { loc = DesertCamelBoss.getBossLocation();       bossLabel = "铁骑双雄"; }
+            else if (name.contains("Shadow")  && PlayerBoss.isAlive())            { loc = PlayerBoss.getBossLocation();            bossLabel = "ShadowWarrior"; }
+            else if (name.contains("熔岩双王") && LavaDuoBoss.isAlive())          { loc = LavaDuoBoss.getBossLocation();           bossLabel = "熔岩双王"; }
+            else if (name.contains("幻翼")    && PhantomVexBoss.isAlive())        { loc = PhantomVexBoss.getBossLocation();        bossLabel = "幻翼·恼鬼"; }
+            else if (name.contains("村民卫队") && VillageSquad.isAlive())          { loc = VillageSquad.getBossLocation();          bossLabel = "村民卫队"; }
+            if (loc != null) {
+                player.teleport(loc);
+                player.sendMessage("§e已传送至" + bossLabel + "的位置");
+            } else {
+                player.sendMessage("§7该BOSS当前未存活，左键可召唤");
             }
-            player.closeInventory();
+            return;
+        }
+
+        // ---- 左键: 召唤BOSS (不限数量) ----
+        if (name.contains("雪人王")) {
             player.sendMessage("§b◆ 雪人王已降临！");
             CryoRegisvine.spawnBoss(player);
         } else if (name.contains("烈焰领主")) {
-            if (PyroRegisvine.isAlive()) {
-                Location loc = PyroRegisvine.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e烈焰领主尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
             player.sendMessage("§c◆ 烈焰领主已降临！");
             PyroRegisvine.spawnBoss(player);
         } else if (name.contains("史莱姆王")) {
-            if (SlimeBoss.isAlive()) {
-                Location loc = SlimeBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e史莱姆王尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
             player.sendMessage("§a◆ 史莱姆王已降临！");
             SlimeBoss.spawnBoss(player);
-        } else if (name.contains("小僵尸Double")) {
-            if (BabyZombieDoubleBoss.isAlive()) {
-                Location loc = BabyZombieDoubleBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e小僵尸Double尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
+        } else if (name.contains("小僵尸")) {
             player.sendMessage("§5◆ 小僵尸Double出现了！");
             BabyZombieDoubleBoss.spawnBoss(player);
         } else if (name.contains("宝藏守护者")) {
-            if (TreasureGuardianBoss.isAlive()) {
-                Location loc = TreasureGuardianBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e宝藏守护者尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
-            TreasureGuardianBoss.spawnBoss(player);
             player.sendMessage("§6◆ 宝藏守护者出现了！");
+            TreasureGuardianBoss.spawnBoss(player);
         } else if (name.contains("骷髅王")) {
-            if (SkeletonKing.isAlive()) {
-                Location loc = SkeletonKing.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e骷髅王尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
-            SkeletonKing.spawnBoss(player);
             player.sendMessage("§6◆ 骷髅王出现了！");
+            SkeletonKing.spawnBoss(player);
         } else if (name.contains("幻术师")) {
-            if (IllusionerBoss.isAlive()) {
-                Location loc = IllusionerBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e幻术师尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
             player.sendMessage("§d◆ 幻术师已降临！");
             IllusionerBoss.spawnBoss(player);
         } else if (name.contains("铁骑双雄")) {
-            if (DesertCamelBoss.isAlive()) {
-                Location loc = DesertCamelBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e铁骑双雄尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
             player.sendMessage("§2◆ 铁骑双雄已降临！");
             DesertCamelBoss.spawnBoss(player);
-        } else if (name.contains("ShadowWarrior")) {
-            if (PlayerBoss.isAlive()) {
-                Location loc = PlayerBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§eShadowWarrior尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
-            PlayerBoss.spawnBoss(player);
+        } else if (name.contains("Shadow")) {
             player.sendMessage("§8◆ ShadowWarrior以你的形象降临了！");
+            PlayerBoss.spawnBoss(player);
         } else if (name.contains("熔岩双王")) {
-            if (LavaDuoBoss.isAlive()) {
-                Location loc = LavaDuoBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e熔岩双王尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
             player.sendMessage("§c◆ 熔岩双王已降临！");
             LavaDuoBoss.spawnBoss(player);
         } else if (name.contains("幻翼")) {
-            if (PhantomVexBoss.isAlive()) {
-                Location loc = PhantomVexBoss.getBossLocation();
-                if (loc != null) {
-                    player.teleport(loc);
-                    player.sendMessage("§e幻翼·恼鬼尚未被击败，已传送至BOSS位置");
-                }
-                player.closeInventory();
-                return;
-            }
-            player.closeInventory();
             player.sendMessage("§b◆ 幻翼与恼鬼已降临！");
             PhantomVexBoss.spawnBoss(player);
+        } else if (name.contains("村民卫队")) {
+            player.sendMessage("§a◆ 村民卫队已降临！");
+            VillageSquad.spawnBoss(player);
         }
     }
 }

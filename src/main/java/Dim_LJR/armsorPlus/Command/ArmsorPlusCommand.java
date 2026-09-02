@@ -1,7 +1,7 @@
 package Dim_LJR.armsorPlus.Command;
 
 import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
-import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
+import Dim_LJR.armsorPlus.ArmsorPlusEnchant.DevourLifeEnchant;
 import Dim_LJR.armsorPlus.ArmsorPlusMenu;
 import Dim_LJR.armsorPlus.Boss.CreatureMenu;
 import Dim_LJR.armsorPlus.Boss.PlayerBoss;
@@ -993,7 +993,7 @@ public class ArmsorPlusCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.RED + "手持物品没有噬生附魔");
             return;
         }
-        int count = ArmsorPlusEnchantEventHandler.getDevourLifeBloodCount(item);
+        int count = DevourLifeEnchant.getDevourLifeBloodCount(item);
         sender.sendMessage(ChatColor.DARK_PURPLE + "噬生当前血裂数: " + count + "/20");
     }
 

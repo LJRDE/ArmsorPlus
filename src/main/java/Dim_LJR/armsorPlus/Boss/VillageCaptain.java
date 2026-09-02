@@ -48,10 +48,6 @@ public class VillageCaptain implements Listener {
     // ========================================================================
 
     public static void spawnBoss(Player summoner) {
-        if (alive) {
-            summoner.sendMessage("§c已有一只" + BOSS_NAME + "，请先击败或等待其消失");
-            return;
-        }
         world = summoner.getWorld();
         Location spawnLoc = summoner.getLocation();
 

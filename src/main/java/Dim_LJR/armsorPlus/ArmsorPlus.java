@@ -1,8 +1,7 @@
 package Dim_LJR.armsorPlus;
 
-import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorEnchant;
-import Dim_LJR.armsorPlus.ArmsorPlusEnchant.ArmsorPlusEnchantEventHandler;
-import Dim_LJR.armsorPlus.ArmsorPlusEnchant.EnhancementHandler;
+import Dim_LJR.armsorPlus.ArmsorPlusEnchant.*;
+import Dim_LJR.armsorPlus.Item.*;
 import Dim_LJR.armsorPlus.Boss.BossMenu;
 import Dim_LJR.armsorPlus.Boss.CreatureMenu;
 import Dim_LJR.armsorPlus.Boss.BossRenderer;
@@ -17,6 +16,7 @@ import Dim_LJR.armsorPlus.Boss.PlayerBoss;
 import Dim_LJR.armsorPlus.Boss.SkinServer;
 import Dim_LJR.armsorPlus.Boss.VillageCaptain;
 import Dim_LJR.armsorPlus.Boss.VillageGuard;
+import Dim_LJR.armsorPlus.Boss.VillageSquad;
 import Dim_LJR.armsorPlus.Command.ArmsorPlusCommand;
 import Dim_LJR.armsorPlus.Food.FoodListeners;
 import Dim_LJR.armsorPlus.Food.TreeListeners;
@@ -115,18 +115,95 @@ public final class ArmsorPlus extends JavaPlugin implements Listener {
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ArmsorPlusMenu(), this);
-        getServer().getPluginManager().registerEvents(new ArmsorPlusEnchantEventHandler(), this);
         getServer().getPluginManager().registerEvents(new EnhancementHandler(), this);
         getServer().getPluginManager().registerEvents(new BossMenu(), this);
         getServer().getPluginManager().registerEvents(new CreatureMenu(), this);
         getServer().getPluginManager().registerEvents(new PlayerBoss(), this);
         getServer().getPluginManager().registerEvents(new VillageCaptain(), this);
         getServer().getPluginManager().registerEvents(new VillageGuard(), this);
+        getServer().getPluginManager().registerEvents(new VillageSquad(), this);
         getServer().getPluginManager().registerEvents(new ModelBoss.RealEntityDamageListener(), this); // 近战/弓箭/爆炸/火焰等真实伤害 → 统一血量
-        getServer().getPluginManager().registerEvents(new ArmsorPlusItemHandler(), this);
         getServer().getPluginManager().registerEvents(new EnmityToolListener(), this);
         getServer().getPluginManager().registerEvents(new FoodListeners(), this);
-        getServer().getPluginManager().registerEvents(new TreeListeners(),this);
+        getServer().getPluginManager().registerEvents(new TreeListeners(), this);
+
+        // ---- 附魔监听器 (每个附魔独立类) ----
+        // 伤害编排: 按优先级分层, 同层内按此注册顺序执行
+        // LOWEST: 五行剑先重置 base 伤害
+        getServer().getPluginManager().registerEvents(new ElementalBladeEnchant(), this);
+        // LOW: 乘法修正 (先乘)
+        getServer().getPluginManager().registerEvents(new BloodSacrificeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new SharpBladeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new DoubleHitEnchant(), this);
+        getServer().getPluginManager().registerEvents(new CriticalStrikeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new StarTraceEnchant(), this);
+        getServer().getPluginManager().registerEvents(new ThunderGlowEnchant(), this);
+        // NORMAL: 加减法 / 真实伤害 / 纯减益
+        getServer().getPluginManager().registerEvents(new PierceEnchant(), this);
+        getServer().getPluginManager().registerEvents(new BlazingSunEnchant(), this);
+        getServer().getPluginManager().registerEvents(new IceSpikeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new InfernoEnchant(), this);
+        getServer().getPluginManager().registerEvents(new BlackTortoiseEnchant(), this);
+        getServer().getPluginManager().registerEvents(new DevourLifeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new FeedingEnchant(), this);
+        getServer().getPluginManager().registerEvents(new PoisonEnchant(), this);
+        getServer().getPluginManager().registerEvents(new FreezeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new FamineEnchant(), this);
+        getServer().getPluginManager().registerEvents(new BlindnessEnchant(), this);
+        getServer().getPluginManager().registerEvents(new StunEnchant(), this);
+        // HIGH: 防御 (减伤/回血/反弹, 作用于最终伤害)
+        getServer().getPluginManager().registerEvents(new DamageDispersalEnchant(), this);
+        getServer().getPluginManager().registerEvents(new HerbGuardEnchant(), this);
+        getServer().getPluginManager().registerEvents(new ProtectionPROEnchant(), this);
+        getServer().getPluginManager().registerEvents(new DodgeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new RevengeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new RipplesEnchant(), this);
+        // 其余非伤害链附魔
+        getServer().getPluginManager().registerEvents(new AmbushEnchant(), this);
+        getServer().getPluginManager().registerEvents(new ArrowSpeedEnchant(), this);
+        getServer().getPluginManager().registerEvents(new AutoPlantEnchant(), this);
+        getServer().getPluginManager().registerEvents(new BlockingEnchant(), this);
+        getServer().getPluginManager().registerEvents(new DiamondDrillEnchant(), this);
+        getServer().getPluginManager().registerEvents(new EarthFavorEnchant(), this);
+        getServer().getPluginManager().registerEvents(new EffectClearEnchant(), this);
+        getServer().getPluginManager().registerEvents(new ExplosiveArrowEnchant(), this);
+        getServer().getPluginManager().registerEvents(new GolemGuardianEnchant(), this);
+        getServer().getPluginManager().registerEvents(new HarvestEnchant(), this);
+        getServer().getPluginManager().registerEvents(new HeavyArmorEnchant(), this);
+        getServer().getPluginManager().registerEvents(new HolographicEnchant(), this);
+        getServer().getPluginManager().registerEvents(new IndestructibleEnchant(), this);
+        getServer().getPluginManager().registerEvents(new LavaWalkerEnchant(), this);
+        getServer().getPluginManager().registerEvents(new LightningCallEnchant(), this);
+        getServer().getPluginManager().registerEvents(new MagicBallEnchant(), this);
+        getServer().getPluginManager().registerEvents(new MultiShotEnchant(), this);
+        getServer().getPluginManager().registerEvents(new PiercingEnchant(), this);
+        getServer().getPluginManager().registerEvents(new ShadowDodgeEnchant(), this);
+        getServer().getPluginManager().registerEvents(new StrongBurstEnchant(), this);
+        getServer().getPluginManager().registerEvents(new SurvivorEnchant(), this);
+        getServer().getPluginManager().registerEvents(new ThunderclapArrowEnchant(), this);
+        getServer().getPluginManager().registerEvents(new TrackingEnchant(), this);
+        getServer().getPluginManager().registerEvents(new WitheringEnchant(), this);
+
+        // ---- 武器监听器 (每个武器独立类) ----
+        getServer().getPluginManager().registerEvents(new DaggerWeapon(), this);
+        getServer().getPluginManager().registerEvents(new ThrowingAxeWeapon(), this);
+        getServer().getPluginManager().registerEvents(new SkeletonScepterWeapon(), this);
+        getServer().getPluginManager().registerEvents(new MagicStickWeapon(), this);
+        getServer().getPluginManager().registerEvents(new FrostBowWeapon(), this);
+        getServer().getPluginManager().registerEvents(new FlameHalberdWeapon(), this);
+        getServer().getPluginManager().registerEvents(new QuickThrustWeapon(), this);
+        getServer().getPluginManager().registerEvents(new RejuvenationPowderCraft(), this);
+        getServer().getPluginManager().registerEvents(new RainSwordWeapon(), this);
+        getServer().getPluginManager().registerEvents(new FlyingSwordWeapon(), this);
+        getServer().getPluginManager().registerEvents(new FlashStepBladeWeapon(), this);
+        getServer().getPluginManager().registerEvents(new CloudMoonBladeWeapon(), this);
+        getServer().getPluginManager().registerEvents(new IceSwordWeapon(), this);
+        getServer().getPluginManager().registerEvents(new WebBowWeapon(), this);
+        getServer().getPluginManager().registerEvents(new ExplosionBowWeapon(), this);
+        getServer().getPluginManager().registerEvents(new FishBoneWeapon(), this);
+        getServer().getPluginManager().registerEvents(new FishBoneUpgradeCraft(), this);
+        getServer().getPluginManager().registerEvents(new IllusionBladeWeapon(), this);
+        getServer().getPluginManager().registerEvents(new IllusionStaffWeapon(), this);
     }
 
     // 注册指令执行器

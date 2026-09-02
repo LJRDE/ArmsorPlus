@@ -18,7 +18,8 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 // 幻翼·恼鬼 —— 幻翼 + 恼鬼 同时降临的组合飞行BOSS (参照熔岩双王的双实体模式)。
-// 幻翼(125血)与恼鬼(125血): 二者都隐身; 幻翼俯冲伤害×2、恼鬼挥剑伤害×0.35, 均为穿透伤害。
+// 幻翼(125血)与恼鬼(125血): 二者都隐身; 幻翼俯冲、恼鬼挥剑均为固定2点, 强制穿透(无视护甲/抗性/无敌帧)。
+// 幻翼攻击附剧毒+失明, 恼鬼攻击附凋零+失明 (5秒)。
 // 免疫远程伤害/火焰伤害/中毒/凋零; 幻翼是主实体(手动驱动: 盘旋→俯冲→咬击), 恼鬼是身体部位(原版AI贴身挥剑)。
 // 双BossBar分别显示二者血量; 幻翼与恼鬼都死亡才击败BOSS。
 public class PhantomVexBoss {
@@ -27,7 +28,7 @@ public class PhantomVexBoss {
     private static final double VEX_HEALTH = 125;
     private static final int TARGET_RANGE = 150; // 锁定范围: 150格内最近的生存玩家
     private static final int DESPAWN_TICKS = 1200;
-    private static final double PHANTOM_BASE_DAMAGE = 6; // 幻翼原版咬击基础伤害 (×2穿透由BossMenu放大)
+    private static final double PHANTOM_BASE_DAMAGE = 2; // 幻翼咬击基础伤害 (BossMenu统一转固定2点强制穿透)
     private static final double PHANTOM_SPEED = 1.3;     // 盘旋飞行速度 (格/tick)
     private static final double PHANTOM_DIVE_SPEED = 2.2;// 俯冲速度 (格/tick)
     private static final double PHANTOM_HOVER_HEIGHT = 7;// 盘旋点高于目标的高度
@@ -229,7 +230,7 @@ public class PhantomVexBoss {
             phantom.setVelocity(dirToward(pl.toVector(), body.toVector(), PHANTOM_DIVE_SPEED));
             phantom.lookAt(body);
             phantomDiveTicksLeft--;
-            // 命中: 贴近目标身体时咬击 (伤害×2穿透由BossMenu放大)
+            // 命中: 贴近目标身体时咬击 (由BossMenu统一转固定2点强制穿透)
             if (distBody < 2.5 && phantomBiteCooldown <= 0) {
                 target.damage(PHANTOM_BASE_DAMAGE, phantom);
                 phantomBiteCooldown = 30;
